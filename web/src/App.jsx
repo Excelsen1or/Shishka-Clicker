@@ -19,19 +19,32 @@ import {
 const THEME_OVERRIDES_STORAGE_KEY = 'shishka-theme-overrides-v1'
 const THEME_PRESET_STORAGE_KEY = 'shishka-theme-custom-presets-v1'
 
+function getStorageItem(key) {
+  if (typeof window === 'undefined') return null
+  return window.localStorage.getItem(key)
+}
+
 function readJsonStorage(key, fallback) {
   try {
-    const raw = window.localStorage.getItem(key)
+    const raw = getStorageItem(key)
     return raw ? JSON.parse(raw) : fallback
   } catch {
     return fallback
   }
 }
 
+function clonePlainObject(value) {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(value)
+  }
+
+  return JSON.parse(JSON.stringify(value))
+}
+
 function App() {
   const [user, setUser] = useState(null)
   const [bursts, setBursts] = useState([])
-  const [themeId, setThemeId] = useState(() => window.localStorage.getItem('shishka-theme') || DEFAULT_THEME_ID)
+  const [themeId, setThemeId] = useState(() => getStorageItem('shishka-theme') || DEFAULT_THEME_ID)
   const [themeOverrides, setThemeOverrides] = useState(() => readJsonStorage(THEME_OVERRIDES_STORAGE_KEY, {}))
   const [customPresets, setCustomPresets] = useState(() => readJsonStorage(THEME_PRESET_STORAGE_KEY, []))
   const [presetName, setPresetName] = useState('')
@@ -40,7 +53,17 @@ function App() {
   const { state, economy, contributions, mineShishki, buySubscription, buyUpgrade, resetGame } = useGame()
 
   useEffect(() => {
-    setupDiscord().then(setUser)
+    let isMounted = true
+
+    setupDiscord().then((discordUser) => {
+      if (isMounted) {
+        setUser(discordUser)
+      }
+    })
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   useEffect(() => {
@@ -54,10 +77,12 @@ function App() {
   }, [bursts])
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
     window.localStorage.setItem(THEME_OVERRIDES_STORAGE_KEY, JSON.stringify(themeOverrides))
   }, [themeOverrides])
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
     window.localStorage.setItem(THEME_PRESET_STORAGE_KEY, JSON.stringify(customPresets))
   }, [customPresets])
 
@@ -86,7 +111,9 @@ function App() {
   }, [isThemeSectionOpen])
 
   useEffect(() => {
-    window.localStorage.setItem('shishka-theme', themeId)
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('shishka-theme', themeId)
+    }
 
     const root = document.documentElement
     const vars = buildDesignVars(activeTheme)
@@ -163,7 +190,7 @@ function App() {
       id: `custom-${Date.now()}`,
       name: normalizedName,
       baseThemeId: themeId,
-      overrides: currentOverride,
+      overrides: clonePlainObject(currentOverride),
     }
 
     setCustomPresets((current) => [preset, ...current])
@@ -174,7 +201,7 @@ function App() {
     setThemeId(preset.baseThemeId)
     setThemeOverrides((current) => ({
       ...current,
-      [preset.baseThemeId]: preset.overrides || {},
+      [preset.baseThemeId]: clonePlainObject(preset.overrides || {}),
     }))
   }
 
@@ -289,7 +316,7 @@ function App() {
 
             <div className="relative grid gap-6 md:grid-cols-[0.95fr_1.05fr] md:items-center">
               <div ref={clickerRef} className="relative">
-                <button className="clicker-button group" onClick={handleMine}>
+                <button type="button" className="clicker-button group" onClick={handleMine}>
                   <div className="clicker-button__halo" />
                   <div className="clicker-button__ring clicker-button__ring--outer" />
                   <div className="clicker-button__ring clicker-button__ring--inner" />
@@ -344,7 +371,7 @@ function App() {
                   <div className="metric-pill">Всего знаний: {formatNumber(state.totalKnowledgeEarned)}</div>
                  </div>
 
-                <button className="danger-button mt-5" onClick={resetGame}>
+                <button type="button" className="danger-button mt-5" onClick={resetGame}>
                   Сбросить прогресс
                 </button>
               </div>

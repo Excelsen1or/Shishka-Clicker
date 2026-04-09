@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   STARTING_STATE,
+  createStartingState,
   SUBSCRIPTIONS,
   UPGRADES,
   deriveContributionBreakdown,
@@ -12,20 +13,32 @@ import {
 } from './config'
 import { loadGame, saveGame, clearGame } from '../lib/storage'
 
+function toSafeNumber(value, fallback = 0) {
+  const numeric = Number(value)
+  return Number.isFinite(numeric) && numeric >= 0 ? numeric : fallback
+}
+
+function toSafeLevelMap(source, blueprint) {
+  return Object.fromEntries(
+    Object.keys(blueprint).map((key) => [key, Math.floor(toSafeNumber(source?.[key], blueprint[key]))]),
+  )
+}
+
 function mergeState(saved) {
-  if (!saved) return STARTING_STATE
+  const baseState = createStartingState()
+  if (!saved || typeof saved !== 'object') return baseState
 
   return {
-    ...STARTING_STATE,
-    ...saved,
-    subscriptions: {
-      ...STARTING_STATE.subscriptions,
-      ...(saved.subscriptions ?? {}),
-    },
-    upgrades: {
-      ...STARTING_STATE.upgrades,
-      ...(saved.upgrades ?? {}),
-    },
+    ...baseState,
+    shishki: toSafeNumber(saved.shishki, baseState.shishki),
+    money: toSafeNumber(saved.money, baseState.money),
+    knowledge: toSafeNumber(saved.knowledge, baseState.knowledge),
+    manualClicks: Math.floor(toSafeNumber(saved.manualClicks, baseState.manualClicks)),
+    totalShishkiEarned: toSafeNumber(saved.totalShishkiEarned, baseState.totalShishkiEarned),
+    totalMoneyEarned: toSafeNumber(saved.totalMoneyEarned, baseState.totalMoneyEarned),
+    totalKnowledgeEarned: toSafeNumber(saved.totalKnowledgeEarned, baseState.totalKnowledgeEarned),
+    subscriptions: toSafeLevelMap(saved.subscriptions, baseState.subscriptions),
+    upgrades: toSafeLevelMap(saved.upgrades, baseState.upgrades),
   }
 }
 
@@ -53,7 +66,7 @@ export function useGame() {
   useEffect(() => {
     const interval = window.setInterval(() => {
       setState((current) => {
-        const rates = deriveEconomy(current)
+        const rates = deriveEconomy(current, { round: false })
         const nextShishki = current.shishki + rates.shishkiPerSecond
         const nextMoney = current.money + rates.moneyPerSecond
         const nextKnowledge = current.knowledge + rates.knowledgePerSecond
@@ -95,7 +108,7 @@ export function useGame() {
 
   function mineShishki() {
     setState((current) => {
-      const rates = deriveEconomy(current)
+      const rates = deriveEconomy(current, { round: false })
       return {
         ...current,
         shishki: current.shishki + rates.clickPower,
@@ -106,37 +119,47 @@ export function useGame() {
   }
 
   function buySubscription(id) {
-    const item = economy.subscriptions.find((entry) => entry.id === id)
-    if (!item || !item.unlocked) return
-
     setState((current) => {
-      if (current.money < item.cost) return current
+      const item = SUBSCRIPTIONS.find((entry) => entry.id === id)
+      if (!item) return current
+
+      const unlock = getUnlockStatus(current, id)
+      if (!unlock.unlocked) return current
+
+      const currentLevel = current.subscriptions[id] ?? 0
+      const cost = getScaledCost(item.baseCost, item.costScale, currentLevel)
+      if (current.money < cost) return current
 
       return {
         ...current,
-        money: current.money - item.cost,
+        money: current.money - cost,
         subscriptions: {
           ...current.subscriptions,
-          [id]: (current.subscriptions[id] ?? 0) + 1,
+          [id]: currentLevel + 1,
         },
       }
     })
   }
 
   function buyUpgrade(id) {
-    const item = economy.upgrades.find((entry) => entry.id === id)
-    if (!item || !item.unlocked) return
-
     setState((current) => {
+      const item = UPGRADES.find((entry) => entry.id === id)
+      if (!item) return current
+
+      const unlock = getUnlockStatus(current, id)
+      if (!unlock.unlocked) return current
+
+      const currentLevel = current.upgrades[id] ?? 0
+      const cost = getScaledCost(item.baseCost, item.costScale, currentLevel)
       const balance = current[item.currency]
-      if (balance < item.cost) return current
+      if (balance < cost) return current
 
       return {
         ...current,
-        [item.currency]: current[item.currency] - item.cost,
+        [item.currency]: balance - cost,
         upgrades: {
           ...current.upgrades,
-          [id]: (current.upgrades[id] ?? 0) + 1,
+          [id]: currentLevel + 1,
         },
       }
     })
@@ -144,7 +167,7 @@ export function useGame() {
 
   function resetGame() {
     clearGame()
-    setState(STARTING_STATE)
+    setState(createStartingState())
   }
 
   return {

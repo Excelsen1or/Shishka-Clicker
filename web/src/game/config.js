@@ -157,7 +157,19 @@ export const BALANCE = {
   },
 }
 
-export const STARTING_STATE = BALANCE.start
+function cloneStartingState() {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(BALANCE.start)
+  }
+
+  return JSON.parse(JSON.stringify(BALANCE.start))
+}
+
+export function createStartingState() {
+  return cloneStartingState()
+}
+
+export const STARTING_STATE = createStartingState()
 export const SUBSCRIPTIONS = Object.values(BALANCE.subscriptions)
 export const UPGRADES = Object.values(BALANCE.upgrades)
 
@@ -436,16 +448,30 @@ export function deriveContributionBreakdown(state) {
   )
 }
 
-export function deriveEconomy(state) {
+function roundEconomy(economy) {
+  return {
+    clickPower: Number(economy.clickPower.toFixed(1)),
+    shishkiPerSecond: Number(economy.shishkiPerSecond.toFixed(1)),
+    moneyPerSecond: Number(economy.moneyPerSecond.toFixed(1)),
+    knowledgePerSecond: Number(economy.knowledgePerSecond.toFixed(1)),
+    aiPower: Number(economy.aiPower.toFixed(1)),
+    aiMultiplier: Number(economy.aiMultiplier.toFixed(2)),
+  }
+}
+
+export function deriveEconomy(state, options = {}) {
+  const { round = true } = options
   const aiMultiplier = deriveAiMultiplier(state)
   const rawTotals = getRawStatTotals(state, aiMultiplier)
 
-  return {
-    clickPower: Number(applySoftcap('clickPower', rawTotals.clickPower).toFixed(1)),
-    shishkiPerSecond: Number(applySoftcap('shishkiPerSecond', rawTotals.shishkiPerSecond).toFixed(1)),
-    moneyPerSecond: Number(applySoftcap('moneyPerSecond', rawTotals.moneyPerSecond).toFixed(1)),
-    knowledgePerSecond: Number(applySoftcap('knowledgePerSecond', rawTotals.knowledgePerSecond).toFixed(1)),
-    aiPower: Number(deriveAiPower(state).toFixed(1)),
-    aiMultiplier: Number(aiMultiplier.toFixed(2)),
+  const economy = {
+    clickPower: applySoftcap('clickPower', rawTotals.clickPower),
+    shishkiPerSecond: applySoftcap('shishkiPerSecond', rawTotals.shishkiPerSecond),
+    moneyPerSecond: applySoftcap('moneyPerSecond', rawTotals.moneyPerSecond),
+    knowledgePerSecond: applySoftcap('knowledgePerSecond', rawTotals.knowledgePerSecond),
+    aiPower: deriveAiPower(state),
+    aiMultiplier,
   }
+
+  return round ? roundEconomy(economy) : economy
 }

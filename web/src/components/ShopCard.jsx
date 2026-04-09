@@ -58,6 +58,7 @@ export function ShopCard({ item, level, cost, canBuy, onBuy, delay = 0 }) {
       ) : null}
 
       <button
+        type="button"
         className="shop-button relative mt-4 w-full overflow-hidden rounded-2xl px-4 py-3 font-semibold"
         disabled={!canBuy || isLocked}
         onClick={onBuy}
