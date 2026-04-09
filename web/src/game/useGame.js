@@ -76,19 +76,26 @@ function applyIncome(current, seconds) {
 function unlockAchievements(current) {
   const derived = deriveAchievements(current)
   const nextUnlocked = { ...(current.achievements ?? {}) }
-  let changed = false
+  const unlockedNow = []
 
   derived.forEach((achievement) => {
     if (achievement.unlocked && !nextUnlocked[achievement.id]) {
       nextUnlocked[achievement.id] = true
-      changed = true
+      unlockedNow.push({
+        id: achievement.id,
+        title: achievement.title,
+        description: achievement.description,
+      })
     }
   })
 
-  if (!changed) return current
+  if (!unlockedNow.length) return { state: current, unlockedNow: [] }
   return {
-    ...current,
-    achievements: nextUnlocked,
+    state: {
+      ...current,
+      achievements: nextUnlocked,
+    },
+    unlockedNow,
   }
 }
 
@@ -97,6 +104,7 @@ export function useGame() {
   const derived = useMemo(() => deriveEconomy(state), [state])
   const saveTimeoutRef = useRef(null)
   const skipNextSaveRef = useRef(false)
+  const [achievementQueue, setAchievementQueue] = useState([])
 
   useEffect(() => {
     let mounted = true
@@ -113,7 +121,13 @@ export function useGame() {
       if (accumulator >= 0.25) {
         const seconds = accumulator
         accumulator = 0
-        setState((current) => unlockAchievements(applyIncome(current, seconds)))
+        setState((current) => {
+          const result = unlockAchievements(applyIncome(current, seconds))
+          if (result.unlockedNow.length) {
+            setAchievementQueue((queue) => [...queue, ...result.unlockedNow])
+          }
+          return result.state
+        })
       }
 
       frame = window.requestAnimationFrame(tick)
@@ -174,7 +188,7 @@ export function useGame() {
       const clickValue = isMega ? rates.clickPower * 5 : rates.clickPower
       burstValue = `${isMega ? 'МЕГА ' : '+'}${Math.round(clickValue * 10) / 10}`
 
-      return unlockAchievements({
+      const result = unlockAchievements({
         ...current,
         shishki: current.shishki + clickValue,
         manualClicks: current.manualClicks + 1,
@@ -183,6 +197,12 @@ export function useGame() {
         totalShishkiEarned: current.totalShishkiEarned + clickValue,
         lifetimeShishkiEarned: current.lifetimeShishkiEarned + clickValue,
       })
+
+      if (result.unlockedNow.length) {
+        setAchievementQueue((queue) => [...queue, ...result.unlockedNow])
+      }
+
+      return result.state
     })
 
     return {
@@ -205,7 +225,7 @@ export function useGame() {
       const cost = getScaledCost(item.baseCost, item.costScale, level)
       if (current.money < cost) return current
 
-      return unlockAchievements({
+      const result = unlockAchievements({
         ...current,
         money: current.money - cost,
         subscriptions: {
@@ -229,7 +249,7 @@ export function useGame() {
       const balance = current[item.currency]
       if (balance < cost) return current
 
-      return unlockAchievements({
+      const result = unlockAchievements({
         ...current,
         [item.currency]: current[item.currency] - cost,
         upgrades: {
@@ -241,13 +261,21 @@ export function useGame() {
   }
 
   function markSilenceLover() {
-    setState((current) => unlockAchievements({
-      ...current,
-      achievements: {
-        ...current.achievements,
-        silence_lover_progress: true,
-      },
-    }))
+    setState((current) => {
+      const result = unlockAchievements({
+        ...current,
+        achievements: {
+          ...current.achievements,
+          silence_lover_progress: true,
+        },
+      })
+
+      if (result.unlockedNow.length) {
+        setAchievementQueue((queue) => [...queue, ...result.unlockedNow])
+      }
+
+      return result.state
+    })
   }
 
   function prestigeReset() {
@@ -255,7 +283,7 @@ export function useGame() {
       const preview = getPrestigePreview(current)
       if (!preview.canRebirth || preview.shards <= 0) return current
 
-      return unlockAchievements({
+      const result = unlockAchievements({
         ...STARTING_STATE,
         achievements: current.achievements,
         prestigeShards: current.prestigeShards + preview.shards,
@@ -274,6 +302,7 @@ export function useGame() {
     window.clearTimeout(saveTimeoutRef.current)
     skipNextSaveRef.current = true
     clearGame()
+    setAchievementQueue([])
     setState(() => ({ ...STARTING_STATE }))
   }
 
@@ -292,5 +321,7 @@ export function useGame() {
     markSilenceLover,
     prestigeReset,
     resetGame,
+    achievementQueue,
+    dismissAchievement: () => setAchievementQueue((queue) => queue.slice(1)),
   }
 }
