@@ -96,6 +96,7 @@ export function useGame() {
   const [state, setState] = useState(() => mergeState(loadGame()))
   const derived = useMemo(() => deriveEconomy(state), [state])
   const saveTimeoutRef = useRef(null)
+  const skipNextSaveRef = useRef(false)
 
   useEffect(() => {
     let mounted = true
@@ -127,6 +128,12 @@ export function useGame() {
 
   useEffect(() => {
     window.clearTimeout(saveTimeoutRef.current)
+
+    if (skipNextSaveRef.current) {
+      skipNextSaveRef.current = false
+      return () => window.clearTimeout(saveTimeoutRef.current)
+    }
+
     saveTimeoutRef.current = window.setTimeout(() => {
       saveGame(state)
     }, 180)
@@ -264,8 +271,10 @@ export function useGame() {
   }
 
   function resetGame() {
+    window.clearTimeout(saveTimeoutRef.current)
+    skipNextSaveRef.current = true
     clearGame()
-    setState(STARTING_STATE)
+    setState(() => ({ ...STARTING_STATE }))
   }
 
   return {
