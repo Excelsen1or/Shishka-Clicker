@@ -61,6 +61,23 @@ export const BALANCE = {
       pool: ['🔥', '✨', '💥', '🎉', '🧠', '🚀', '😎', '🪩', '⚡', '🍀'],
     },
   },
+  prestige: {
+    unlock: {
+      shishki: 8000,
+      knowledge: 260,
+      achievements: 18,
+    },
+    rebirth: {
+      shishki: 20000,
+      knowledge: 450,
+    },
+    shards: {
+      shishkiDivisor: 950,
+      knowledgeDivisor: 125,
+      achievementDivisor: 6,
+      rebirthPenalty: 2,
+    },
+  },
   softcaps: {
     clickPower: { threshold: 24, power: 0.72 },
     shishkiPerSecond: { threshold: 130, power: 0.72 },
@@ -320,7 +337,30 @@ export const STARTING_STATE = BALANCE.start
 export const SUBSCRIPTIONS = Object.values(BALANCE.subscriptions)
 export const UPGRADES = Object.values(BALANCE.upgrades)
 
-export const ACHIEVEMENTS = [
+const achievementNumber = new Intl.NumberFormat('ru-RU')
+
+function totalLevels(collection) {
+  return Object.values(collection ?? {}).reduce((sum, value) => sum + Number(value ?? 0), 0)
+}
+
+function buildMilestoneAchievements({
+  idPrefix,
+  titlePrefix,
+  descriptionPrefix,
+  suffix,
+  milestones,
+  valueGetter,
+  icon = '🏁',
+}) {
+  return milestones.map((target, index) => ({
+    id: `${idPrefix}_${index + 1}`,
+    title: `${icon} ${titlePrefix} ${index + 1}`,
+    description: `${descriptionPrefix} ${achievementNumber.format(target)} ${suffix}`.trim(),
+    check: (state) => valueGetter(state) >= target,
+  }))
+}
+
+const specialAchievements = [
   {
     id: 'first_click',
     title: 'Первый удар',
@@ -369,6 +409,129 @@ export const ACHIEVEMENTS = [
     description: 'Накопи 25 осколков престижа.',
     check: (state) => state.totalPrestigeShardsEarned >= 25,
   },
+]
+
+const levelAchievements = [
+  ...buildMilestoneAchievements({
+    idPrefix: 'manual_clicks',
+    titlePrefix: 'Кликер',
+    descriptionPrefix: 'Сделай',
+    suffix: 'кликов вручную.',
+    milestones: [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000],
+    valueGetter: (state) => state.manualClicks ?? 0,
+    icon: '🖱️',
+  }),
+  ...buildMilestoneAchievements({
+    idPrefix: 'banked_shishki',
+    titlePrefix: 'Склад шишек',
+    descriptionPrefix: 'Держи одновременно',
+    suffix: 'шишек на балансе.',
+    milestones: [50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000],
+    valueGetter: (state) => state.shishki ?? 0,
+    icon: '🌰',
+  }),
+  ...buildMilestoneAchievements({
+    idPrefix: 'lifetime_shishki',
+    titlePrefix: 'Шишечный магнат',
+    descriptionPrefix: 'Заработай за всё время',
+    suffix: 'шишек.',
+    milestones: [1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000, 2000000],
+    valueGetter: (state) => state.lifetimeShishkiEarned ?? 0,
+    icon: '💼',
+  }),
+  ...buildMilestoneAchievements({
+    idPrefix: 'lifetime_money',
+    titlePrefix: 'Денежный поток',
+    descriptionPrefix: 'Заработай за всё время',
+    suffix: 'денег.',
+    milestones: [100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000],
+    valueGetter: (state) => state.lifetimeMoneyEarned ?? 0,
+    icon: '💵',
+  }),
+  ...buildMilestoneAchievements({
+    idPrefix: 'lifetime_knowledge',
+    titlePrefix: 'Архив знаний',
+    descriptionPrefix: 'Заработай за всё время',
+    suffix: 'знаний.',
+    milestones: [25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000],
+    valueGetter: (state) => state.lifetimeKnowledgeEarned ?? 0,
+    icon: '📚',
+  }),
+  ...buildMilestoneAchievements({
+    idPrefix: 'subscription_levels',
+    titlePrefix: 'Подписочный стек',
+    descriptionPrefix: 'Купи суммарно',
+    suffix: 'уровней подписок.',
+    milestones: [1, 3, 5, 10, 15, 25, 40, 60, 90, 120],
+    valueGetter: (state) => totalLevels(state.subscriptions),
+    icon: '🧠',
+  }),
+  ...buildMilestoneAchievements({
+    idPrefix: 'upgrade_levels',
+    titlePrefix: 'Инженер прогресса',
+    descriptionPrefix: 'Купи суммарно',
+    suffix: 'уровней улучшений.',
+    milestones: [1, 3, 5, 10, 15, 25, 40, 60, 90, 120],
+    valueGetter: (state) => totalLevels(state.upgrades),
+    icon: '⚙️',
+  }),
+  ...buildMilestoneAchievements({
+    idPrefix: 'mega_clicks',
+    titlePrefix: 'Серия мега-кликов',
+    descriptionPrefix: 'Сделай',
+    suffix: 'мега-кликов.',
+    milestones: [1, 5, 10, 25, 50, 100, 250, 500],
+    valueGetter: (state) => state.megaClicks ?? 0,
+    icon: '⚡',
+  }),
+  ...buildMilestoneAchievements({
+    idPrefix: 'emoji_bursts',
+    titlePrefix: 'Фестиваль эмодзи',
+    descriptionPrefix: 'Поймай',
+    suffix: 'эмодзи-взрывов.',
+    milestones: [1, 5, 15, 30, 60, 120, 240],
+    valueGetter: (state) => state.emojiBursts ?? 0,
+    icon: '🎉',
+  }),
+  ...buildMilestoneAchievements({
+    idPrefix: 'rebirths',
+    titlePrefix: 'Колесо сансары',
+    descriptionPrefix: 'Сделай',
+    suffix: 'перерождений.',
+    milestones: [1, 2, 3, 5, 8, 12, 20],
+    valueGetter: (state) => state.rebirths ?? 0,
+    icon: '♻️',
+  }),
+  ...buildMilestoneAchievements({
+    idPrefix: 'prestige_shards',
+    titlePrefix: 'Осколочный фонд',
+    descriptionPrefix: 'Заработай суммарно',
+    suffix: 'осколков престижа.',
+    milestones: [5, 10, 25, 50, 100, 200, 400],
+    valueGetter: (state) => state.totalPrestigeShardsEarned ?? 0,
+    icon: '💎',
+  }),
+]
+
+const subscriptionUnlockAchievements = SUBSCRIPTIONS.map((item) => ({
+  id: `subscription_unlock_${item.id}`,
+  title: `🧠 Первый слот: ${item.title}`,
+  description: `Купи первый уровень подписки «${item.title}».`,
+  check: (state) => (state.subscriptions?.[item.id] ?? 0) >= 1,
+}))
+
+const upgradeUnlockAchievements = UPGRADES.map((item) => ({
+  id: `upgrade_unlock_${item.id}`,
+  title: `⚙️ Первый апгрейд: ${item.title}`,
+  description: `Купи первый уровень улучшения «${item.title}».`,
+  check: (state) => (state.upgrades?.[item.id] ?? 0) >= 1,
+}))
+
+export const ACHIEVEMENTS = [
+  ...specialAchievements,
+  ...levelAchievements,
+  ...subscriptionUnlockAchievements,
+  ...upgradeUnlockAchievements,
 ]
 
 const STAT_META = {
@@ -480,7 +643,7 @@ function describeItemEffects(item, level, aiMultiplier, prestigeMultiplier) {
 
   item.effects.forEach((effect) => {
     const total = getEffectTotalAtLevel(effect, level, aiMultiplier) * (effect.stat === 'clickPower' || effect.stat.endsWith('PerSecond') ? prestigeMultiplier : 1)
-    const delta = (getEffectIncrement(effect, level, aiMultiplier)) * (effect.stat === 'clickPower' || effect.stat.endsWith('PerSecond') ? prestigeMultiplier : 1)
+    const delta = getEffectIncrement(effect, level, aiMultiplier) * (effect.stat === 'clickPower' || effect.stat.endsWith('PerSecond') ? prestigeMultiplier : 1)
 
     if (total > 0) current.push(formatEffectStat(effect.stat, total))
     if (delta > 0) next.push(formatEffectStat(effect.stat, delta))
@@ -679,14 +842,62 @@ export function deriveContributionBreakdown(state) {
   )
 }
 
+function getUnlockedAchievementCount(state) {
+  return ACHIEVEMENTS.reduce((count, achievement) => {
+    const unlocked = Boolean(state.achievements?.[achievement.id]) || Boolean(achievement.check(state))
+    return count + (unlocked ? 1 : 0)
+  }, 0)
+}
+
+export function getPrestigeUnlockStatus(state) {
+  const rule = BALANCE.prestige.unlock
+  const progress = {
+    shishki: state.lifetimeShishkiEarned ?? 0,
+    knowledge: state.lifetimeKnowledgeEarned ?? 0,
+    achievements: getUnlockedAchievementCount(state),
+  }
+
+  return {
+    unlocked:
+      progress.shishki >= rule.shishki &&
+      progress.knowledge >= rule.knowledge &&
+      progress.achievements >= rule.achievements,
+    rule,
+    progress,
+  }
+}
+
 export function getPrestigePreview(state) {
+  const unlock = getPrestigeUnlockStatus(state)
   const earnedShishki = state.lifetimeShishkiEarned ?? 0
   const earnedKnowledge = state.lifetimeKnowledgeEarned ?? 0
-  const shards = Math.max(0, Math.floor(Math.sqrt(earnedShishki / 600) + earnedKnowledge / 140) - (state.rebirths ?? 0) * 2)
+  const unlockedAchievements = unlock.progress.achievements
+  const shardCfg = BALANCE.prestige.shards
+  const rebirthRule = BALANCE.prestige.rebirth
+  const shards = Math.max(
+    0,
+    Math.floor(
+      Math.sqrt(earnedShishki / shardCfg.shishkiDivisor) +
+      earnedKnowledge / shardCfg.knowledgeDivisor +
+      unlockedAchievements / shardCfg.achievementDivisor,
+    ) - (state.rebirths ?? 0) * shardCfg.rebirthPenalty,
+  )
+
   return {
-    canRebirth: earnedShishki >= 2500,
+    isUnlocked: unlock.unlocked,
+    unlockRule: unlock.rule,
+    unlockProgress: unlock.progress,
+    rebirthRule,
+    canRebirth:
+      unlock.unlocked &&
+      earnedShishki >= rebirthRule.shishki &&
+      earnedKnowledge >= rebirthRule.knowledge,
     shards,
-    nextGoal: Math.max(0, 2500 - earnedShishki),
+    unlockedAchievements,
+    nextGoal: {
+      shishki: Math.max(0, rebirthRule.shishki - earnedShishki),
+      knowledge: Math.max(0, rebirthRule.knowledge - earnedKnowledge),
+    },
   }
 }
 

@@ -37,10 +37,9 @@ function mergeState(saved) {
   }
 }
 
-function enrichItem(state, item, level) {
+function enrichItem(state, item, level, aiMultiplier, prestigeMultiplier) {
   const unlock = getUnlockStatus(state, item.id)
-  const rates = deriveEconomy(state)
-  const effectPreview = getItemEffectPreview(item, level, rates.aiMultiplier, rates.prestigeMultiplier)
+  const effectPreview = getItemEffectPreview(item, level, aiMultiplier, prestigeMultiplier)
 
   return {
     ...item,
@@ -97,6 +96,7 @@ export function useGame() {
   const [state, setState] = useState(() => mergeState(loadGame()))
   const derived = useMemo(() => deriveEconomy(state), [state])
   const saveTimeoutRef = useRef(null)
+  const skipNextSaveRef = useRef(false)
 
   useEffect(() => {
     let mounted = true
@@ -128,6 +128,12 @@ export function useGame() {
 
   useEffect(() => {
     window.clearTimeout(saveTimeoutRef.current)
+
+    if (skipNextSaveRef.current) {
+      skipNextSaveRef.current = false
+      return () => window.clearTimeout(saveTimeoutRef.current)
+    }
+
     saveTimeoutRef.current = window.setTimeout(() => {
       saveGame(state)
     }, 180)
@@ -140,18 +146,20 @@ export function useGame() {
   const prestige = useMemo(() => getPrestigePreview(state), [state])
 
   const economy = useMemo(() => {
+    const { aiMultiplier, prestigeMultiplier } = derived
+
     const subscriptions = SUBSCRIPTIONS.map((item) => {
       const level = state.subscriptions[item.id] ?? 0
-      return enrichItem(state, { ...item, currency: 'money' }, level)
+      return enrichItem(state, { ...item, currency: 'money' }, level, aiMultiplier, prestigeMultiplier)
     })
 
     const upgrades = UPGRADES.map((item) => {
       const level = state.upgrades[item.id] ?? 0
-      return enrichItem(state, item, level)
+      return enrichItem(state, item, level, aiMultiplier, prestigeMultiplier)
     })
 
     return { subscriptions, upgrades }
-  }, [state])
+  }, [derived, state])
 
   function mineShishki() {
     const megaClickChance = getMegaClickChance(state)
@@ -263,8 +271,10 @@ export function useGame() {
   }
 
   function resetGame() {
+    window.clearTimeout(saveTimeoutRef.current)
+    skipNextSaveRef.current = true
     clearGame()
-    setState(STARTING_STATE)
+    setState(() => ({ ...STARTING_STATE }))
   }
 
   return {
