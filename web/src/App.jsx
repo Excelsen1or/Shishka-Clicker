@@ -98,7 +98,7 @@ function App() {
   )
 
   const dashboardAccent = useMemo(
-    () => `AI x${formatNumber(state.aiMultiplier)} · знаний всего: ${formatNumber(state.totalKnowledgeEarned)}`,
+    () => `AI x${formatNumber(state.aiMultiplier)} · знаний: ${formatNumber(state.totalKnowledgeEarned)}`,
     [state.aiMultiplier, state.totalKnowledgeEarned],
   )
 
