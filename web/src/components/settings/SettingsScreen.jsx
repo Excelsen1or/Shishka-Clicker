@@ -20,7 +20,7 @@ function ToggleRow({ label, hint, checked, onChange }) {
   )
 }
 
-function RangeRow({ label, hint, value, onChange }) {
+function RangeRow({ label, hint, value, onChange, min = 0, max = 100, step = 1, suffix = '%' }) {
   return (
     <label className="settings-range">
       <div className="settings-range__head">
@@ -28,14 +28,14 @@ function RangeRow({ label, hint, value, onChange }) {
           <div className="settings-card__label">{label}</div>
           <div className="settings-card__hint">{hint}</div>
         </div>
-        <div className="settings-range__value">{value}%</div>
+        <div className="settings-range__value">{value}{suffix}</div>
       </div>
 
       <input
         type="range"
-        min="0"
-        max="100"
-        step="1"
+        min={min}
+        max={max}
+        step={step}
         value={value}
         onChange={(event) => onChange(Number(event.target.value))}
       />
@@ -45,7 +45,13 @@ function RangeRow({ label, hint, value, onChange }) {
 
 export function SettingsScreen() {
   const { resetGame, markSilenceLover } = useGameContext()
-  const { settings, setVolume, toggle, resetSettings } = useSettingsContext()
+  const {
+    settings,
+    setVolume,
+    toggle,
+    resetSettings,
+    visualEffectCaps,
+  } = useSettingsContext()
 
   const handleMusicToggle = () => {
     if (settings.musicEnabled) markSilenceLover()
@@ -63,9 +69,9 @@ export function SettingsScreen() {
 
       <div className="screen__header">
         <span className="screen__kicker">Настройки</span>
-        <h2 className="screen__title">Звук и управление прогрессом</h2>
+        <h2 className="screen__title">Звук, эффекты и управление прогрессом</h2>
         <p className="screen__desc">
-          Управляй общей громкостью, отдельно настрой эффекты и музыку, а также сбрасывай сохранение из одного места.
+          Настрой громкость, интенсивность визуальных эффектов и при необходимости быстро сбрось сохранение.
         </p>
       </div>
 
@@ -111,6 +117,42 @@ export function SettingsScreen() {
           <button type="button" className="settings-ghost-btn" onClick={resetSettings}>
             Сбросить настройки звука
           </button>
+        </article>
+
+        <article className="settings-card">
+          <h3 className="settings-card__title">Визуальные эффекты</h3>
+
+          <RangeRow
+            label="Плотность эффектов"
+            hint="Один ползунок управляет общим лимитом шишек, эмодзи и всплывающих чисел на экране."
+            value={settings.visualEffectsDensity}
+            min={20}
+            max={200}
+            suffix="%"
+            onChange={(value) => setVolume('visualEffectsDensity', value)}
+          />
+
+          <div className="settings-info-box">
+            <div className="settings-info-box__title">Текущий лимит эффектов</div>
+            <div className="settings-info-box__grid">
+              <div>
+                <span>Эмодзи и шишки</span>
+                <strong>до {visualEffectCaps.particleCap}</strong>
+              </div>
+              <div>
+                <span>Всплывающие числа</span>
+                <strong>до {visualEffectCaps.burstCap}</strong>
+              </div>
+              <div>
+                <span>Доп. спрайты шишек</span>
+                <strong>до {visualEffectCaps.coneCap}</strong>
+              </div>
+              <div>
+                <span>Общий бюджет</span>
+                <strong>{visualEffectCaps.totalHint}</strong>
+              </div>
+            </div>
+          </div>
         </article>
 
         <article className="settings-card settings-card--danger">

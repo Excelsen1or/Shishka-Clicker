@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
+import { useSettingsContext } from '../context/SettingsContext'
 
 export function useBursts() {
   const [bursts, setBursts] = useState([])
+  const { visualEffectCaps } = useSettingsContext()
 
   useEffect(() => {
     if (!bursts.length) return
@@ -15,7 +17,7 @@ export function useBursts() {
 
   function addBurst(x, y, value) {
     setBursts((current) => [
-      ...current,
+      ...current.slice(-(visualEffectCaps.burstCap - 1)),
       {
         id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
         x,

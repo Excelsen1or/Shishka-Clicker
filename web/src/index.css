@@ -448,8 +448,10 @@ img { display: block; }
   cursor: pointer;
   transition:
     transform var(--dur-fast) var(--ease-spring),
-    box-shadow var(--dur-mid) ease,
-    border-color var(--dur-mid) ease;
+    box-shadow 820ms ease,
+    border-color 620ms ease,
+    background 900ms ease,
+    filter 900ms ease;
   user-select: none;
   -webkit-user-select: none;
   overflow: visible;
@@ -1063,7 +1065,50 @@ img { display: block; }
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  align-items: start;
 }
+
+.settings-info-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1rem;
+  border-radius: var(--r-lg);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.settings-info-box__title {
+  font-weight: 700;
+  color: var(--white);
+}
+
+.settings-info-box__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.settings-info-box__grid div {
+  padding: 0.8rem 0.9rem;
+  border-radius: 1rem;
+  background: rgba(255,255,255,0.035);
+  border: 1px solid rgba(255,255,255,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+
+.settings-info-box__grid span {
+  font-size: 0.78rem;
+  color: var(--text-2);
+}
+
+.settings-info-box__grid strong {
+  font-size: 1rem;
+  color: var(--amber-2);
+}
+
 
 .settings-card {
   border: 1px solid var(--border);
@@ -2194,6 +2239,7 @@ img { display: block; }
   background-size: auto, 240% 240%;
   animation: rgbPulse 1.2s linear infinite;
   box-shadow: 0 0 0 1px rgba(255,255,255,0.08) inset, 0 0 42px rgba(168,85,247,0.26), 0 0 56px rgba(34,211,238,0.22);
+  filter: saturate(1.16) brightness(1.04);
 }
 
 .clicker-btn--rgb .clicker-btn__halo,
@@ -2201,6 +2247,12 @@ img { display: block; }
 .clicker-btn--rgb .clicker-btn__ring--inner {
   background-size: 240% 240% !important;
   animation: rgbPulse 1s linear infinite;
+  transition:
+    background 820ms ease,
+    opacity 620ms ease,
+    box-shadow 820ms ease,
+    filter 820ms ease,
+    border-color 620ms ease;
 }
 
 .clicker-btn--rgb .clicker-btn__halo {
@@ -2231,6 +2283,13 @@ img { display: block; }
 @media (max-width: 760px) {
   .prestige-forecast-grid,
   .prestige-lab__summary {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+@media (max-width: 640px) {
+  .settings-info-box__grid {
     grid-template-columns: 1fr;
   }
 }

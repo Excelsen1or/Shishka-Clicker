@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useGameContext } from '../../context/GameContext'
+import { useSettingsContext } from '../../context/SettingsContext'
 import { useBursts } from '../../hooks/useBursts'
 import { useSound } from '../../hooks/useSound'
 import { ClickBurst } from '../ui/ClickBurst'
@@ -13,9 +14,9 @@ function pickRandom(pool) {
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
-function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosion) {
+function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosion, particleCap) {
   const now = Date.now()
-  const capped = Math.min(isEmojiExplosion ? 54 : 32, amount)
+  const capped = Math.max(6, Math.min(isEmojiExplosion ? particleCap : Math.min(particleCap, 32), amount))
   const pool = Array.isArray(symbols) ? symbols : [symbols]
 
   return Array.from({ length: capped }, (_, index) => {
@@ -37,9 +38,9 @@ function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosi
   })
 }
 
-function createConeSprites(localX, localY, amount, isMega) {
+function createConeSprites(localX, localY, amount, isMega, coneCap) {
   const now = Date.now()
-  const total = isMega ? amount + 3 : amount + 1
+  const total = Math.min(coneCap, isMega ? amount + 3 : amount + 1)
 
   return Array.from({ length: total }, (_, index) => {
     const angle = (-Math.PI / 2) + (Math.random() - 0.5) * 2.2
@@ -71,10 +72,14 @@ export function ClickerButton() {
   const rgbTimeoutRef = useRef(null)
 
   const { state, mineShishki } = useGameContext()
+  const { visualEffectCaps } = useSettingsContext()
   const { bursts, addBurst } = useBursts()
   const { play } = useSound(shishkaSound, { volume: 0.42 })
 
-  const particleLimitHint = useMemo(() => Math.min(54, Math.ceil(state.clickPower * 1.45)), [state.clickPower])
+  const particleLimitHint = useMemo(
+    () => Math.min(visualEffectCaps.particleCap, Math.ceil(state.clickPower * 1.45)),
+    [state.clickPower, visualEffectCaps.particleCap],
+  )
 
   useEffect(() => {
     return () => {
@@ -105,12 +110,9 @@ export function ClickerButton() {
   }
 
   function triggerRgbBurst() {
-    setIsRgbBurst(false)
-    requestAnimationFrame(() => {
-      setIsRgbBurst(true)
-      if (rgbTimeoutRef.current) window.clearTimeout(rgbTimeoutRef.current)
-      rgbTimeoutRef.current = window.setTimeout(() => setIsRgbBurst(false), 1400)
-    })
+    setIsRgbBurst(true)
+    if (rgbTimeoutRef.current) window.clearTimeout(rgbTimeoutRef.current)
+    rgbTimeoutRef.current = window.setTimeout(() => setIsRgbBurst(false), 1850)
   }
 
   function handleClick(e) {
@@ -143,12 +145,13 @@ export function ClickerButton() {
       result.symbols,
       result.isMega,
       result.isEmojiExplosion,
+      visualEffectCaps.particleCap,
     )
-    setParticles((current) => [...current.slice(-90), ...spawned])
+    setParticles((current) => [...current.slice(-(visualEffectCaps.particleCap * 2)), ...spawned])
 
     const coneBurstCount = result.isEmojiExplosion ? 2 : result.isMega ? 3 : 1
-    const cones = createConeSprites(localX, localY, coneBurstCount, result.isMega)
-    setConeSprites((current) => [...current.slice(-28), ...cones])
+    const cones = createConeSprites(localX, localY, coneBurstCount, result.isMega, visualEffectCaps.coneCap)
+    setConeSprites((current) => [...current.slice(-(visualEffectCaps.coneCap * 2)), ...cones])
   }
 
   function preventKeyboard(e) {

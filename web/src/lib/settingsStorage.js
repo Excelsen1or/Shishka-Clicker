@@ -6,12 +6,13 @@ export const DEFAULT_SETTINGS = {
   masterVolume: 70,
   effectsVolume: 80,
   musicVolume: 35,
+  visualEffectsDensity: 100,
 }
 
-function clampPercent(value, fallback) {
+function clampPercent(value, fallback, min = 0, max = 100) {
   const number = Number(value)
   if (!Number.isFinite(number)) return fallback
-  return Math.min(100, Math.max(0, Math.round(number)))
+  return Math.min(max, Math.max(min, Math.round(number)))
 }
 
 export function normalizeSettings(settings) {
@@ -23,6 +24,7 @@ export function normalizeSettings(settings) {
     masterVolume: clampPercent(input.masterVolume, DEFAULT_SETTINGS.masterVolume),
     effectsVolume: clampPercent(input.effectsVolume, DEFAULT_SETTINGS.effectsVolume),
     musicVolume: clampPercent(input.musicVolume, DEFAULT_SETTINGS.musicVolume),
+    visualEffectsDensity: clampPercent(input.visualEffectsDensity, DEFAULT_SETTINGS.visualEffectsDensity, 20, 200),
   }
 }
 

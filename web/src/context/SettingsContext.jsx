@@ -26,17 +26,31 @@ export function SettingsProvider({ children }) {
     setSettings(DEFAULT_SETTINGS)
   }
 
-  const value = useMemo(() => ({
-    settings,
-    patchSettings,
-    setVolume,
-    toggle,
-    resetSettings,
-    effectVolumeFactor:
-      settings.soundEnabled ? (settings.masterVolume / 100) * (settings.effectsVolume / 100) : 0,
-    musicVolumeFactor:
-      settings.musicEnabled ? (settings.masterVolume / 100) * (settings.musicVolume / 100) : 0,
-  }), [settings])
+  const value = useMemo(() => {
+    const densityFactor = settings.visualEffectsDensity / 100
+    const particleCap = Math.round(24 + densityFactor * 84)
+    const burstCap = Math.round(6 + densityFactor * 16)
+    const coneCap = Math.round(3 + densityFactor * 10)
+
+    return {
+      settings,
+      patchSettings,
+      setVolume,
+      toggle,
+      resetSettings,
+      effectVolumeFactor:
+        settings.soundEnabled ? (settings.masterVolume / 100) * (settings.effectsVolume / 100) : 0,
+      musicVolumeFactor:
+        settings.musicEnabled ? (settings.masterVolume / 100) * (settings.musicVolume / 100) : 0,
+      visualEffectsFactor: densityFactor,
+      visualEffectCaps: {
+        particleCap,
+        burstCap,
+        coneCap,
+        totalHint: particleCap + burstCap + coneCap,
+      },
+    }
+  }, [settings])
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
 }
