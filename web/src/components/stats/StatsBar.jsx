@@ -1,6 +1,7 @@
 import { useGameContext } from '../../context/GameContext'
 import { StatCard } from './StatCard'
-import { formatNumber } from '../../lib/format'
+import {MainStore} from "../../MainStore.js"
+
 
 export function StatsBar() {
   const { state, contributions } = useGameContext()
@@ -10,35 +11,35 @@ export function StatsBar() {
       icon: '🌰',
       label: 'Шишки',
       value: state.shishki,
-      hint: `+${formatNumber(state.shishkiPerSecond)} / сек`,
+      hint: `+${MainStore.formatShortNumber(state.shishkiPerSecond)} / сек`,
       contributions: contributions.shishkiPerSecond,
     },
     {
       icon: '💵',
       label: 'Деньги',
       value: state.money,
-      hint: `+${formatNumber(state.moneyPerSecond)} / сек`,
+      hint: `+${MainStore.formatShortNumber(state.moneyPerSecond)} / сек`,
       contributions: contributions.moneyPerSecond,
     },
     {
       icon: '📚',
       label: 'Знания',
       value: state.knowledge,
-      hint: `+${formatNumber(state.knowledgePerSecond)} / сек`,
+      hint: `+${MainStore.formatShortNumber(state.knowledgePerSecond)} / сек`,
       contributions: contributions.knowledgePerSecond,
     },
     {
       icon: '💪',
       label: 'Сила клика',
       value: state.clickPower,
-      hint: `${formatNumber(state.manualClicks)} кликов`,
+      hint: `${MainStore.formatShortNumber(state.manualClicks)} кликов`,
       contributions: contributions.clickPower,
     },
     {
       icon: '🤖',
       label: 'AI-мощность',
       value: state.aiPower,
-      hint: `множитель x${formatNumber(state.aiMultiplier)}`,
+      hint: `множитель x${MainStore.formatShortNumber(state.aiMultiplier)}`,
       contributions: contributions.aiPower,
     },
   ]

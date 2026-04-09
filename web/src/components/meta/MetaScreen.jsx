@@ -1,5 +1,6 @@
 import { useGameContext } from '../../context/GameContext'
-import { formatNumber } from '../../lib/format'
+import {MainStore} from "../../MainStore.js"
+
 
 function AchievementCard({ achievement }) {
   return (
@@ -34,17 +35,17 @@ export function MetaScreen() {
           <div className="meta-card__kicker">Престиж</div>
           <h3 className="meta-card__title">Система перерождения</h3>
           <div className="meta-stats">
-            <div><b>{formatNumber(state.rebirths)}</b><span>ребёрсов</span></div>
-            <div><b>{formatNumber(state.prestigeShards)}</b><span>осколков</span></div>
-            <div><b>x{formatNumber(state.prestigeMultiplier)}</b><span>постоянный буст</span></div>
+            <div><b>{MainStore.formatShortNumber(state.rebirths)}</b><span>ребёрсов</span></div>
+            <div><b>{MainStore.formatShortNumber(state.prestigeShards)}</b><span>осколков</span></div>
+            <div><b>x{MainStore.formatShortNumber(state.prestigeMultiplier)}</b><span>постоянный буст</span></div>
           </div>
           <p className="meta-card__desc">
             После ребёрса текущие ресурсы и уровни сбрасываются, но осколки и общий престиж остаются навсегда.
           </p>
           <div className="meta-card__hint">
             {prestige.canRebirth
-              ? `Сейчас можно получить ${formatNumber(prestige.shards)} оск.`
-              : `До первого ребёрса осталось ${formatNumber(prestige.nextGoal)} шишек за всё время.`}
+              ? `Сейчас можно получить ${MainStore.formatShortNumber(prestige.shards)} оск.`
+              : `До первого ребёрса осталось ${MainStore.formatShortNumber(prestige.nextGoal)} шишек за всё время.`}
           </div>
           <button
             type="button"
@@ -60,11 +61,11 @@ export function MetaScreen() {
           <div className="meta-card__kicker">Лайфтайм</div>
           <h3 className="meta-card__title">Глобальный прогресс</h3>
           <div className="meta-lifetime-grid">
-            <div><span>Всего шишек</span><b>{formatNumber(state.lifetimeShishkiEarned)}</b></div>
-            <div><span>Всего денег</span><b>{formatNumber(state.lifetimeMoneyEarned)}</b></div>
-            <div><span>Всего знаний</span><b>{formatNumber(state.lifetimeKnowledgeEarned)}</b></div>
-            <div><span>Мега-кликов</span><b>{formatNumber(state.megaClicks)}</b></div>
-            <div><span>Эмодзи-взрывов</span><b>{formatNumber(state.emojiBursts)}</b></div>
+            <div><span>Всего шишек</span><b>{MainStore.formatShortNumber(state.lifetimeShishkiEarned)}</b></div>
+            <div><span>Всего денег</span><b>{MainStore.formatShortNumber(state.lifetimeMoneyEarned)}</b></div>
+            <div><span>Всего знаний</span><b>{MainStore.formatShortNumber(state.lifetimeKnowledgeEarned)}</b></div>
+            <div><span>Мега-кликов</span><b>{MainStore.formatShortNumber(state.megaClicks)}</b></div>
+            <div><span>Эмодзи-взрывов</span><b>{MainStore.formatShortNumber(state.emojiBursts)}</b></div>
             <div><span>Достижений</span><b>{unlockedCount}/{achievements.length}</b></div>
           </div>
         </article>

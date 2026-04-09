@@ -1,6 +1,7 @@
-import { formatNumber } from '../../lib/format'
 import { useSound } from '../../hooks/useSound'
 import buySound from '../../assets/audio/ui/blip1.mp3'
+import {MainStore} from "../../MainStore.js"
+
 
 const CURRENCY_META = {
   money: { icon: '💵', label: 'деньги' },
@@ -14,8 +15,8 @@ function LockBadge({ item }) {
       <div className="shop-card__lock-title">🔒 Заблокировано</div>
       <div className="shop-card__lock-text">{item.unlockText}</div>
       <div className="shop-card__lock-progress">
-        <span>🌰 {formatNumber(item.unlockProgress.shishki)} / {formatNumber(item.unlockRule.shishki)}</span>
-        <span>📚 {formatNumber(item.unlockProgress.knowledge)} / {formatNumber(item.unlockRule.knowledge)}</span>
+        <span>🌰 {MainStore.formatShortNumber(item.unlockProgress.shishki)} / {MainStore.formatShortNumber(item.unlockRule.shishki)}</span>
+        <span>📚 {MainStore.formatShortNumber(item.unlockProgress.knowledge)} / {MainStore.formatShortNumber(item.unlockRule.knowledge)}</span>
       </div>
     </div>
   )
@@ -62,7 +63,7 @@ export function ShopCard({ item, canBuy, onBuy, delay = 0 }) {
         <div className="shop-card__price-box">
           <div className="shop-card__price-label">Цена уровня</div>
           <div className="shop-card__price">
-            <span className="shop-card__price-num">{formatNumber(item.cost)}</span>
+            <span className="shop-card__price-num">{MainStore.formatShortNumber(item.cost)}</span>
             <span className="shop-card__price-icon">{currency.icon}</span>
             <span className="shop-card__price-cur">{currency.label}</span>
           </div>

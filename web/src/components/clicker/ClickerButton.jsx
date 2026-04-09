@@ -3,11 +3,12 @@ import { useGameContext } from '../../context/GameContext'
 import { useBursts } from '../../hooks/useBursts'
 import { useSound } from '../../hooks/useSound'
 import { ClickBurst } from '../ui/ClickBurst'
-import { formatNumber } from '../../lib/format'
 import buttonImage from '../../assets/disco.gif'
 import vityaImage from '../../assets/v4.png'
 import coneImage from '../../assets/cone.png'
 import shishkaSound from '../../assets/audio/ui/shishka.mp3'
+import {MainStore} from "../../MainStore.js"
+
 
 function createParticles(localX, localY, amount, symbol, isMega) {
   const now = Date.now()
@@ -40,8 +41,6 @@ export function ClickerButton() {
   const { play } = useSound(shishkaSound, { volume: 0.42 })
 
   const particleLimitHint = useMemo(() => Math.min(28, Math.ceil(state.clickPower * 1.2)), [state.clickPower])
-
-
 
   const spawnCones = (e, amount) => {
     const id = Date.now()
@@ -81,7 +80,7 @@ export function ClickerButton() {
     const localX = e.clientX - rect.left
     const localY = e.clientY - rect.top
 
-    addBurst(localX, localY, result.isMega ? `⚡ ${result.amount}` : `+${formatNumber(state.clickPower)}`)
+    addBurst(localX, localY, result.isMega ? `⚡ ${result.amount}` : `+${MainStore.formatShortNumber(state.clickPower)}`)
 
     const spawned = createParticles(localX, localY, result.particleCount, result.symbol, result.isMega)
     setParticles((current) => [...current.slice(-40), ...spawned])
@@ -179,9 +178,9 @@ export function ClickerButton() {
         />
 
         <div className="clicker-btn__label">Кликни и добудь вышку</div>
-        <div className="clicker-btn__sub">За клик: +{formatNumber(state.clickPower)} 🌰</div>
+        <div className="clicker-btn__sub">За клик: +{MainStore.formatShortNumber(state.clickPower)} 🌰</div>
         <div className="clicker-btn__meta">
-          Мега-клик: {formatNumber(state.megaClickChance)}% · эмодзи при мега: {formatNumber(state.emojiMegaChance)}% · макс. частиц: {particleLimitHint}
+          Мега-клик: {MainStore.formatShortNumber(state.megaClickChance)}% · эмодзи при мега: {MainStore.formatShortNumber(state.emojiMegaChance)}% · макс. частиц: {particleLimitHint}
         </div>
       </div>
     </div>

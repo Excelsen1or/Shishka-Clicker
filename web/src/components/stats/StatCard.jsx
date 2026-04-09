@@ -1,4 +1,5 @@
-import { formatNumber } from '../../lib/format'
+import {MainStore} from "../../MainStore.js"
+
 
 function ContributionBar({ entry, total, index }) {
   const share = total > 0 ? Math.max(6, Math.round((entry.value / total) * 100)) : 0
@@ -8,7 +9,7 @@ function ContributionBar({ entry, total, index }) {
       <div className="contribution-row__info">
         <span className="contribution-row__rank">#{index + 1}</span>
         <span className="contribution-row__name">{entry.title}</span>
-        <span className="contribution-row__val">{formatNumber(entry.value)}</span>
+        <span className="contribution-row__val">{MainStore.formatShortNumber(entry.value)}</span>
       </div>
       <div className="contribution-bar">
         <div className="contribution-bar__fill" style={{ width: `${share}%` }} />
@@ -27,7 +28,7 @@ export function StatCard({ icon, label, value, hint, contributions, delay = 0 })
         <span className="stat-card__label">{label}</span>
       </div>
 
-      <div className="stat-card__value">{formatNumber(value)}</div>
+      <div className="stat-card__value">{MainStore.formatShortNumber(value)}</div>
 
       {hint && <div className="stat-card__hint">{hint}</div>}
 
