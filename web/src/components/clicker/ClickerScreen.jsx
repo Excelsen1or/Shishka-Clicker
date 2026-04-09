@@ -1,8 +1,13 @@
 import { ClickerButton } from './ClickerButton'
 import { ProgressOverview } from './ProgressOverview'
-import { StatsBar } from '../stats/StatsBar'
+import { useGameContext } from '../../context/GameContext'
+import { buildStats } from '../stats/StatsBar'
+import { StatCard } from '../stats/StatCard'
 
 export function ClickerScreen() {
+  const { state, contributions } = useGameContext()
+  const stats = buildStats(state, contributions)
+
   return (
     <section className="screen clicker-screen">
       <div className="screen__glow" />
@@ -20,7 +25,11 @@ export function ClickerScreen() {
           <ClickerButton />
         </div>
         <div className="clicker-layout__right">
-          <StatsBar className="stats-bar--clicker" />
+          <div className="clicker-stats-stack">
+            {stats.map((item, index) => (
+              <StatCard key={item.label} {...item} delay={index} />
+            ))}
+          </div>
           <ProgressOverview />
         </div>
       </div>
