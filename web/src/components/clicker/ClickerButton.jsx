@@ -6,6 +6,7 @@ import { ClickBurst } from '../ui/ClickBurst'
 import { formatNumber } from '../../lib/format'
 import buttonImage from '../../assets/disco.gif'
 import vityaImage from '../../assets/v4.png'
+import coneImage from '../../assets/cone.png'
 import shishkaSound from '../../assets/audio/ui/shishka.mp3'
 
 export function ClickerButton() {
@@ -27,7 +28,7 @@ export function ClickerButton() {
 
     for (let i = 0; i < amount; i++) {
       const angle = Math.random() * Math.PI * 2
-      const speed = Math.random() * 1 + 2
+      const speed = Math.random() + 2
 
       cones.current.push({
         id: id + i,
@@ -62,8 +63,8 @@ export function ClickerButton() {
         p.rotate += p.rotateSpeed
         p.life -= 0.4
 
-        const el = document.createElement('div')
-        el.textContent = '🌰'
+        const el = document.createElement('img')
+        el.src = coneImage
         el.style.position = 'absolute'
         el.style.left = `${p.x}px`
         el.style.top = `${p.y}px`
@@ -100,7 +101,7 @@ export function ClickerButton() {
     const localY = e.clientY - rect.top
 
     addBurst(localX, localY, `+${formatNumber(state.clickPower)}`)
-    spawnCones(e, state.clickPower)
+    spawnCones(e, 1)
   }
 
   function preventKeyboard(e) {
