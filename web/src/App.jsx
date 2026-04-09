@@ -4,7 +4,8 @@ import { useGame } from './game/useGame'
 import { StatCard } from './components/StatCard'
 import { ShopCard } from './components/ShopCard'
 import { ShopSection } from './components/ShopSection'
-import hero from './assets/hero.png'
+import buttonImage from './assets/disco.gif'
+import vityaImage from './assets/v4.png'
 import { formatNumber } from './lib/format'
 import {
   DEFAULT_THEME_ID,
@@ -301,7 +302,7 @@ function App() {
                 <div className="clicker-button__halo" />
                 <div className="clicker-button__ring clicker-button__ring--outer" />
                 <div className="clicker-button__ring clicker-button__ring--inner" />
-                <img src={hero} alt="Шишка" className="clicker-hero" />
+                <img src={state.shishkiPerSecond <= 0 ? vityaImage : buttonImage} alt="Шишка" className="clicker-hero" />
                 <div className="mt-4 text-xl font-bold text-white md:text-2xl">Кликни и добудь вышку</div>
                 <div className="mt-2 text-sm text-white/60">За клик: +{formatNumber(state.clickPower)} шишки</div>
               </button>
