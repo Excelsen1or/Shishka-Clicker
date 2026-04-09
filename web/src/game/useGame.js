@@ -54,22 +54,23 @@ function enrichItem(state, item, level, aiMultiplier, prestigeMultiplier) {
 }
 
 function applyIncome(current, seconds) {
-  const rates = deriveEconomy(current)
+  const safeCurrent = mergeState(current)
+  const rates = deriveEconomy(safeCurrent)
   const shishkiGain = rates.shishkiPerSecond * seconds
   const moneyGain = rates.moneyPerSecond * seconds
   const knowledgeGain = rates.knowledgePerSecond * seconds
 
   return {
-    ...current,
-    shishki: current.shishki + shishkiGain,
-    money: current.money + moneyGain,
-    knowledge: current.knowledge + knowledgeGain,
-    totalShishkiEarned: current.totalShishkiEarned + shishkiGain,
-    totalMoneyEarned: current.totalMoneyEarned + moneyGain,
-    totalKnowledgeEarned: current.totalKnowledgeEarned + knowledgeGain,
-    lifetimeShishkiEarned: current.lifetimeShishkiEarned + shishkiGain,
-    lifetimeMoneyEarned: current.lifetimeMoneyEarned + moneyGain,
-    lifetimeKnowledgeEarned: current.lifetimeKnowledgeEarned + knowledgeGain,
+    ...safeCurrent,
+    shishki: safeCurrent.shishki + shishkiGain,
+    money: safeCurrent.money + moneyGain,
+    knowledge: safeCurrent.knowledge + knowledgeGain,
+    totalShishkiEarned: safeCurrent.totalShishkiEarned + shishkiGain,
+    totalMoneyEarned: safeCurrent.totalMoneyEarned + moneyGain,
+    totalKnowledgeEarned: safeCurrent.totalKnowledgeEarned + knowledgeGain,
+    lifetimeShishkiEarned: safeCurrent.lifetimeShishkiEarned + shishkiGain,
+    lifetimeMoneyEarned: safeCurrent.lifetimeMoneyEarned + moneyGain,
+    lifetimeKnowledgeEarned: safeCurrent.lifetimeKnowledgeEarned + knowledgeGain,
   }
 }
 
@@ -185,6 +186,7 @@ export function useGame() {
     let burstValue = ''
 
     setState((current) => {
+      current = mergeState(current)
       const rates = deriveEconomy(current)
       const clickValue = isMega ? rates.clickPower * 5 : rates.clickPower
       burstValue = `${isMega ? 'МЕГА ' : '+'}${Math.round(clickValue * 10) / 10}`
@@ -216,6 +218,7 @@ export function useGame() {
 
   function buySubscription(id) {
     setState((current) => {
+      current = mergeState(current)
       const item = SUBSCRIPTIONS.find((entry) => entry.id === id)
       if (!item) return current
 
@@ -234,11 +237,18 @@ export function useGame() {
           [id]: level + 1,
         },
       })
+
+      if (result.unlockedNow.length) {
+        setAchievementQueue((queue) => [...queue, ...result.unlockedNow])
+      }
+
+      return result.state
     })
   }
 
   function buyUpgrade(id) {
     setState((current) => {
+      current = mergeState(current)
       const item = UPGRADES.find((entry) => entry.id === id)
       if (!item) return current
 
@@ -258,11 +268,18 @@ export function useGame() {
           [id]: level + 1,
         },
       })
+
+      if (result.unlockedNow.length) {
+        setAchievementQueue((queue) => [...queue, ...result.unlockedNow])
+      }
+
+      return result.state
     })
   }
 
   function markSilenceLover() {
     setState((current) => {
+      current = mergeState(current)
       const result = unlockAchievements({
         ...current,
         achievements: {
@@ -281,6 +298,7 @@ export function useGame() {
 
   function prestigeReset() {
     setState((current) => {
+      current = mergeState(current)
       const preview = getPrestigePreview(current)
       if (!preview.canRebirth || preview.shards <= 0) return current
 
@@ -296,6 +314,12 @@ export function useGame() {
         megaClicks: current.megaClicks,
         emojiBursts: current.emojiBursts,
       })
+
+      if (result.unlockedNow.length) {
+        setAchievementQueue((queue) => [...queue, ...result.unlockedNow])
+      }
+
+      return result.state
     })
   }
 
@@ -309,7 +333,7 @@ export function useGame() {
 
   return {
     state: {
-      ...state,
+      ...safeState,
       ...derived,
     },
     economy,
