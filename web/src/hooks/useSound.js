@@ -9,7 +9,7 @@ export function useSound(src, { volume = 0.5 } = {}) {
       audioRef.current.volume = volume
     }
     audioRef.current.currentTime = 0
-    audioRef.current.play().catch(() => {})
+    audioRef.current.play().catch((e) => console.log("Playback error:", e))
   }
 
   return { play }

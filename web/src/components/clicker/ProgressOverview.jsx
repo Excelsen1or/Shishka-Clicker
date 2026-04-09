@@ -85,10 +85,12 @@ export function ProgressOverview() {
         </div>
       </div>
 
-      <div className="unlock-grid">
-        <UnlockCard title="Следующая подписка" item={nextSub} accentClass="text-fuchsia" />
-        <UnlockCard title="Следующий апгрейд" item={nextUpgrade} accentClass="text-cyan" />
-      </div>
+      {(nextSub || nextUpgrade) &&
+        <div className="unlock-grid">
+          {nextSub && <UnlockCard title="Следующая подписка" item={nextSub} accentClass="text-fuchsia"/>}
+          {nextUpgrade && <UnlockCard title="Следующий апгрейд" item={nextUpgrade} accentClass="text-cyan"/>}
+        </div>
+      }
 
       <button className="reset-btn" onClick={resetGame}>
         Сбросить прогресс

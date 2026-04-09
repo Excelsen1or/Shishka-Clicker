@@ -6,7 +6,7 @@ import { ClickBurst } from '../ui/ClickBurst'
 import { formatNumber } from '../../lib/format'
 import buttonImage from '../../assets/disco.gif'
 import vityaImage from '../../assets/v4.png'
-import shishkaSound from '../../assets/shishka.mp3'
+import shishkaSound from '../../assets/audio/ui/shishka.mp3'
 
 export function ClickerButton() {
   const cones = useRef([])
@@ -35,6 +35,8 @@ export function ClickerButton() {
       cones.current.push(newCone)
     }
   }
+
+
 
   useEffect(() => {
     let frame

@@ -1,6 +1,6 @@
 import { useNav } from '../../context/NavContext'
 import { useSound } from '../../hooks/useSound'
-import switchSound from '../../assets/wpn_select.mp3'
+import switchSound from '../../assets/audio/ui/wpn_select.mp3'
 
 export function BottomNav() {
   const { activeTab, setActiveTab, tabs } = useNav()
