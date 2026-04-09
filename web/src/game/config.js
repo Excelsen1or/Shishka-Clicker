@@ -1,3 +1,5 @@
+import { getPrestigeBonuses, getRebirthQuota, getShardPreview } from './metaConfig'
+
 export const BALANCE = {
   start: {
     shishki: 0,
@@ -16,6 +18,14 @@ export const BALANCE = {
     megaClicks: 0,
     emojiBursts: 0,
     achievements: {},
+    prestigeUpgrades: {
+      coneTheory: 0,
+      archiveIndex: 0,
+      trophyRoute: 0,
+      rebirthCore: 0,
+      shardRefinery: 0,
+      overflowDoctrine: 0,
+    },
     subscriptions: {
       gigachat: 0,
       yandex_alisa: 0,
@@ -35,6 +45,9 @@ export const BALANCE = {
       serverRack: 0,
       focusMode: 0,
       memeMarketing: 0,
+      coneSorting: 0,
+      resinWorkshop: 0,
+      campusExchange: 0,
       ventureFund: 0,
     },
   },
@@ -68,14 +81,7 @@ export const BALANCE = {
       achievements: 45,
     },
     rebirth: {
-      shishki: 90000,
-      knowledge: 2400,
-    },
-    shards: {
-      shishkiDivisor: 2300,
-      knowledgeDivisor: 280,
-      achievementDivisor: 10,
-      rebirthPenalty: 3,
+      explanation: 'После открытия престижа каждая новая жизнь требует закрыть отдельную квоту текущего цикла.',
     },
   },
   softcaps: {
@@ -313,6 +319,51 @@ export const BALANCE = {
       effects: [
         { stat: 'shishkiPerSecond', firstGain: 2.3, decay: 0.952 },
         { stat: 'knowledgePerSecond', firstGain: 0.82, decay: 0.955 },
+      ],
+    },
+    coneSorting: {
+      id: 'coneSorting',
+      title: 'Сортировка шишек',
+      description: 'Шишки начинают работать как сырьё: даёт деньги и немного усиливает ручной клик.',
+      currency: 'shishki',
+      baseCost: 360,
+      costScale: 1.61,
+      tier: 2,
+      effectLabel: 'Деньги/сек + клик',
+      unlock: { shishki: 240, knowledge: 20 },
+      effects: [
+        { stat: 'moneyPerSecond', firstGain: 0.7, decay: 0.968 },
+        { stat: 'clickPower', firstGain: 0.18, decay: 0.972 },
+      ],
+    },
+    resinWorkshop: {
+      id: 'resinWorkshop',
+      title: 'Смоляная мастерская',
+      description: 'Перерабатывает шишки в устойчивый поток пассивных шишек и денег.',
+      currency: 'shishki',
+      baseCost: 880,
+      costScale: 1.7,
+      tier: 3,
+      effectLabel: 'Шишки/сек + деньги/сек',
+      unlock: { shishki: 950, knowledge: 110 },
+      effects: [
+        { stat: 'shishkiPerSecond', firstGain: 1.1, decay: 0.962 },
+        { stat: 'moneyPerSecond', firstGain: 0.92, decay: 0.964 },
+      ],
+    },
+    campusExchange: {
+      id: 'campusExchange',
+      title: 'Кампусная биржа',
+      description: 'Позволяет тратить шишки на знания и ускорять путь к поздней игре.',
+      currency: 'shishki',
+      baseCost: 2400,
+      costScale: 1.78,
+      tier: 5,
+      effectLabel: 'Знания/сек + шишки/сек',
+      unlock: { shishki: 3200, knowledge: 380 },
+      effects: [
+        { stat: 'knowledgePerSecond', firstGain: 0.78, decay: 0.956 },
+        { stat: 'shishkiPerSecond', firstGain: 1.7, decay: 0.958 },
       ],
     },
     ventureFund: {
@@ -949,7 +1000,8 @@ function deriveAiMultiplier(state = STARTING_STATE) {
 
 export function derivePrestigeMultiplier(state = STARTING_STATE) {
   const cfg = BALANCE.growth.prestigeMultiplier
-  return 1 + (state?.rebirths ?? 0) * cfg.rebirthGain + (state?.prestigeShards ?? 0) * cfg.shardGain
+  const bonuses = getPrestigeBonuses(state)
+  return 1 + (state?.rebirths ?? 0) * cfg.rebirthGain + (state?.prestigeShards ?? 0) * cfg.shardGain + bonuses.permanentMultiplierBonus
 }
 
 function deriveAiPower(state = STARTING_STATE) {
@@ -1138,34 +1190,31 @@ export function getPrestigeUnlockStatus(state = STARTING_STATE) {
 
 export function getPrestigePreview(state = STARTING_STATE) {
   const unlock = getPrestigeUnlockStatus(state)
-  const earnedShishki = state?.lifetimeShishkiEarned ?? 0
-  const earnedKnowledge = state?.lifetimeKnowledgeEarned ?? 0
   const unlockedAchievements = unlock.progress.achievements
-  const shardCfg = BALANCE.prestige.shards
-  const rebirthRule = BALANCE.prestige.rebirth
-  const shards = Math.max(
-    0,
-    Math.floor(
-      Math.sqrt(earnedShishki / shardCfg.shishkiDivisor) +
-      earnedKnowledge / shardCfg.knowledgeDivisor +
-      unlockedAchievements / shardCfg.achievementDivisor,
-    ) - (state.rebirths ?? 0) * shardCfg.rebirthPenalty,
-  )
+  const quota = getRebirthQuota(state, unlockedAchievements)
+  const shardPreview = getShardPreview(state, unlockedAchievements, quota)
+  const nextQuota = getRebirthQuota(state, unlockedAchievements, (state?.rebirths ?? 0) + 1)
+  const bonuses = getPrestigeBonuses(state)
 
   return {
     isUnlocked: unlock.unlocked,
     unlockRule: unlock.rule,
     unlockProgress: unlock.progress,
-    rebirthRule,
-    canRebirth:
-      unlock.unlocked &&
-      earnedShishki >= rebirthRule.shishki &&
-      earnedKnowledge >= rebirthRule.knowledge,
-    shards,
+    rebirthRule: quota,
+    nextQuota,
+    canRebirth: unlock.unlocked && shardPreview.canRebirth,
+    shards: unlock.unlocked ? shardPreview.projectedShards : 0,
+    projectedShards: unlock.unlocked ? shardPreview.projectedShards : 0,
     unlockedAchievements,
+    bonuses,
+    cycleProgress: shardPreview.progress,
+    cycleRatios: shardPreview.ratios,
+    quotaScore: shardPreview.quotaScore,
+    overflowScore: shardPreview.overflowScore,
     nextGoal: {
-      shishki: Math.max(0, rebirthRule.shishki - earnedShishki),
-      knowledge: Math.max(0, rebirthRule.knowledge - earnedKnowledge),
+      shishki: Math.max(0, quota.shishki - shardPreview.progress.shishki),
+      knowledge: Math.max(0, quota.knowledge - shardPreview.progress.knowledge),
+      achievements: Math.max(0, quota.achievements - shardPreview.progress.achievements),
     },
   }
 }

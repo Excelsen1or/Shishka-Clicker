@@ -15,6 +15,7 @@ import {
   getMegaClickChance,
   getMegaEmojiChance,
 } from './config'
+import { getPrestigeUpgradeCards, PRESTIGE_UPGRADES, getPrestigeUpgradeCost } from './metaConfig'
 import { loadGame, saveGame, clearGame } from '../lib/storage'
 
 function mergeState(saved) {
@@ -25,6 +26,10 @@ function mergeState(saved) {
     ...saved,
     achievements: {
       ...(saved.achievements ?? {}),
+    },
+    prestigeUpgrades: {
+      ...STARTING_STATE.prestigeUpgrades,
+      ...(saved.prestigeUpgrades ?? {}),
     },
     subscriptions: {
       ...STARTING_STATE.subscriptions,
@@ -177,7 +182,9 @@ export function useGame() {
       return enrichItem(safeState, item, level, aiMultiplier, prestigeMultiplier)
     })
 
-    return { subscriptions, upgrades }
+    const prestigeUpgrades = getPrestigeUpgradeCards(safeState)
+
+    return { subscriptions, upgrades, prestigeUpgrades }
   }, [derived, safeState])
 
   function mineShishki() {
@@ -185,7 +192,7 @@ export function useGame() {
     const isMega = Math.random() < megaClickChance
     const isEmojiBurst = isMega && Math.random() < getMegaEmojiChance(state)
     const emoji = isEmojiBurst ? getRandomMegaEmoji() : '🌰'
-    const emojiExplosionPool = ['🤡', '🌸', '🤖', '👾', '💥', '🛸', '🎉', '🦄', '🪩', '⚡']
+    const emojiExplosionPool = ['😀', '🥳', '🤯', '😈', '🤖', '👾', '🦄', '🪩', '🔥', '⚡', '🌈', '💥', '🎉', '✨', '🍄', '🐸']
     let burstValue = ''
 
     setState((current) => {
@@ -213,7 +220,7 @@ export function useGame() {
 
     return {
       amount: burstValue,
-      particleCount: Math.max(4, Math.min(isEmojiBurst ? 40 : 28, Math.ceil((state.clickPower * (isMega ? 2.8 : 1.2)) / 1.4))),
+      particleCount: Math.max(6, Math.min(isEmojiBurst ? 52 : 28, Math.ceil((state.clickPower * (isMega ? 3.1 : 1.2)) / 1.35))),
       symbols: isEmojiBurst ? emojiExplosionPool : isMega ? [emoji, '⚡', '🌰', '✨'] : [emoji, '🌰'],
       isMega,
       isEmojiExplosion: isEmojiBurst,
@@ -281,6 +288,27 @@ export function useGame() {
     })
   }
 
+  function buyPrestigeUpgrade(id) {
+    setState((current) => {
+      current = mergeState(current)
+      const item = PRESTIGE_UPGRADES.find((entry) => entry.id === id)
+      if (!item) return current
+
+      const level = current.prestigeUpgrades[item.id] ?? 0
+      const cost = getPrestigeUpgradeCost(item, level)
+      if ((current.prestigeShards ?? 0) < cost) return current
+
+      return {
+        ...current,
+        prestigeShards: current.prestigeShards - cost,
+        prestigeUpgrades: {
+          ...current.prestigeUpgrades,
+          [id]: level + 1,
+        },
+      }
+    })
+  }
+
   function markSilenceLover() {
     setState((current) => {
       current = mergeState(current)
@@ -309,6 +337,7 @@ export function useGame() {
       const result = unlockAchievements({
         ...STARTING_STATE,
         achievements: current.achievements,
+        prestigeUpgrades: current.prestigeUpgrades,
         prestigeShards: current.prestigeShards + preview.shards,
         totalPrestigeShardsEarned: current.totalPrestigeShardsEarned + preview.shards,
         rebirths: current.rebirths + 1,
@@ -347,6 +376,7 @@ export function useGame() {
     mineShishki,
     buySubscription,
     buyUpgrade,
+    buyPrestigeUpgrade,
     markSilenceLover,
     prestigeReset,
     resetGame,

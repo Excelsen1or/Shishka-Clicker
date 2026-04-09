@@ -36,8 +36,46 @@ function ProgressRow({ label, current, goal, alt = false }) {
   )
 }
 
+function PrestigeStep({ index, title, text, active = false }) {
+  return (
+    <div className={`prestige-step ${active ? 'prestige-step--active' : ''}`}>
+      <div className="prestige-step__index">{index}</div>
+      <div>
+        <div className="prestige-step__title">{title}</div>
+        <div className="prestige-step__text">{text}</div>
+      </div>
+    </div>
+  )
+}
+
+function LabCard({ item, canBuy, onBuy }) {
+  return (
+    <article className={`prestige-lab-card prestige-lab-card--${item.tint ?? 'amber'}`}>
+      <div className="prestige-lab-card__head">
+        <div>
+          <div className="prestige-lab-card__kicker">Метапрокачка</div>
+          <h3 className="prestige-lab-card__title">{item.title}</h3>
+        </div>
+        <div className="prestige-lab-card__level">ур. {item.level}</div>
+      </div>
+
+      <p className="prestige-lab-card__desc">{item.description}</p>
+
+      <div className="prestige-lab-card__effect">{item.effectPreview?.currentText}</div>
+      <div className="prestige-lab-card__next">{item.effectPreview?.nextText}</div>
+
+      <div className="prestige-lab-card__footer">
+        <div className="prestige-lab-card__price">💎 {formatNumber(item.cost)}</div>
+        <button type="button" className="shop-card__btn" disabled={!canBuy} onClick={onBuy}>
+          {canBuy ? 'Улучшить за осколки' : 'Не хватает осколков'}
+        </button>
+      </div>
+    </article>
+  )
+}
+
 export function MetaScreen() {
-  const { state, achievements, prestige, prestigeReset, resetGame } = useGameContext()
+  const { state, economy, achievements, prestige, prestigeReset, buyPrestigeUpgrade, resetGame } = useGameContext()
   const unlockedCount = achievements.filter((entry) => entry.unlocked).length
 
   const grouped = useMemo(() => {
@@ -62,9 +100,9 @@ export function MetaScreen() {
 
       <div className="screen__header">
         <span className="screen__kicker">Мета</span>
-        <h2 className="screen__title">Достижения и престиж</h2>
+        <h2 className="screen__title">Престиж, квоты и осколки</h2>
         <p className="screen__desc">
-          Здесь живёт долгосрочный прогресс: достижения, счётчик ребёрсов и постоянный множитель престижа.
+          Теперь престиж разбит на три шага: открыть систему, закрыть квоту текущего цикла и вложить редкие осколки в постоянные улучшения.
         </p>
       </div>
 
@@ -74,48 +112,59 @@ export function MetaScreen() {
           <h3 className="meta-card__title">Система перерождения</h3>
           <div className="meta-stats">
             <div><b>{formatNumber(state.rebirths)}</b><span>ребёрсов</span></div>
-            <div><b>{formatNumber(state.prestigeShards)}</b><span>осколков</span></div>
-            <div><b>x{formatNumber(state.prestigeMultiplier)}</b><span>постоянный буст</span></div>
+            <div><b>{formatNumber(state.prestigeShards)}</b><span>осколков на руках</span></div>
+            <div><b>x{formatNumber(state.prestigeMultiplier)}</b><span>общий буст</span></div>
+          </div>
+
+          <div className="prestige-steps">
+            <PrestigeStep index="1" title="Открытие" text="Один раз добей лайфтайм-порог по шишкам, знаниям и достижениям." active={!prestige.isUnlocked} />
+            <PrestigeStep index="2" title={`Квота цикла #${prestige.rebirthRule.cycle}`} text="После каждого ребёрса нужно заново закрыть отдельную квоту текущего забега." active={prestige.isUnlocked && !prestige.canRebirth} />
+            <PrestigeStep index="3" title="Осколки и мета" text="Осколков теперь меньше: базово 1 за квоту, больше только за сильный перелив сверх требований." active={prestige.canRebirth} />
           </div>
 
           {!prestige.isUnlocked ? (
             <>
-              <p className="meta-card__desc">
-                Перерождения теперь открываются только после середины игры. Сначала накопи экономику, знания и часть достижений.
-              </p>
-
               <div className="unlock-progress">
-                <ProgressRow
-                  label="🌰 Лайфтайм шишки"
-                  current={prestige.unlockProgress.shishki}
-                  goal={prestige.unlockRule.shishki}
-                />
-                <ProgressRow
-                  label="📚 Лайфтайм знания"
-                  current={prestige.unlockProgress.knowledge}
-                  goal={prestige.unlockRule.knowledge}
-                  alt
-                />
-                <ProgressRow
-                  label="🏆 Достижения"
-                  current={prestige.unlockProgress.achievements}
-                  goal={prestige.unlockRule.achievements}
-                />
+                <ProgressRow label="🌰 Лайфтайм шишки" current={prestige.unlockProgress.shishki} goal={prestige.unlockRule.shishki} />
+                <ProgressRow label="📚 Лайфтайм знания" current={prestige.unlockProgress.knowledge} goal={prestige.unlockRule.knowledge} alt />
+                <ProgressRow label="🏆 Достижения" current={prestige.unlockProgress.achievements} goal={prestige.unlockRule.achievements} />
               </div>
 
               <div className="meta-card__hint">
-                После открытия для ребёрса всё равно понадобится ещё {formatNumber(Math.max(0, prestige.rebirthRule.shishki - prestige.unlockRule.shishki))} лайфтайм шишек и {formatNumber(Math.max(0, prestige.rebirthRule.knowledge - prestige.unlockRule.knowledge))} знаний.
+                Сначала открой систему престижа. После этого появится отдельная квота забега и прогноз по осколкам.
               </div>
             </>
           ) : (
             <>
-              <p className="meta-card__desc">
-                После ребёрса текущие ресурсы и уровни сбрасываются, но осколки и общий престиж остаются навсегда.
-              </p>
+              <div className="unlock-progress">
+                <ProgressRow label="🌰 Квота шишек в этом цикле" current={prestige.cycleProgress.shishki} goal={prestige.rebirthRule.shishki} />
+                <ProgressRow label="📚 Квота знаний в этом цикле" current={prestige.cycleProgress.knowledge} goal={prestige.rebirthRule.knowledge} alt />
+                <ProgressRow label="🏆 Квота достижений" current={prestige.cycleProgress.achievements} goal={prestige.rebirthRule.achievements} />
+              </div>
+
+              <div className="prestige-forecast-grid">
+                <div>
+                  <span>Прогноз осколков</span>
+                  <b>{formatNumber(prestige.projectedShards)}</b>
+                </div>
+                <div>
+                  <span>Оценка квоты</span>
+                  <b>{formatNumber(prestige.quotaScore)}</b>
+                </div>
+                <div>
+                  <span>Следующая квота</span>
+                  <b>{formatNumber(prestige.nextQuota.shishki)} 🌰</b>
+                </div>
+                <div>
+                  <span>След. знания</span>
+                  <b>{formatNumber(prestige.nextQuota.knowledge)} 📚</b>
+                </div>
+              </div>
+
               <div className="meta-card__hint">
                 {prestige.canRebirth
-                  ? `Сейчас можно получить ${formatNumber(prestige.shards)} оск.`
-                  : `До следующего ребёрса осталось ${formatNumber(prestige.nextGoal.shishki)} шишек и ${formatNumber(prestige.nextGoal.knowledge)} знаний за всё время.`}
+                  ? `Квота закрыта. Сейчас ребёрс даст ${formatNumber(prestige.shards)} оск. Всё, что выше квоты, повышает награду, но медленно.`
+                  : `До ребёрса осталось ${formatNumber(prestige.nextGoal.shishki)} шишек, ${formatNumber(prestige.nextGoal.knowledge)} знаний и ${formatNumber(prestige.nextGoal.achievements)} достижений.`}
               </div>
             </>
           )}
@@ -127,7 +176,7 @@ export function MetaScreen() {
             onClick={prestigeReset}
           >
             {prestige.isUnlocked
-              ? prestige.canRebirth ? 'Переродиться сейчас' : 'Копи ресурсы для ребёрса'
+              ? prestige.canRebirth ? 'Переродиться и забрать осколки' : 'Сначала закрой квоту цикла'
               : 'Сначала открой систему престижа'}
           </button>
         </article>
@@ -145,7 +194,7 @@ export function MetaScreen() {
           </div>
 
           <div className="meta-card__hint">
-            Достижения теперь разбиты по категориям и уровням, а секретные цели скрываются до открытия.
+            После ребёрса сбрасываются текущие ресурсы и уровни магазина, но сохраняются достижения, осколки, мета-улучшения и общий множитель престижа.
           </div>
 
           <button type="button" className="reset-btn" onClick={resetGame}>
@@ -153,6 +202,34 @@ export function MetaScreen() {
           </button>
         </article>
       </div>
+
+      <article className="meta-card prestige-lab">
+        <div className="meta-card__kicker">Лаборатория осколков</div>
+        <h3 className="meta-card__title">Постоянные улучшения престижа</h3>
+        <p className="meta-card__desc">
+          Осколки редкие, поэтому здесь нет мусорных покупок: часть веток режет квоту, часть усиливает престиж, а часть повышает награду за перелив сверх квоты.
+        </p>
+
+        <div className="prestige-lab__summary">
+          <div><span>На руках</span><b>{formatNumber(state.prestigeShards)} 💎</b></div>
+          <div><span>Суммарно заработано</span><b>{formatNumber(state.totalPrestigeShardsEarned)} 💎</b></div>
+          <div><span>Снижение квоты шишек</span><b>-{formatNumber(prestige.bonuses.shishkiQuotaReduction * 100)}%</b></div>
+          <div><span>Снижение квоты знаний</span><b>-{formatNumber(prestige.bonuses.knowledgeQuotaReduction * 100)}%</b></div>
+          <div><span>Срез достижений</span><b>-{formatNumber(prestige.bonuses.achievementQuotaReduction)}</b></div>
+          <div><span>Бонус к престижу</span><b>+x{formatNumber(prestige.bonuses.permanentMultiplierBonus)}</b></div>
+        </div>
+
+        <div className="prestige-lab__grid">
+          {economy.prestigeUpgrades.map((item) => (
+            <LabCard
+              key={item.id}
+              item={item}
+              canBuy={state.prestigeShards >= item.cost}
+              onBuy={() => buyPrestigeUpgrade(item.id)}
+            />
+          ))}
+        </div>
+      </article>
 
       <div className="achievement-category-grid">
         {grouped.map((group) => (

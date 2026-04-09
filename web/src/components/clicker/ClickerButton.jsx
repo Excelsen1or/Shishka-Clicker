@@ -15,21 +15,21 @@ function pickRandom(pool) {
 
 function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosion) {
   const now = Date.now()
-  const capped = Math.min(isEmojiExplosion ? 44 : 32, amount)
+  const capped = Math.min(isEmojiExplosion ? 54 : 32, amount)
   const pool = Array.isArray(symbols) ? symbols : [symbols]
 
   return Array.from({ length: capped }, (_, index) => {
-    const angle = (Math.PI * 2 * index) / capped + Math.random() * 0.55
-    const distance = (isEmojiExplosion ? 80 : 22) + Math.random() * (isMega ? 165 : 92)
+    const angle = (Math.PI * 2 * index) / capped + Math.random() * 0.7
+    const distance = (isEmojiExplosion ? 98 : 22) + Math.random() * (isMega ? 180 : 92)
 
     return {
       id: `${now}-${index}-${Math.random().toString(36).slice(2)}`,
       x: localX,
       y: localY,
       dx: Math.cos(angle) * distance,
-      dy: Math.sin(angle) * distance - (isMega ? 38 : 14),
-      rotate: Math.round((Math.random() - 0.5) * (isEmojiExplosion ? 440 : 240)),
-      scale: 0.82 + Math.random() * (isEmojiExplosion ? 1.2 : isMega ? 0.9 : 0.45),
+      dy: Math.sin(angle) * distance - (isMega ? 42 : 14),
+      rotate: Math.round((Math.random() - 0.5) * (isEmojiExplosion ? 520 : 240)),
+      scale: 0.9 + Math.random() * (isEmojiExplosion ? 1.35 : isMega ? 0.9 : 0.45),
       symbol: pickRandom(pool),
       isMega,
       isEmojiExplosion,
@@ -64,25 +64,23 @@ export function ClickerButton() {
   const [coneSprites, setConeSprites] = useState([])
   const [isPressed, setIsPressed] = useState(false)
   const [isMegaPressed, setIsMegaPressed] = useState(false)
+  const [isRgbBurst, setIsRgbBurst] = useState(false)
 
   const pressTimeoutRef = useRef(null)
   const megaPressTimeoutRef = useRef(null)
+  const rgbTimeoutRef = useRef(null)
 
   const { state, mineShishki } = useGameContext()
   const { bursts, addBurst } = useBursts()
   const { play } = useSound(shishkaSound, { volume: 0.42 })
 
-  const particleLimitHint = useMemo(() => Math.min(44, Math.ceil(state.clickPower * 1.2)), [state.clickPower])
+  const particleLimitHint = useMemo(() => Math.min(54, Math.ceil(state.clickPower * 1.45)), [state.clickPower])
 
   useEffect(() => {
     return () => {
-      if (pressTimeoutRef.current) {
-        window.clearTimeout(pressTimeoutRef.current)
-      }
-
-      if (megaPressTimeoutRef.current) {
-        window.clearTimeout(megaPressTimeoutRef.current)
-      }
+      if (pressTimeoutRef.current) window.clearTimeout(pressTimeoutRef.current)
+      if (megaPressTimeoutRef.current) window.clearTimeout(megaPressTimeoutRef.current)
+      if (rgbTimeoutRef.current) window.clearTimeout(rgbTimeoutRef.current)
     }
   }, [])
 
@@ -91,14 +89,8 @@ export function ClickerButton() {
 
     requestAnimationFrame(() => {
       setIsPressed(true)
-
-      if (pressTimeoutRef.current) {
-        window.clearTimeout(pressTimeoutRef.current)
-      }
-
-      pressTimeoutRef.current = window.setTimeout(() => {
-        setIsPressed(false)
-      }, 220)
+      if (pressTimeoutRef.current) window.clearTimeout(pressTimeoutRef.current)
+      pressTimeoutRef.current = window.setTimeout(() => setIsPressed(false), 220)
     })
   }
 
@@ -107,14 +99,17 @@ export function ClickerButton() {
 
     requestAnimationFrame(() => {
       setIsMegaPressed(true)
+      if (megaPressTimeoutRef.current) window.clearTimeout(megaPressTimeoutRef.current)
+      megaPressTimeoutRef.current = window.setTimeout(() => setIsMegaPressed(false), 320)
+    })
+  }
 
-      if (megaPressTimeoutRef.current) {
-        window.clearTimeout(megaPressTimeoutRef.current)
-      }
-
-      megaPressTimeoutRef.current = window.setTimeout(() => {
-        setIsMegaPressed(false)
-      }, 320)
+  function triggerRgbBurst() {
+    setIsRgbBurst(false)
+    requestAnimationFrame(() => {
+      setIsRgbBurst(true)
+      if (rgbTimeoutRef.current) window.clearTimeout(rgbTimeoutRef.current)
+      rgbTimeoutRef.current = window.setTimeout(() => setIsRgbBurst(false), 1400)
     })
   }
 
@@ -127,17 +122,19 @@ export function ClickerButton() {
     play()
     const result = mineShishki()
 
-    if (result.isMega) {
-      triggerMegaPressAnimation()
-    } else {
-      triggerPressAnimation()
-    }
+    if (result.isMega) triggerMegaPressAnimation()
+    else triggerPressAnimation()
+    if (result.isEmojiExplosion) triggerRgbBurst()
 
     const rect = e.currentTarget.getBoundingClientRect()
     const localX = e.clientX - rect.left
     const localY = e.clientY - rect.top
 
-    addBurst(localX, localY, result.isMega ? `⚡ ${result.amount}` : `+${formatNumber(state.clickPower)}`)
+    addBurst(
+      localX,
+      localY,
+      result.isEmojiExplosion ? `🌈 ${result.amount}` : result.isMega ? `⚡ ${result.amount}` : `+${formatNumber(state.clickPower)}`,
+    )
 
     const spawned = createParticles(
       localX,
@@ -147,9 +144,9 @@ export function ClickerButton() {
       result.isMega,
       result.isEmojiExplosion,
     )
-    setParticles((current) => [...current.slice(-70), ...spawned])
+    setParticles((current) => [...current.slice(-90), ...spawned])
 
-    const coneBurstCount = result.isEmojiExplosion ? 4 : result.isMega ? 3 : 1
+    const coneBurstCount = result.isEmojiExplosion ? 2 : result.isMega ? 3 : 1
     const cones = createConeSprites(localX, localY, coneBurstCount, result.isMega)
     setConeSprites((current) => [...current.slice(-28), ...cones])
   }
@@ -163,7 +160,7 @@ export function ClickerButton() {
   return (
     <div className="clicker-wrap">
       <div
-        className={`clicker-btn ${isPressed ? 'clicker-btn--pressed' : ''} ${isMegaPressed ? 'clicker-btn--mega-pressed' : ''} ${particles.length ? 'clicker-btn--active' : ''}`}
+        className={`clicker-btn ${isPressed ? 'clicker-btn--pressed' : ''} ${isMegaPressed ? 'clicker-btn--mega-pressed' : ''} ${isRgbBurst ? 'clicker-btn--rgb' : ''} ${particles.length ? 'clicker-btn--active' : ''}`}
         onClick={handleClick}
         onKeyDown={preventKeyboard}
         aria-label="Добыть шишки"
