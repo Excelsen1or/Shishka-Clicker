@@ -101,7 +101,8 @@ function unlockAchievements(current) {
 
 export function useGame() {
   const [state, setState] = useState(() => mergeState(loadGame()))
-  const derived = useMemo(() => deriveEconomy(state), [state])
+  const safeState = useMemo(() => mergeState(state), [state])
+  const derived = useMemo(() => deriveEconomy(safeState), [safeState])
   const saveTimeoutRef = useRef(null)
   const skipNextSaveRef = useRef(false)
   const [achievementQueue, setAchievementQueue] = useState([])
@@ -155,25 +156,25 @@ export function useGame() {
     return () => window.clearTimeout(saveTimeoutRef.current)
   }, [state])
 
-  const achievements = useMemo(() => deriveAchievements(state), [state])
-  const contributions = useMemo(() => deriveContributionBreakdown(state), [state])
-  const prestige = useMemo(() => getPrestigePreview(state), [state])
+  const achievements = useMemo(() => deriveAchievements(safeState), [safeState])
+  const contributions = useMemo(() => deriveContributionBreakdown(safeState), [safeState])
+  const prestige = useMemo(() => getPrestigePreview(safeState), [safeState])
 
   const economy = useMemo(() => {
     const { aiMultiplier, prestigeMultiplier } = derived
 
     const subscriptions = SUBSCRIPTIONS.map((item) => {
-      const level = state.subscriptions[item.id] ?? 0
-      return enrichItem(state, { ...item, currency: 'money' }, level, aiMultiplier, prestigeMultiplier)
+      const level = safeState.subscriptions[item.id] ?? 0
+      return enrichItem(safeState, { ...item, currency: 'money' }, level, aiMultiplier, prestigeMultiplier)
     })
 
     const upgrades = UPGRADES.map((item) => {
-      const level = state.upgrades[item.id] ?? 0
-      return enrichItem(state, item, level, aiMultiplier, prestigeMultiplier)
+      const level = safeState.upgrades[item.id] ?? 0
+      return enrichItem(safeState, item, level, aiMultiplier, prestigeMultiplier)
     })
 
     return { subscriptions, upgrades }
-  }, [derived, state])
+  }, [derived, safeState])
 
   function mineShishki() {
     const megaClickChance = getMegaClickChance(state)
