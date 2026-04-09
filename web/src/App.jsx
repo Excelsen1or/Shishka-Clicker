@@ -23,7 +23,7 @@ function App() {
               <div className="text-sm uppercase tracking-[0.2em] text-fuchsia-200/80">Шишка кликер</div>
               <h1 className="mt-2 text-3xl font-black md:text-5xl">Шишки онлайн!</h1>
               <p className="mt-3 max-w-2xl text-sm text-white/70 md:text-base">
-                Зарабатывай деньги, оплачивай AI-подписки и автоматизируй добычу высшего образования.
+                Фарми вышки, превращай их в деньги и знания, а потом строй академическую машину на AI-подписках.
               </p>
             </div>
 
@@ -43,11 +43,12 @@ function App() {
           </div>
         </header>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <StatCard label="🌰 Шишки / вышки" value={state.shishki} hint={`+${formatNumber(state.shishkiPerSecond)} / сек`} />
           <StatCard label="💵 Деньги" value={state.money} hint={`+${formatNumber(state.moneyPerSecond)} / сек`} />
+          <StatCard label="📚 Знания" value={state.knowledge} hint={`+${formatNumber(state.knowledgePerSecond)} / сек`} />
           <StatCard label="💪 Сила клика" value={state.clickPower} hint={`${formatNumber(state.manualClicks)} ручных кликов`} />
-          <StatCard label="🤖 AI-мощность" value={state.aiPower} hint={`Знания: ${formatNumber(state.knowledge)}`} />
+          <StatCard label="🤖 AI-мощность" value={state.aiPower} hint={`AI x${formatNumber(state.aiMultiplier)} · знаний всего: ${formatNumber(state.totalKnowledgeEarned)}`} />
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -68,24 +69,30 @@ function App() {
 
               <div className="text-left">
                 <div className="text-sm uppercase tracking-[0.2em] text-cyan-200/70">Экономика</div>
-                <h2 className="mt-2 text-2xl font-bold">Цикл прогресса</h2>
+                <h2 className="mt-2 text-2xl font-bold">Новый цикл прогресса</h2>
                 <div className="mt-4 grid gap-3 text-sm text-white/75">
                   <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
                     1. Кликаешь и добываешь <b className="text-white">шишки</b>.
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    2. На <b className="text-white">деньги</b> покупаешь AI-подписки.
+                    2. Разгоняешь доход, открываешь <b className="text-white">новые тиры</b> по шишкам и знаниям.
                   </div>
                   <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    3. AI начинает сам фармить образования за тебя.
+                    3. AI генерирует <b className="text-white">знания</b>, а знания открывают исследования поздней игры.
                   </div>
                 </div>
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <div className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-white/70">
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/70">
                     Всего шишек: {formatNumber(state.totalShishkiEarned)}
                   </div>
-                  <div className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm text-white/70">
+                  <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/70">
                     Всего денег: {formatNumber(state.totalMoneyEarned)}
+                  </div>
+                  <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/70">
+                    Всего знаний: {formatNumber(state.totalKnowledgeEarned)}
+                  </div>
+                  <div className="rounded-2xl border border-cyan-400/20 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-50/85">
+                    Баланс вынесен в <b>BALANCE</b> и теперь управляется из одного места.
                   </div>
                 </div>
                 <button
@@ -102,6 +109,9 @@ function App() {
             <div className="text-left">
               <div className="text-sm uppercase tracking-[0.2em] text-fuchsia-200/80">Подписки</div>
               <h2 className="mt-2 text-2xl font-bold">AI-сервисы</h2>
+              <p className="mt-2 text-sm text-white/60">
+                Новые сервисы открываются по суммарно добытым шишкам и знаниям, чтобы экономику не разгоняло слишком рано.
+              </p>
             </div>
 
             <div className="mt-4 grid gap-4">
@@ -122,12 +132,15 @@ function App() {
         <section className="rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-2xl">
           <div className="text-left">
             <div className="text-sm uppercase tracking-[0.2em] text-cyan-200/80">Апгрейды</div>
-            <h2 className="mt-2 text-2xl font-bold">Инвестиции в прокачку</h2>
+            <h2 className="mt-2 text-2xl font-bold">Инвестиции и исследования</h2>
+            <p className="mt-2 text-sm text-white/60">
+              Часть улучшений живет в поздних тирах и открывается только после реального прогресса по шишкам и знаниям.
+            </p>
           </div>
 
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             {economy.upgrades.map((item) => {
-              const balance = item.currency === 'money' ? state.money : state.shishki
+              const balance = state[item.currency]
               return (
                 <ShopCard
                   key={item.id}

@@ -1,4 +1,4 @@
-const SAVE_KEY = 'shishka-clicker-save-v2'
+const SAVE_KEY = 'shishka-clicker-save-v3'
 
 export function loadGame() {
   if (typeof window === 'undefined') return null

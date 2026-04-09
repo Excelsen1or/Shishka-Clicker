@@ -1,5 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { STARTING_STATE, SUBSCRIPTIONS, UPGRADES, getScaledCost } from './config'
+import {
+  STARTING_STATE,
+  SUBSCRIPTIONS,
+  UPGRADES,
+  deriveEconomy,
+  formatUnlockText,
+  getItemEffectPreview,
+  getScaledCost,
+  getUnlockStatus,
+} from './config'
 import { loadGame, saveGame, clearGame } from '../lib/storage'
 
 function mergeState(saved) {
@@ -19,21 +28,43 @@ function mergeState(saved) {
   }
 }
 
+function enrichItem(state, item, level) {
+  const unlock = getUnlockStatus(state, item.id)
+  const rates = deriveEconomy(state)
+  const effectPreview = getItemEffectPreview(item, level, rates.aiMultiplier)
+
+  return {
+    ...item,
+    level,
+    cost: getScaledCost(item.baseCost, item.costScale, level),
+    unlocked: unlock.unlocked,
+    unlockRule: unlock.rule,
+    unlockText: formatUnlockText(unlock.rule),
+    unlockProgress: unlock.progress,
+    effectPreview,
+  }
+}
+
 export function useGame() {
   const [state, setState] = useState(() => mergeState(loadGame()))
+  const derived = useMemo(() => deriveEconomy(state), [state])
 
   useEffect(() => {
     const interval = window.setInterval(() => {
       setState((current) => {
-        const nextShishki = current.shishki + current.shishkiPerSecond
-        const nextMoney = current.money + current.moneyPerSecond
+        const rates = deriveEconomy(current)
+        const nextShishki = current.shishki + rates.shishkiPerSecond
+        const nextMoney = current.money + rates.moneyPerSecond
+        const nextKnowledge = current.knowledge + rates.knowledgePerSecond
 
         return {
           ...current,
           shishki: nextShishki,
           money: nextMoney,
-          totalShishkiEarned: current.totalShishkiEarned + current.shishkiPerSecond,
-          totalMoneyEarned: current.totalMoneyEarned + current.moneyPerSecond,
+          knowledge: nextKnowledge,
+          totalShishkiEarned: current.totalShishkiEarned + rates.shishkiPerSecond,
+          totalMoneyEarned: current.totalMoneyEarned + rates.moneyPerSecond,
+          totalKnowledgeEarned: current.totalKnowledgeEarned + rates.knowledgePerSecond,
         }
       })
     }, 1000)
@@ -48,43 +79,37 @@ export function useGame() {
   const economy = useMemo(() => {
     const subscriptions = SUBSCRIPTIONS.map((item) => {
       const level = state.subscriptions[item.id] ?? 0
-      return {
-        ...item,
-        currency: 'money',
-        level,
-        cost: getScaledCost(item.baseCost, item.costScale, level),
-      }
+      return enrichItem(state, { ...item, currency: 'money' }, level)
     })
 
     const upgrades = UPGRADES.map((item) => {
       const level = state.upgrades[item.id] ?? 0
-      return {
-        ...item,
-        level,
-        cost: getScaledCost(item.baseCost, item.costScale, level),
-      }
+      return enrichItem(state, item, level)
     })
 
     return { subscriptions, upgrades }
   }, [state])
 
   function mineShishki() {
-    setState((current) => ({
-      ...current,
-      shishki: current.shishki + current.clickPower,
-      manualClicks: current.manualClicks + 1,
-      totalShishkiEarned: current.totalShishkiEarned + current.clickPower,
-    }))
+    setState((current) => {
+      const rates = deriveEconomy(current)
+      return {
+        ...current,
+        shishki: current.shishki + rates.clickPower,
+        manualClicks: current.manualClicks + 1,
+        totalShishkiEarned: current.totalShishkiEarned + rates.clickPower,
+      }
+    })
   }
 
   function buySubscription(id) {
     const item = economy.subscriptions.find((entry) => entry.id === id)
-    if (!item) return
+    if (!item || !item.unlocked) return
 
     setState((current) => {
       if (current.money < item.cost) return current
 
-      const next = {
+      return {
         ...current,
         money: current.money - item.cost,
         subscriptions: {
@@ -92,21 +117,18 @@ export function useGame() {
           [id]: (current.subscriptions[id] ?? 0) + 1,
         },
       }
-
-      item.apply(next)
-      return next
     })
   }
 
   function buyUpgrade(id) {
     const item = economy.upgrades.find((entry) => entry.id === id)
-    if (!item) return
+    if (!item || !item.unlocked) return
 
     setState((current) => {
-      const balance = item.currency === 'money' ? current.money : current.shishki
+      const balance = current[item.currency]
       if (balance < item.cost) return current
 
-      const next = {
+      return {
         ...current,
         [item.currency]: current[item.currency] - item.cost,
         upgrades: {
@@ -114,9 +136,6 @@ export function useGame() {
           [id]: (current.upgrades[id] ?? 0) + 1,
         },
       }
-
-      item.apply(next)
-      return next
     })
   }
 
@@ -126,7 +145,10 @@ export function useGame() {
   }
 
   return {
-    state,
+    state: {
+      ...state,
+      ...derived,
+    },
     economy,
     mineShishki,
     buySubscription,
