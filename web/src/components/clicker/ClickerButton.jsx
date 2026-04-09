@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState} from 'react'
+import { useMemo, useState } from 'react'
 import { useGameContext } from '../../context/GameContext'
 import { useBursts } from '../../hooks/useBursts'
 import { useSound } from '../../hooks/useSound'
@@ -31,42 +31,36 @@ function createParticles(localX, localY, amount, symbol, isMega) {
   })
 }
 
+function createConeSprites(localX, localY, amount, isMega) {
+  const now = Date.now()
+  const total = isMega ? amount + 2 : amount
+
+  return Array.from({ length: total }, (_, index) => {
+    const angle = (-Math.PI / 2) + (Math.random() - 0.5) * 1.8
+    const distance = 42 + Math.random() * (isMega ? 120 : 72)
+
+    return {
+      id: `cone-${now}-${index}-${Math.random().toString(36).slice(2)}`,
+      x: localX,
+      y: localY,
+      dx: Math.cos(angle) * distance,
+      dy: -18 - Math.abs(Math.sin(angle) * distance),
+      rotateStart: Math.round(Math.random() * 180),
+      rotateEnd: Math.round((Math.random() - 0.5) * 560),
+      scale: 0.5 + Math.random() * (isMega ? 0.8 : 0.45),
+      isMega,
+    }
+  })
+}
+
 export function ClickerButton() {
-  const cones = useRef([])
-  const containerRef = useRef(null)
   const [particles, setParticles] = useState([])
+  const [coneSprites, setConeSprites] = useState([])
   const { state, mineShishki } = useGameContext()
   const { bursts, addBurst } = useBursts()
   const { play } = useSound(shishkaSound, { volume: 0.42 })
 
   const particleLimitHint = useMemo(() => Math.min(28, Math.ceil(state.clickPower * 1.2)), [state.clickPower])
-
-
-
-  const spawnCones = (e, amount) => {
-    const id = Date.now()
-    const rect = containerRef.current?.getBoundingClientRect()
-    if (!rect) return
-
-    const localX = e.clientX - rect.left
-    const localY = e.clientY - rect.top
-
-    for (let i = 0; i < amount; i++) {
-      const angle = Math.random() * Math.PI * 2
-      const speed = Math.random() + 2
-
-      cones.current.push({
-        id: id + i,
-        x: localX,
-        y: localY,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 1,
-        rotate: Math.random() * 360,
-        rotateSpeed: (Math.random() - 0.5) * 6,
-        life: 60,
-      })
-    }
-  }
 
   function handleClick(e) {
     if (e.detail === 0) {
@@ -85,48 +79,11 @@ export function ClickerButton() {
 
     const spawned = createParticles(localX, localY, result.particleCount, result.symbol, result.isMega)
     setParticles((current) => [...current.slice(-40), ...spawned])
-    spawnCones(e, 1)
+
+    const coneBurstCount = result.isMega ? 2 : 1
+    const cones = createConeSprites(localX, localY, coneBurstCount, result.isMega)
+    setConeSprites((current) => [...current.slice(-18), ...cones])
   }
-
-  useEffect(() => {
-    let frame
-
-    const update = () => {
-      const container = containerRef.current
-      if (!container) return
-
-      container.innerHTML = ''
-
-      cones.current = cones.current.filter((p) => p.life > 0)
-
-      cones.current.forEach((p) => {
-        p.vy += 0.03
-        p.x += p.vx * 0.3
-        p.y += p.vy * 0.3
-        p.rotate += p.rotateSpeed
-        p.life -= 0.4
-
-        const el = document.createElement('img')
-        el.src = coneImage
-        el.style.position = 'absolute'
-        el.style.left = `${p.x}px`
-        el.style.top = `${p.y}px`
-        el.style.transform = `translate(-50%, -50%) rotate(${p.rotate}deg)`
-        el.style.pointerEvents = 'none'
-        el.style.userSelect = 'none'
-        el.style.willChange = 'transform, top, left'
-        el.style.opacity = String(Math.max(p.life / 60, 0))
-        el.style.zIndex = '3'
-
-        container.appendChild(el)
-      })
-
-      frame = requestAnimationFrame(update)
-    }
-
-    frame = requestAnimationFrame(update)
-    return () => cancelAnimationFrame(frame)
-  }, [])
 
   function preventKeyboard(e) {
     if (e.key === 'Enter' || e.key === ' ') e.preventDefault()
@@ -162,9 +119,30 @@ export function ClickerButton() {
               {particle.symbol}
             </span>
           ))}
+
+          {coneSprites.map((sprite) => (
+            <img
+              key={sprite.id}
+              src={coneImage}
+              alt=""
+              className={`cone-sprite ${sprite.isMega ? 'cone-sprite--mega' : ''}`}
+              draggable={false}
+              style={{
+                left: `${sprite.x}px`,
+                top: `${sprite.y}px`,
+                '--dx': `${sprite.dx}px`,
+                '--dy': `${sprite.dy}px`,
+                '--rot-start': `${sprite.rotateStart}deg`,
+                '--rot-end': `${sprite.rotateEnd}deg`,
+                '--cone-scale': sprite.scale,
+              }}
+              onAnimationEnd={() => {
+                setConeSprites((current) => current.filter((entry) => entry.id !== sprite.id))
+              }}
+            />
+          ))}
         </div>
 
-        <div ref={containerRef} className="clicker-particles" />
         <ClickBurst bursts={bursts} />
 
         <div className="clicker-btn__halo" />

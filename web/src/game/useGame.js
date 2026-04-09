@@ -37,10 +37,9 @@ function mergeState(saved) {
   }
 }
 
-function enrichItem(state, item, level) {
+function enrichItem(state, item, level, aiMultiplier, prestigeMultiplier) {
   const unlock = getUnlockStatus(state, item.id)
-  const rates = deriveEconomy(state)
-  const effectPreview = getItemEffectPreview(item, level, rates.aiMultiplier, rates.prestigeMultiplier)
+  const effectPreview = getItemEffectPreview(item, level, aiMultiplier, prestigeMultiplier)
 
   return {
     ...item,
@@ -140,18 +139,20 @@ export function useGame() {
   const prestige = useMemo(() => getPrestigePreview(state), [state])
 
   const economy = useMemo(() => {
+    const { aiMultiplier, prestigeMultiplier } = derived
+
     const subscriptions = SUBSCRIPTIONS.map((item) => {
       const level = state.subscriptions[item.id] ?? 0
-      return enrichItem(state, { ...item, currency: 'money' }, level)
+      return enrichItem(state, { ...item, currency: 'money' }, level, aiMultiplier, prestigeMultiplier)
     })
 
     const upgrades = UPGRADES.map((item) => {
       const level = state.upgrades[item.id] ?? 0
-      return enrichItem(state, item, level)
+      return enrichItem(state, item, level, aiMultiplier, prestigeMultiplier)
     })
 
     return { subscriptions, upgrades }
-  }, [state])
+  }, [derived, state])
 
   function mineShishki() {
     const megaClickChance = getMegaClickChance(state)

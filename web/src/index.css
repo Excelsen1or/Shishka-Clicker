@@ -1178,6 +1178,12 @@ img { display: block; }
   background: rgba(255,255,255,0.03);
 }
 
+.settings-ghost-btn--danger {
+  color: #ffd3d3;
+  border-color: rgba(248,113,113,0.35);
+  background: rgba(248,113,113,0.08);
+}
+
 .settings-ghost-btn:hover,
 .reset-btn:hover {
   transform: translateY(-1px);
@@ -1227,6 +1233,39 @@ img { display: block; }
       translate(calc(-50% + var(--dx)), calc(-50% + var(--dy)))
       scale(var(--scale))
       rotate(var(--rot));
+  }
+}
+
+
+.cone-sprite {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  transform: translate(-50%, -50%) rotate(var(--rot-start)) scale(var(--cone-scale));
+  animation: coneShardFly 760ms cubic-bezier(0.18, 0.86, 0.32, 1) forwards;
+  pointer-events: none;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 10px 18px rgba(0,0,0,0.28));
+}
+
+.cone-sprite--mega {
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(0 12px 22px rgba(245,158,11,0.28));
+}
+
+@keyframes coneShardFly {
+  0% {
+    opacity: 0.96;
+    transform: translate(-50%, -50%) rotate(var(--rot-start)) scale(var(--cone-scale));
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translate(calc(-50% + var(--dx)), calc(-50% + var(--dy)))
+      rotate(var(--rot-end))
+      scale(calc(var(--cone-scale) * 0.7));
   }
 }
 
@@ -1281,6 +1320,11 @@ img { display: block; }
 .meta-card__hint {
   color: var(--text-2);
   margin: 0.45rem 0;
+}
+
+.meta-card .reset-btn {
+  margin-top: 0.9rem;
+  width: 100%;
 }
 
 .meta-stats {

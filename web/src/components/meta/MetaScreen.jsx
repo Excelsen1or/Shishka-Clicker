@@ -13,9 +13,31 @@ function AchievementCard({ achievement }) {
   )
 }
 
+function ProgressRow({ label, current, goal, alt = false }) {
+  const percent = Math.min(100, (current / Math.max(1, goal)) * 100)
+
+  return (
+    <>
+      <div className="unlock-progress__row">
+        <span>{label}</span>
+        <span>{formatNumber(current)} / {formatNumber(goal)}</span>
+      </div>
+      <div className="unlock-progress__track">
+        <div className={`unlock-progress__fill ${alt ? 'unlock-progress__fill--alt' : ''}`} style={{ width: `${percent}%` }} />
+      </div>
+    </>
+  )
+}
+
 export function MetaScreen() {
-  const { state, achievements, prestige, prestigeReset } = useGameContext()
+  const { state, achievements, prestige, prestigeReset, resetGame } = useGameContext()
   const unlockedCount = achievements.filter((entry) => entry.unlocked).length
+
+  const handleFullReset = () => {
+    if (window.confirm('Удалить весь прогресс и начать с нуля? Это действие нельзя отменить.')) {
+      resetGame()
+    }
+  }
 
   return (
     <section className="screen meta-screen">
@@ -38,21 +60,58 @@ export function MetaScreen() {
             <div><b>{formatNumber(state.prestigeShards)}</b><span>осколков</span></div>
             <div><b>x{formatNumber(state.prestigeMultiplier)}</b><span>постоянный буст</span></div>
           </div>
-          <p className="meta-card__desc">
-            После ребёрса текущие ресурсы и уровни сбрасываются, но осколки и общий престиж остаются навсегда.
-          </p>
-          <div className="meta-card__hint">
-            {prestige.canRebirth
-              ? `Сейчас можно получить ${formatNumber(prestige.shards)} оск.`
-              : `До первого ребёрса осталось ${formatNumber(prestige.nextGoal)} шишек за всё время.`}
-          </div>
+
+          {!prestige.isUnlocked ? (
+            <>
+              <p className="meta-card__desc">
+                Перерождения теперь открываются только после середины игры. Сначала накопи экономику, знания и часть достижений.
+              </p>
+
+              <div className="unlock-progress">
+                <ProgressRow
+                  label="🌰 Лайфтайм шишки"
+                  current={prestige.unlockProgress.shishki}
+                  goal={prestige.unlockRule.shishki}
+                />
+                <ProgressRow
+                  label="📚 Лайфтайм знания"
+                  current={prestige.unlockProgress.knowledge}
+                  goal={prestige.unlockRule.knowledge}
+                  alt
+                />
+                <ProgressRow
+                  label="🏆 Достижения"
+                  current={prestige.unlockProgress.achievements}
+                  goal={prestige.unlockRule.achievements}
+                />
+              </div>
+
+              <div className="meta-card__hint">
+                После открытия для ребёрса всё равно понадобится ещё {formatNumber(Math.max(0, prestige.rebirthRule.shishki - prestige.unlockRule.shishki))} лайфтайм шишек и {formatNumber(Math.max(0, prestige.rebirthRule.knowledge - prestige.unlockRule.knowledge))} знаний.
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="meta-card__desc">
+                После ребёрса текущие ресурсы и уровни сбрасываются, но осколки и общий престиж остаются навсегда.
+              </p>
+              <div className="meta-card__hint">
+                {prestige.canRebirth
+                  ? `Сейчас можно получить ${formatNumber(prestige.shards)} оск.`
+                  : `До следующего ребёрса осталось ${formatNumber(prestige.nextGoal.shishki)} шишек и ${formatNumber(prestige.nextGoal.knowledge)} знаний за всё время.`}
+              </div>
+            </>
+          )}
+
           <button
             type="button"
             className="shop-card__btn"
             disabled={!prestige.canRebirth || prestige.shards <= 0}
             onClick={prestigeReset}
           >
-            {prestige.canRebirth ? 'Переродиться сейчас' : 'Престиж пока недоступен'}
+            {prestige.isUnlocked
+              ? prestige.canRebirth ? 'Переродиться сейчас' : 'Копи ресурсы для ребёрса'
+              : 'Сначала открой систему престижа'}
           </button>
         </article>
 
@@ -67,6 +126,14 @@ export function MetaScreen() {
             <div><span>Эмодзи-взрывов</span><b>{formatNumber(state.emojiBursts)}</b></div>
             <div><span>Достижений</span><b>{unlockedCount}/{achievements.length}</b></div>
           </div>
+
+          <div className="meta-card__hint">
+            Добавлено {achievements.length} достижений — теперь мета-прогресс растёт заметно дольше и разнообразнее.
+          </div>
+
+          <button type="button" className="reset-btn" onClick={handleFullReset}>
+            Стереть весь прогресс
+          </button>
         </article>
       </div>
 
