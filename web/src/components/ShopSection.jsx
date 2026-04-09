@@ -3,7 +3,7 @@ export function ShopSection({ kicker, title, description, children, accent = 'fu
   const kickerClass = accent === 'cyan' ? 'text-cyan-200/80' : 'text-fuchsia-200/80'
 
   return (
-    <section className="glass-panel rounded-[2rem] p-5 shadow-2xl">
+    <section className="shop-section section-screen glass-panel rounded-[2rem] p-5 shadow-2xl">
       <div className="text-left shop-section__header">
         <div className={`section-kicker text-sm uppercase ${kickerClass}`}>{kicker}</div>
         <h2 className="mt-2 text-2xl font-bold">{title}</h2>

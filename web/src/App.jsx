@@ -19,6 +19,32 @@ import {
 
 const THEME_OVERRIDES_STORAGE_KEY = 'shishka-theme-overrides-v1'
 const THEME_PRESET_STORAGE_KEY = 'shishka-theme-custom-presets-v1'
+const SECTION_TABS = [
+  {
+    id: 'clicker',
+    icon: '🌰',
+    label: 'Кликер',
+    kicker: 'Главный экран',
+    title: 'Добыча и прогресс',
+    description: 'Кликай, держи темп экономики и смотри, какие ветки развития откроются следующими.',
+  },
+  {
+    id: 'subscriptions',
+    icon: '🧠',
+    label: 'Подписки',
+    kicker: 'Магазин',
+    title: 'AI-сервисы',
+    description: 'Подписки ускоряют добычу денег и знаний. Новые сервисы открываются только после реального прогресса.',
+  },
+  {
+    id: 'upgrades',
+    icon: '⚙️',
+    label: 'Апгрейды',
+    kicker: 'Магазин',
+    title: 'Инвестиции и исследования',
+    description: 'Улучшения влияют на клик, автоматизацию и позднюю игру. Часть веток открывается по шишкам и знаниям.',
+  },
+]
 
 function readJsonStorage(key, fallback) {
   try {
@@ -37,6 +63,7 @@ function App() {
   const [customPresets, setCustomPresets] = useState(() => readJsonStorage(THEME_PRESET_STORAGE_KEY, []))
   const [presetName, setPresetName] = useState('')
   const [isThemeSectionOpen, setIsThemeSectionOpen] = useState(false)
+  const [activeSection, setActiveSection] = useState('clicker')
   const clickerRef = useRef(null)
   const { state, economy, contributions, mineShishki, buySubscription, buyUpgrade, resetGame } = useGame()
 
@@ -65,6 +92,30 @@ function App() {
   const baseTheme = useMemo(() => getThemeById(themeId), [themeId])
   const currentOverride = themeOverrides[themeId] || {}
   const activeTheme = useMemo(() => applyThemeOverrides(baseTheme, currentOverride), [baseTheme, currentOverride])
+  const currentSectionMeta = useMemo(
+    () => SECTION_TABS.find((tab) => tab.id === activeSection) ?? SECTION_TABS[0],
+    [activeSection],
+  )
+
+  const dashboardAccent = useMemo(
+    () => `AI x${formatNumber(state.aiMultiplier)} · знаний всего: ${formatNumber(state.totalKnowledgeEarned)}`,
+    [state.aiMultiplier, state.totalKnowledgeEarned],
+  )
+
+  const customPresetOptions = useMemo(
+    () => customPresets.filter((preset) => preset.baseThemeId === themeId),
+    [customPresets, themeId],
+  )
+
+  const nextSubscriptionUnlock = useMemo(
+    () => economy.subscriptions.find((item) => item.unlocked === false),
+    [economy.subscriptions],
+  )
+
+  const nextUpgradeUnlock = useMemo(
+    () => economy.upgrades.find((item) => item.unlocked === false),
+    [economy.upgrades],
+  )
 
   useEffect(() => {
     if (!isThemeSectionOpen) return undefined
@@ -105,16 +156,6 @@ function App() {
       root.removeAttribute('data-theme')
     }
   }, [themeId, activeTheme])
-
-  const dashboardAccent = useMemo(
-    () => `AI x${formatNumber(state.aiMultiplier)} · знаний всего: ${formatNumber(state.totalKnowledgeEarned)}`,
-    [state.aiMultiplier, state.totalKnowledgeEarned],
-  )
-
-  const customPresetOptions = useMemo(
-    () => customPresets.filter((preset) => preset.baseThemeId === themeId),
-    [customPresets, themeId],
-  )
 
   function handleMine(event) {
     if (event.detail === 0) {
@@ -194,6 +235,173 @@ function App() {
     setCustomPresets((current) => current.filter((preset) => preset.id !== presetId))
   }
 
+  function renderUnlockCard(title, item, accentClass) {
+    if (!item) {
+      return (
+        <div className="overview-card">
+          <div className="overview-card__label">{title}</div>
+          <div className="overview-card__value">Все тири уже открыты</div>
+          <div className="overview-card__text">Можно спокойно фокусироваться на прокачке уровней.</div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="overview-card">
+        <div className="overview-card__label">{title}</div>
+        <div className={`overview-card__value ${accentClass}`}>{item.title}</div>
+        <div className="overview-card__text">{item.unlockText}</div>
+        <div className="overview-progress mt-3">
+          <div className="overview-progress__row">
+            <span>Шишки</span>
+            <span>
+              {formatNumber(item.unlockProgress.shishki)} / {formatNumber(item.unlockRule.shishki)}
+            </span>
+          </div>
+          <div className="overview-progress__track">
+            <div
+              className="overview-progress__fill"
+              style={{ width: `${Math.min(100, (item.unlockProgress.shishki / Math.max(1, item.unlockRule.shishki)) * 100)}%` }}
+            />
+          </div>
+          <div className="overview-progress__row mt-2">
+            <span>Знания</span>
+            <span>
+              {formatNumber(item.unlockProgress.knowledge)} / {formatNumber(item.unlockRule.knowledge)}
+            </span>
+          </div>
+          <div className="overview-progress__track">
+            <div
+              className="overview-progress__fill overview-progress__fill--secondary"
+              style={{ width: `${Math.min(100, (item.unlockProgress.knowledge / Math.max(1, item.unlockRule.knowledge)) * 100)}%` }}
+            />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  function renderClickerScreen() {
+    return (
+      <section className="section-screen glass-panel relative overflow-hidden rounded-[2rem] p-5 shadow-2xl">
+        <div className="section-spotlight absolute inset-0" />
+        <div className="section-screen__header relative flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <div className="section-kicker text-sm uppercase text-cyan-200/72">{currentSectionMeta.kicker}</div>
+            <h2 className="mt-2 text-2xl font-bold md:text-3xl">{currentSectionMeta.title}</h2>
+            <p className="mt-2 max-w-2xl text-sm text-white/62">{currentSectionMeta.description}</p>
+          </div>
+          <div className="section-chip">{currentSectionMeta.icon} {currentSectionMeta.label}</div>
+        </div>
+
+        <div className="section-screen__body relative mt-6 grid gap-6 xl:grid-cols-[1.04fr_0.96fr]">
+          <div className="clicker-stage">
+            <div ref={clickerRef} className="relative">
+              <button type="button" className="clicker-button group" onClick={handleMine} onKeyDown={preventMineKeyboardExploit}>
+                <div className="clicker-button__halo" />
+                <div className="clicker-button__ring clicker-button__ring--outer" />
+                <div className="clicker-button__ring clicker-button__ring--inner" />
+                <img src={hero} alt="Шишка" className="clicker-hero" />
+                <div className="mt-4 text-xl font-bold text-white md:text-2xl">Кликни и добудь вышку</div>
+                <div className="mt-2 text-sm text-white/60">За клик: +{formatNumber(state.clickPower)} шишки</div>
+              </button>
+
+              <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
+                {bursts.map((burst) => (
+                  <span
+                    key={burst.id}
+                    className="click-burst"
+                    style={{ left: burst.x, top: burst.y }}
+                  >
+                    {burst.value}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              {activeTheme.content.floatingNotes.map((note, index) => (
+                <span
+                  key={note}
+                  className="floating-chip"
+                  style={{ animationDelay: `${index * 120}ms` }}
+                >
+                  {note}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="overview-grid">
+            <div className="overview-card overview-card--accent">
+              <div className="overview-card__label">Петля прогресса</div>
+              <div className="mt-4 grid gap-3 text-sm text-white/78">
+                <div className="info-panel">
+                  <b className="text-white">1.</b> Кликаешь и добываешь <b className="text-white">шишки</b>.
+                </div>
+                <div className="info-panel">
+                  <b className="text-white">2.</b> Превращаешь их в <b className="text-white">деньги</b> через экономику и подписки.
+                </div>
+                <div className="info-panel">
+                  <b className="text-white">3.</b> AI генерирует <b className="text-white">знания</b>, которые открывают поздние тиры.
+                </div>
+              </div>
+            </div>
+
+            <div className="overview-card">
+              <div className="overview-card__label">Общий прогресс</div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="metric-pill">Всего шишек: {formatNumber(state.totalShishkiEarned)}</div>
+                <div className="metric-pill">Всего денег: {formatNumber(state.totalMoneyEarned)}</div>
+                <div className="metric-pill metric-pill--accent">Всего знаний: {formatNumber(state.totalKnowledgeEarned)}</div>
+                <div className="metric-pill">Ручных кликов: {formatNumber(state.manualClicks)}</div>
+              </div>
+            </div>
+
+            <div className="overview-grid overview-grid--split">
+              {renderUnlockCard('Следующая подписка', nextSubscriptionUnlock, 'text-fuchsia-100')}
+              {renderUnlockCard('Следующий апгрейд', nextUpgradeUnlock, 'text-cyan-100')}
+            </div>
+
+            <button type="button" className="danger-button w-full" onClick={resetGame}>
+              Сбросить прогресс
+            </button>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  function renderShopScreen(type) {
+    const isSubscriptions = type === 'subscriptions'
+    const items = isSubscriptions ? economy.subscriptions : economy.upgrades
+
+    return (
+      <ShopSection
+        kicker={currentSectionMeta.kicker}
+        title={currentSectionMeta.title}
+        description={currentSectionMeta.description}
+        accent={isSubscriptions ? 'fuchsia' : 'cyan'}
+        columns="double"
+      >
+        {items.map((item, index) => {
+          const balance = state[item.currency]
+          return (
+            <ShopCard
+              key={item.id}
+              item={item}
+              level={item.level}
+              cost={item.cost}
+              canBuy={balance >= item.cost}
+              onBuy={() => (isSubscriptions ? buySubscription(item.id) : buyUpgrade(item.id))}
+              delay={index}
+            />
+          )
+        })}
+      </ShopSection>
+    )
+  }
+
   return (
     <div className="app-shell min-h-screen text-white" style={buildDesignVars(activeTheme)}>
       <div className="ambient ambient-one" />
@@ -201,19 +409,15 @@ function App() {
       <div className="ambient ambient-three" />
       <div className="grid-overlay" />
 
-      <div className="mx-auto flex min-h-screen max-w-[var(--max-width)] flex-col gap-6 px-4 py-6 md:px-6 xl:px-8">
-        <header className="glass-panel hero-panel relative overflow-hidden rounded-[2rem] p-5 text-left shadow-2xl">
+      <div className="mx-auto flex min-h-screen max-w-[var(--max-width)] flex-col gap-6 px-4 py-6 pb-32 md:px-6 xl:px-8">
+        <header className="glass-panel dashboard-header relative overflow-hidden rounded-[2rem] p-5 text-left shadow-2xl">
           <div className="hero-panel__glow" />
-          <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
+          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-3xl">
               <div className="hero-kicker text-sm uppercase text-fuchsia-200/80">Шишка кликер</div>
               <h1 className="hero-title mt-2 text-3xl font-black md:text-5xl xl:text-6xl">Шишки онлайн!</h1>
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs uppercase tracking-[0.26em] text-white/55">
-                <span className="theme-badge">{activeTheme.meta.badge}</span>
-                <span>Тема: {activeTheme.meta.name}</span>
-              </div>
               <p className="mt-3 max-w-2xl text-sm text-white/72 md:text-base">
-                Фарми вышки, превращай их в деньги и знания, а потом строй академическую машину на AI-подписках.
+                Главный экран теперь держит один фокус за раз: снизу переключаешься между кликером, подписками и апгрейдами без визуального шума.
               </p>
 
               <div className="mt-5 flex flex-wrap gap-2">
@@ -226,38 +430,38 @@ function App() {
                   </span>
                 ))}
               </div>
-
-              <div className="mt-5 flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  className={`theme-section-toggle ${isThemeSectionOpen ? 'theme-section-toggle--active' : ''}`}
-                  onClick={() => setIsThemeSectionOpen((current) => !current)}
-                >
-                  <span>🎨 Темы и редактор</span>
-                  <span className="theme-section-toggle__meta">{isThemeSectionOpen ? 'Закрыть панель' : 'Открыть панель'}</span>
-                </button>
-              </div>
             </div>
 
-            <div className="glass-panel rounded-3xl px-4 py-4 text-sm text-white/80 shadow-xl md:min-w-[260px]">
-              {user ? (
-                <>
-                  <div className="text-white/50">Игрок Discord</div>
-                  <div className="mt-1 text-lg font-semibold">{user.username}</div>
-                  <div className="mt-2 text-xs text-white/45">Запущено внутри Discord Activity</div>
-                </>
-              ) : (
-                <>
-                  <div className="text-white/50">Режим</div>
-                  <div className="mt-1 text-lg font-semibold">Локальная сессия</div>
-                  <div className="mt-2 text-xs text-white/45">Можно полировать баланс и UI прямо в браузере</div>
-                </>
-              )}
+            <div className="dashboard-header__side">
+              <div className="glass-panel rounded-3xl px-4 py-4 text-sm text-white/80 shadow-xl">
+                {user ? (
+                  <>
+                    <div className="text-white/50">Игрок Discord</div>
+                    <div className="mt-1 text-lg font-semibold">{user.username}</div>
+                    <div className="mt-2 text-xs text-white/45">Запущено внутри Discord Activity</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-white/50">Режим</div>
+                    <div className="mt-1 text-lg font-semibold">Локальная сессия</div>
+                    <div className="mt-2 text-xs text-white/45">Можно полировать баланс и UI прямо в браузере</div>
+                  </>
+                )}
+              </div>
+
+              <button
+                type="button"
+                className={`theme-section-toggle ${isThemeSectionOpen ? 'theme-section-toggle--active' : ''}`}
+                onClick={() => setIsThemeSectionOpen((current) => !current)}
+              >
+                <span>🎨 Темы и редактор</span>
+                <span className="theme-section-toggle__meta">{isThemeSectionOpen ? 'Закрыть панель' : 'Открыть панель'}</span>
+              </button>
             </div>
           </div>
         </header>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        <section className="stats-grid grid gap-4 md:grid-cols-2 xl:grid-cols-5">
           <StatCard
             label="🌰 Шишки / вышки"
             value={state.shishki}
@@ -295,76 +499,9 @@ function App() {
           />
         </section>
 
-        <section className="grid gap-6">
-          <div className="glass-panel relative overflow-hidden rounded-[2rem] p-5 shadow-2xl">
-            <div className="section-spotlight absolute inset-0" />
-
-            <div className="relative grid gap-6 md:grid-cols-[0.95fr_1.05fr] md:items-center">
-              <div ref={clickerRef} className="relative">
-                <button type="button" className="clicker-button group" onClick={handleMine} onKeyDown={preventMineKeyboardExploit}>
-                  <div className="clicker-button__halo" />
-                  <div className="clicker-button__ring clicker-button__ring--outer" />
-                  <div className="clicker-button__ring clicker-button__ring--inner" />
-                  <img src={hero} alt="Шишка" className="clicker-hero" />
-                  <div className="mt-4 text-xl font-bold text-white md:text-2xl">Кликни и добудь вышку</div>
-                  <div className="mt-2 text-sm text-white/60">За клик: +{formatNumber(state.clickPower)} шишки</div>
-                </button>
-
-                <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
-                  {bursts.map((burst) => (
-                    <span
-                      key={burst.id}
-                      className="click-burst"
-                      style={{ left: burst.x, top: burst.y }}
-                    >
-                      {burst.value}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="mt-4 flex flex-wrap justify-center gap-2">
-                  {activeTheme.content.floatingNotes.map((note, index) => (
-                    <span
-                      key={note}
-                      className="floating-chip"
-                      style={{ animationDelay: `${index * 120}ms` }}
-                    >
-                      {note}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div className="text-left">
-                <div className="section-kicker text-sm uppercase text-cyan-200/72">Экономика</div>
-                <h2 className="mt-2 text-2xl font-bold md:text-3xl">Новый цикл прогресса</h2>
-                <div className="mt-4 grid gap-3 text-sm text-white/75">
-                  <div className="info-panel">
-                    <b className="text-white">1.</b> Кликаешь и добываешь <b className="text-white">шишки</b>.
-                  </div>
-                  <div className="info-panel">
-                    <b className="text-white">2.</b> Разгоняешь доход, открываешь <b className="text-white">новые тиры</b> по шишкам и знаниям.
-                  </div>
-                  <div className="info-panel">
-                    <b className="text-white">3.</b> AI генерирует <b className="text-white">знания</b>, а знания открывают исследования поздней игры.
-                  </div>
-                </div>
-
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  <div className="metric-pill">Всего шишек: {formatNumber(state.totalShishkiEarned)}</div>
-                  <div className="metric-pill">Всего денег: {formatNumber(state.totalMoneyEarned)}</div>
-                  <div className="metric-pill">Всего знаний: {formatNumber(state.totalKnowledgeEarned)}</div>
-                 </div>
-
-                <button type="button" className="danger-button mt-5" onClick={resetGame}>
-                  Сбросить прогресс
-                </button>
-              </div>
-            </div>
-          </div>
-
-
-
+        {activeSection === 'clicker' ? renderClickerScreen() : null}
+        {activeSection === 'subscriptions' ? renderShopScreen('subscriptions') : null}
+        {activeSection === 'upgrades' ? renderShopScreen('upgrades') : null}
 
         {isThemeSectionOpen ? (
           <div className="theme-modal" role="dialog" aria-modal="true" aria-label="Темы и редактор">
@@ -552,53 +689,27 @@ function App() {
             </div>
           </div>
         ) : null}
-
-        </section>
-
-        <section className="grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
-          <ShopSection
-            kicker="Подписки"
-            title="AI-сервисы"
-            description="Новые сервисы открываются по суммарно добытым шишкам и знаниям, чтобы экономику не разгоняло слишком рано."
-            accent="fuchsia"
-          >
-            {economy.subscriptions.map((item, index) => (
-              <ShopCard
-                key={item.id}
-                item={item}
-                level={item.level}
-                cost={item.cost}
-                canBuy={state.money >= item.cost}
-                onBuy={() => buySubscription(item.id)}
-                delay={index}
-              />
-            ))}
-          </ShopSection>
-
-          <ShopSection
-            kicker="Апгрейды"
-            title="Инвестиции и исследования"
-            description="Часть улучшений живет в поздних тирах и открывается только после реального прогресса по шишкам и знаниям."
-            accent="cyan"
-            columns="double"
-          >
-            {economy.upgrades.map((item, index) => {
-              const balance = state[item.currency]
-              return (
-                <ShopCard
-                  key={item.id}
-                  item={item}
-                  level={item.level}
-                  cost={item.cost}
-                  canBuy={balance >= item.cost}
-                  onBuy={() => buyUpgrade(item.id)}
-                  delay={index}
-                />
-              )
-            })}
-          </ShopSection>
-        </section>
       </div>
+
+      <nav className="bottom-nav" aria-label="Разделы игры">
+        <div className="bottom-nav__shell glass-panel">
+          {SECTION_TABS.map((tab) => {
+            const isActive = tab.id === activeSection
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                className={`bottom-nav__button ${isActive ? 'bottom-nav__button--active' : ''}`}
+                onClick={() => setActiveSection(tab.id)}
+                aria-pressed={isActive}
+              >
+                <span className="bottom-nav__icon">{tab.icon}</span>
+                <span className="bottom-nav__text">{tab.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </nav>
     </div>
   )
 }

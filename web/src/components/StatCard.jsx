@@ -9,13 +9,18 @@ export function StatCard({ label, value, hint, contributions, delay = 0 }) {
   const total = contributions?.items?.reduce((sum, entry) => sum + entry.value, 0) ?? 0
 
   return (
-    <div className="stat-card glass-panel rounded-3xl p-4 text-left shadow-sm backdrop-blur-sm" style={{ animationDelay: `${delay * DESIGN_SYSTEM.motion.cardStaggerMs}ms` }}>
+    <div
+      className="stat-card glass-panel rounded-3xl p-4 text-left shadow-sm backdrop-blur-sm"
+      style={{ animationDelay: `${delay * DESIGN_SYSTEM.motion.cardStaggerMs}ms` }}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="stat-card__label text-sm text-white/60">{label}</div>
       </div>
 
-      <div className="stat-card__value mt-3 text-3xl font-black text-white">{formatNumber(value)}</div>
-      {hint ? <div className="stat-card__hint mt-1 text-sm text-fuchsia-200">{hint}</div> : null}
+      <div className="stat-card__metric mt-3">
+        <div className="stat-card__value text-3xl font-black text-white">{formatNumber(value)}</div>
+        <div className="stat-card__hint">{hint || '—'}</div>
+      </div>
 
       {contributions?.items?.length ? (
         <div className="mt-4 border-t border-white/10 pt-3">
