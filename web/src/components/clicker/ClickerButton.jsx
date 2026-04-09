@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from 'react'
+import { useEffect, useRef } from 'react'
 import { useGameContext } from '../../context/GameContext'
 import { useBursts } from '../../hooks/useBursts'
 import { useSound } from '../../hooks/useSound'
@@ -11,6 +11,7 @@ import shishkaSound from '../../assets/shishka.mp3'
 export function ClickerButton() {
   const cones = useRef([])
   const containerRef = useRef(null)
+  const buttonRef = useRef(null)
 
   const { state, mineShishki } = useGameContext()
   const { bursts, addBurst } = useBursts()
@@ -18,21 +19,26 @@ export function ClickerButton() {
 
   const spawnCones = (e, amount) => {
     const id = Date.now()
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    const localX = e.clientX - rect.left
+    const localY = e.clientY - rect.top
 
     for (let i = 0; i < amount; i++) {
       const angle = Math.random() * Math.PI * 2
-      const speed = Math.random() * 2 + 2
+      const speed = Math.random() * 1 + 2
 
-      const newCone = {
+      cones.current.push({
         id: id + i,
-        x: e.clientX,
-        y: e.clientY,
+        x: localX,
+        y: localY,
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        life: 300
-      }
-
-      cones.current.push(newCone)
+        vy: Math.sin(angle) * speed - 1,
+        rotate: Math.random() * 360,
+        rotateSpeed: (Math.random() - 0.5) * 12,
+        life: 60,
+      })
     }
   }
 
@@ -45,22 +51,26 @@ export function ClickerButton() {
 
       container.innerHTML = ''
 
-      cones.current = cones.current.filter(p => p.life > 0)
+      cones.current = cones.current.filter((p) => p.life > 0)
 
-      cones.current.forEach(p => {
-        // физика
-        p.vy += 0.04 // гравитация
-        p.x += p.vx
-        p.y += p.vy
-        p.life--
+      cones.current.forEach((p) => {
+        p.vy += 0.03
+        p.x += p.vx * 0.3
+        p.y += p.vy * 0.3
+        p.rotate += p.rotateSpeed
+        p.life -= 0.4
 
-        // создаём DOM элемент
         const el = document.createElement('div')
         el.textContent = '🌰'
         el.style.position = 'absolute'
-        el.style.left = p.x + 'px'
-        el.style.top = p.y + 'px'
+        el.style.left = `${p.x}px`
+        el.style.top = `${p.y}px`
+        el.style.transform = `translate(-50%, -50%) rotate(${p.rotate}deg)`
         el.style.pointerEvents = 'none'
+        el.style.userSelect = 'none'
+        el.style.willChange = 'transform, top, left'
+        el.style.opacity = String(Math.max(p.life / 60, 0))
+        el.style.zIndex = '3'
 
         container.appendChild(el)
       })
@@ -73,16 +83,21 @@ export function ClickerButton() {
   }, [])
 
   function handleClick(e) {
-    if (e.detail === 0) { e.preventDefault(); return }
+    if (e.detail === 0) {
+      e.preventDefault()
+      return
+    }
 
     play()
     mineShishki()
 
-    const rect = containerRef.current?.getBoundingClientRect()
+    const rect = buttonRef.current?.getBoundingClientRect()
     if (!rect) return
-    const x = e.clientX
-    const y = e.clientY
-    addBurst(x, y, `+${formatNumber(state.clickPower)}`)
+
+    const localX = e.clientX - rect.left
+    const localY = e.clientY - rect.top
+
+    addBurst(localX, localY, `+${formatNumber(state.clickPower)}`)
     spawnCones(e, state.clickPower)
   }
 
@@ -94,40 +109,30 @@ export function ClickerButton() {
 
   return (
     <div className="clicker-wrap">
-      {/*{cones.current.map((item) => (*/}
-      {/*  <div*/}
-      {/*    key={Math.random()}*/}
-      {/*    className="falling"*/}
-      {/*    style={{*/}
-      {/*      left: item.x,*/}
-      {/*      top: item.y,*/}
-      {/*      transform: 'translate(-50%, -50%)'*/}
-      {/*    }}*/}
-      {/*  >*/}
-      {/*    🌰*/}
-      {/*  </div>*/}
-      {/*))}*/}
       <div
+        ref={buttonRef}
         className="clicker-btn"
         onClick={handleClick}
         onKeyDown={preventKeyboard}
         aria-label="Добыть шишки"
       >
-        <div ref={containerRef} />
+        <div ref={containerRef} className="clicker-particles" />
+        <ClickBurst bursts={bursts} />
+
         <div className="clicker-btn__halo" />
         <div className="clicker-btn__ring clicker-btn__ring--outer" />
         <div className="clicker-btn__ring clicker-btn__ring--inner" />
+
         <img
           src={isActive ? buttonImage : vityaImage}
           alt="Шишка"
           className="clicker-btn__hero"
           draggable={false}
         />
+
         <div className="clicker-btn__label">Кликни и добудь вышку</div>
         <div className="clicker-btn__sub">За клик: +{formatNumber(state.clickPower)} 🌰</div>
       </div>
-
-      <ClickBurst bursts={bursts} />
     </div>
   )
 }
