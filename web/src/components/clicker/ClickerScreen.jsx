@@ -1,5 +1,6 @@
 import { ClickerButton } from './ClickerButton'
 import { ProgressOverview } from './ProgressOverview'
+import { StatsBar } from '../stats/StatsBar'
 
 export function ClickerScreen() {
   return (
@@ -19,6 +20,7 @@ export function ClickerScreen() {
           <ClickerButton />
         </div>
         <div className="clicker-layout__right">
+          <StatsBar className="stats-bar--clicker" />
           <ProgressOverview />
         </div>
       </div>

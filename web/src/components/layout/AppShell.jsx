@@ -4,7 +4,6 @@ import { useNav } from '../../context/NavContext'
 import { useBackgroundMusic } from '../../hooks/useBackgroundMusic'
 import { Header } from './Header'
 import { BottomNav } from './BottomNav'
-import { StatsBar } from '../stats/StatsBar'
 import { AchievementToast } from '../ui/AchievementToast'
 import backgroundMusic from '../../assets/audio/music/background.mp3'
 
@@ -47,8 +46,6 @@ export function AppShell() {
 
       <div className="app-content">
         <Header user={user} />
-        <StatsBar />
-
         <main className="app-main">
           <Suspense fallback={<ScreenFallback />}>
             {activeTab === 'clicker' && <ClickerScreen />}

@@ -2,10 +2,8 @@ import { useGameContext } from '../../context/GameContext'
 import { StatCard } from './StatCard'
 import { formatNumber } from '../../lib/format'
 
-export function StatsBar() {
-  const { state, contributions } = useGameContext()
-
-  const stats = [
+export function buildStats(state, contributions) {
+  return [
     {
       icon: '🌰',
       label: 'Шишки',
@@ -42,9 +40,14 @@ export function StatsBar() {
       contributions: contributions.aiPower,
     },
   ]
+}
+
+export function StatsBar({ className = '' }) {
+  const { state, contributions } = useGameContext()
+  const stats = buildStats(state, contributions)
 
   return (
-    <section className="stats-bar">
+    <section className={`stats-bar ${className}`.trim()}>
       {stats.map((s, i) => (
         <StatCard key={s.label} {...s} delay={i} />
       ))}

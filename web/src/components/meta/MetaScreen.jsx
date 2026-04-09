@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { useGameContext } from '../../context/GameContext'
 import { formatNumber } from '../../lib/format'
+import { ProgressLoopCard } from '../clicker/ProgressOverview'
 
 function AchievementCard({ achievement }) {
   return (
@@ -107,6 +108,7 @@ export function MetaScreen() {
       </div>
 
       <div className="meta-grid">
+        <ProgressLoopCard />
         <article className="meta-card prestige-card">
           <div className="meta-card__kicker">Престиж</div>
           <h3 className="meta-card__title">Система перерождения</h3>
