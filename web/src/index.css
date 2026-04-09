@@ -1374,3 +1374,93 @@ img { display: block; }
     grid-template-columns: 1fr;
   }
 }
+
+
+.achievement-toast {
+  position: fixed;
+  right: 20px;
+  bottom: 94px;
+  z-index: 90;
+  width: min(420px, calc(100vw - 32px));
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: linear-gradient(135deg, rgba(14,18,28,0.96), rgba(37,52,74,0.96));
+  box-shadow: 0 22px 80px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.08);
+  overflow: hidden;
+  animation: achievement-toast-in 0.28s ease-out;
+}
+
+.achievement-toast::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255,184,77,0.18), transparent 38%);
+  pointer-events: none;
+}
+
+.achievement-toast__steam {
+  position: absolute;
+  top: 8px;
+  right: 14px;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  color: rgba(255,255,255,0.42);
+}
+
+.achievement-toast__icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  font-size: 34px;
+  background: radial-gradient(circle at 30% 30%, rgba(255,214,102,0.38), rgba(255,170,0,0.12));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+.achievement-toast__body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.achievement-toast__label {
+  margin-top: 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ffcf70;
+}
+
+.achievement-toast__title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.achievement-toast__desc {
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(255,255,255,0.78);
+}
+
+@keyframes achievement-toast-in {
+  from { transform: translate3d(22px, 18px, 0) scale(0.96); opacity: 0; }
+  to { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+}
+
+@media (max-width: 640px) {
+  .achievement-toast {
+    right: 12px;
+    left: 12px;
+    bottom: 88px;
+    width: auto;
+  }
+}
