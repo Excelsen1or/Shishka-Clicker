@@ -44,10 +44,10 @@ function App() {
         </header>
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <StatCard label="Шишки / вышки" value={state.shishki} hint={`+${formatNumber(state.shishkiPerSecond)} / сек`} />
-          <StatCard label="Деньги" value={state.money} hint={`+${formatNumber(state.moneyPerSecond)} / сек`} />
-          <StatCard label="Сила клика" value={state.clickPower} hint={`${formatNumber(state.manualClicks)} ручных кликов`} />
-          <StatCard label="AI-мощность" value={state.aiPower} hint={`Знания: ${formatNumber(state.knowledge)}`} />
+          <StatCard label="🌰 Шишки / вышки" value={state.shishki} hint={`+${formatNumber(state.shishkiPerSecond)} / сек`} />
+          <StatCard label="💵 Деньги" value={state.money} hint={`+${formatNumber(state.moneyPerSecond)} / сек`} />
+          <StatCard label="💪 Сила клика" value={state.clickPower} hint={`${formatNumber(state.manualClicks)} ручных кликов`} />
+          <StatCard label="🤖 AI-мощность" value={state.aiPower} hint={`Знания: ${formatNumber(state.knowledge)}`} />
         </section>
 
         <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
