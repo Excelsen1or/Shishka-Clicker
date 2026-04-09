@@ -44,7 +44,7 @@ function UnlockCard({ title, item, accentClass }) {
 }
 
 export function ProgressOverview() {
-  const { economy, state, resetGame } = useGameContext()
+  const { economy, state } = useGameContext()
 
   const nextSub = useMemo(
     () => economy.subscriptions.find((i) => !i.unlocked),
@@ -91,10 +91,6 @@ export function ProgressOverview() {
           {nextUpgrade && <UnlockCard title="Следующий апгрейд" item={nextUpgrade} accentClass="text-cyan"/>}
         </div>
       }
-
-      <button className="reset-btn" onClick={resetGame}>
-        Сбросить прогресс
-      </button>
     </div>
   )
 }

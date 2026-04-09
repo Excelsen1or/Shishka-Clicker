@@ -19,6 +19,12 @@ export const TABS = [
     label: 'Апгрейды',
     description: 'Инвестиции и исследования',
   },
+  {
+    id: 'settings',
+    icon: '🔊',
+    label: 'Настройки',
+    description: 'Звук, музыка и управление сохранением',
+  },
 ]
 
 const NavContext = createContext(null)
