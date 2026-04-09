@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import {useEffect, useMemo, useRef, useState} from 'react'
 import { useGameContext } from '../../context/GameContext'
 import { useBursts } from '../../hooks/useBursts'
 import { useSound } from '../../hooks/useSound'
@@ -32,12 +32,41 @@ function createParticles(localX, localY, amount, symbol, isMega) {
 }
 
 export function ClickerButton() {
+  const cones = useRef([])
+  const containerRef = useRef(null)
   const [particles, setParticles] = useState([])
   const { state, mineShishki } = useGameContext()
   const { bursts, addBurst } = useBursts()
   const { play } = useSound(shishkaSound, { volume: 0.42 })
 
   const particleLimitHint = useMemo(() => Math.min(28, Math.ceil(state.clickPower * 1.2)), [state.clickPower])
+
+
+
+  const spawnCones = (e, amount) => {
+    const id = Date.now()
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    const localX = e.clientX - rect.left
+    const localY = e.clientY - rect.top
+
+    for (let i = 0; i < amount; i++) {
+      const angle = Math.random() * Math.PI * 2
+      const speed = Math.random() + 2
+
+      cones.current.push({
+        id: id + i,
+        x: localX,
+        y: localY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 1,
+        rotate: Math.random() * 360,
+        rotateSpeed: (Math.random() - 0.5) * 6,
+        life: 60,
+      })
+    }
+  }
 
   function handleClick(e) {
     if (e.detail === 0) {
@@ -56,7 +85,48 @@ export function ClickerButton() {
 
     const spawned = createParticles(localX, localY, result.particleCount, result.symbol, result.isMega)
     setParticles((current) => [...current.slice(-40), ...spawned])
+    spawnCones(e, 1)
   }
+
+  useEffect(() => {
+    let frame
+
+    const update = () => {
+      const container = containerRef.current
+      if (!container) return
+
+      container.innerHTML = ''
+
+      cones.current = cones.current.filter((p) => p.life > 0)
+
+      cones.current.forEach((p) => {
+        p.vy += 0.03
+        p.x += p.vx * 0.3
+        p.y += p.vy * 0.3
+        p.rotate += p.rotateSpeed
+        p.life -= 0.4
+
+        const el = document.createElement('img')
+        el.src = coneImage
+        el.style.position = 'absolute'
+        el.style.left = `${p.x}px`
+        el.style.top = `${p.y}px`
+        el.style.transform = `translate(-50%, -50%) rotate(${p.rotate}deg)`
+        el.style.pointerEvents = 'none'
+        el.style.userSelect = 'none'
+        el.style.willChange = 'transform, top, left'
+        el.style.opacity = String(Math.max(p.life / 60, 0))
+        el.style.zIndex = '3'
+
+        container.appendChild(el)
+      })
+
+      frame = requestAnimationFrame(update)
+    }
+
+    frame = requestAnimationFrame(update)
+    return () => cancelAnimationFrame(frame)
+  }, [])
 
   function preventKeyboard(e) {
     if (e.key === 'Enter' || e.key === ' ') e.preventDefault()
@@ -94,6 +164,7 @@ export function ClickerButton() {
           ))}
         </div>
 
+        <div ref={containerRef} className="clicker-particles" />
         <ClickBurst bursts={bursts} />
 
         <div className="clicker-btn__halo" />
