@@ -820,9 +820,10 @@ export function getRandomMegaEmoji() {
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
-function getRawStatTotals(state, aiMultiplier, prestigeMultiplier) {
-  const upgradeTotals = accumulateEffects(UPGRADES, state.upgrades ?? {}, aiMultiplier)
-  const subscriptionTotals = accumulateEffects(SUBSCRIPTIONS, state.subscriptions ?? {}, aiMultiplier)
+function getRawStatTotals(state = STARTING_STATE, aiMultiplier, prestigeMultiplier) {
+  const safeState = state ?? STARTING_STATE
+  const upgradeTotals = accumulateEffects(UPGRADES, safeState?.upgrades ?? {}, aiMultiplier)
+  const subscriptionTotals = accumulateEffects(SUBSCRIPTIONS, safeState?.subscriptions ?? {}, aiMultiplier)
 
   return {
     clickPower: (upgradeTotals.clickPower || 1) * prestigeMultiplier,
@@ -867,12 +868,13 @@ function getBaseContributionEntries(rawTotals, finalTotals) {
   ]
 }
 
-export function deriveContributionBreakdown(state) {
-  const aiMultiplier = deriveAiMultiplier(state)
-  const prestigeMultiplier = derivePrestigeMultiplier(state)
-  const rawTotals = getRawStatTotals(state, aiMultiplier, prestigeMultiplier)
+export function deriveContributionBreakdown(state = STARTING_STATE) {
+  const safeState = state ?? STARTING_STATE
+  const aiMultiplier = deriveAiMultiplier(safeState)
+  const prestigeMultiplier = derivePrestigeMultiplier(safeState)
+  const rawTotals = getRawStatTotals(safeState, aiMultiplier, prestigeMultiplier)
   const rawAiPower = SUBSCRIPTIONS.reduce((sum, item) => {
-    const level = state?.subscriptions?.[item.id] ?? 0
+    const level = safeState?.subscriptions?.[item.id] ?? 0
     return sum + level * (item.aiPowerWeight ?? 0)
   }, 0)
 
@@ -893,8 +895,8 @@ export function deriveContributionBreakdown(state) {
   }
 
   const items = [
-    ...UPGRADES.map((item) => ({ ...item, sourceType: 'upgrade', level: state.upgrades?.[item.id] ?? 0 })),
-    ...SUBSCRIPTIONS.map((item) => ({ ...item, sourceType: 'subscription', level: state.subscriptions?.[item.id] ?? 0 })),
+    ...UPGRADES.map((item) => ({ ...item, sourceType: 'upgrade', level: safeState?.upgrades?.[item.id] ?? 0 })),
+    ...SUBSCRIPTIONS.map((item) => ({ ...item, sourceType: 'subscription', level: safeState?.subscriptions?.[item.id] ?? 0 })),
   ]
 
   items.forEach((item) => {
@@ -949,18 +951,20 @@ export function deriveContributionBreakdown(state) {
   )
 }
 
-function getUnlockedAchievementCount(state) {
+function getUnlockedAchievementCount(state = STARTING_STATE) {
+  const safeState = state ?? STARTING_STATE
   return ACHIEVEMENTS.reduce((count, achievement) => {
-    const unlocked = Boolean(state.achievements?.[achievement.id]) || Boolean(achievement.check(state))
+    const unlocked = Boolean(safeState?.achievements?.[achievement.id]) || Boolean(achievement.check(safeState))
     return count + (unlocked ? 1 : 0)
   }, 0)
 }
 
-export function getPrestigeUnlockStatus(state) {
+export function getPrestigeUnlockStatus(state = STARTING_STATE) {
+  const safeState = state ?? STARTING_STATE
   const rule = BALANCE.prestige.unlock
   const progress = {
-    shishki: state.lifetimeShishkiEarned ?? 0,
-    knowledge: state.lifetimeKnowledgeEarned ?? 0,
+    shishki: safeState?.lifetimeShishkiEarned ?? 0,
+    knowledge: safeState?.lifetimeKnowledgeEarned ?? 0,
     achievements: getUnlockedAchievementCount(state),
   }
 
