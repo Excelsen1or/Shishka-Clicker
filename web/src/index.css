@@ -539,7 +539,7 @@ img { display: block; }
   color: var(--amber-2);
   text-shadow: 0 0 12px var(--amber-glow);
   pointer-events: none;
-  animation: burst 620ms var(--ease-out) forwards;
+  animation: burst 5000ms var(--ease-out) forwards;
   white-space: nowrap;
 }
 
