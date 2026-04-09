@@ -36,7 +36,7 @@ export function ClickerButton() {
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed - 1,
         rotate: Math.random() * 360,
-        rotateSpeed: (Math.random() - 0.5) * 12,
+        rotateSpeed: (Math.random() - 0.5) * 6,
         life: 60,
       })
     }
