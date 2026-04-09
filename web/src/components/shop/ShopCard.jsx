@@ -1,6 +1,6 @@
 import { formatNumber } from '../../lib/format'
 import { useSound } from '../../hooks/useSound'
-import buySound from '../../assets/blip1.mp3'
+import buySound from '../../assets/audio/ui/blip1.mp3'
 
 const CURRENCY_META = {
   money: { icon: '💵', label: 'деньги' },

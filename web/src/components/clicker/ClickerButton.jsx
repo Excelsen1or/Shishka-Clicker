@@ -6,6 +6,7 @@ import { ClickBurst } from '../ui/ClickBurst'
 import { formatNumber } from '../../lib/format'
 import buttonImage from '../../assets/disco.gif'
 import vityaImage from '../../assets/v4.png'
+import coneImage from '../../assets/cone.png'
 import shishkaSound from '../../assets/audio/ui/shishka.mp3'
 
 function createParticles(localX, localY, amount, symbol, isMega) {
