@@ -34,9 +34,7 @@ export function MetaScreen() {
   const unlockedCount = achievements.filter((entry) => entry.unlocked).length
 
   const handleFullReset = () => {
-    if (window.confirm('Удалить весь прогресс и начать с нуля? Это действие нельзя отменить.')) {
-      resetGame()
-    }
+    resetGame()
   }
 
   return (

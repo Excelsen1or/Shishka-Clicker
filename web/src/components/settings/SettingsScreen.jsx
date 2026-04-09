@@ -58,16 +58,12 @@ export function SettingsScreen() {
   }
 
   const handleProgressReset = () => {
-    if (window.confirm('Сбросить весь игровой прогресс? Ребёрсы, достижения и ресурсы будут удалены.')) {
-      resetGame()
-    }
+    resetGame()
   }
 
   const handleFactoryReset = () => {
-    if (window.confirm('Вернуть игру к заводскому состоянию? Прогресс будет удалён, а настройки звука сброшены.')) {
-      resetGame()
-      resetSettings()
-    }
+    resetGame()
+    resetSettings()
   }
 
   return (
