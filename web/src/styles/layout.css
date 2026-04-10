@@ -165,16 +165,13 @@
 .screen__kicker,
 .meta-card__kicker,
 .settings-card__label,
-.unlock-card__label,
 .achievement-category__kicker,
 .meta-hero__eyebrow,
 .prestige-lab-card__kicker,
 .meta-section-head__kicker,
 .shop-card__effect-label,
 .shop-card__price-label,
-.achievement-card__head,
-.settings-status-tile__label,
-.meta-hero-stat__label {
+.achievement-card__head {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -208,13 +205,11 @@
 .meta-card__hint,
 .settings-card__hint,
 .meta-hero__desc,
-.unlock-card__text,
 .achievement-card__desc,
 .prestige-step__text,
 .prestige-lab-card__desc,
 .prestige-lab-card__next,
 .settings-link-tile__hint,
-.settings-status-tile__hint,
 .shop-card__desc,
 .shop-card__effect-next,
 .shop-card__lock-text {
@@ -235,12 +230,9 @@
 :where(
   .stat-card,
   .clicker-panel,
-  .unlock-card,
-  .progress-stat,
   .shop-card,
   .settings-card,
   .settings-link-tile,
-  .settings-status-tile,
   .meta-card,
   .prestige-lab-card,
   .settings-info-box,
@@ -370,10 +362,6 @@
 }
 
 .stat-card__value,
-.progress-stat__num,
-.unlock-card__value,
-.settings-status-tile__value,
-.meta-hero-stat__value,
 .shop-card__price-num,
 .prestige-lab-card__price,
 .achievement-category__count {
@@ -465,14 +453,12 @@
   text-align: center;
   transition:
     transform var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) ease,
     background var(--duration-fast) ease,
     box-shadow var(--duration-fast) ease;
   box-shadow: inset 0 1px 0 rgb(var(--white-rgb) / 0.06);
 }
 
 :where(.shop-card__btn, .settings-ghost-btn, .reset-btn):hover:not(:disabled) {
-  transform: translateY(-1px);
   border-color: rgb(var(--btn-accent-rgb) / 0.44);
   background: linear-gradient(180deg, rgb(var(--btn-accent-rgb) / 0.24), rgb(var(--btn-accent-rgb) / 0.13));
   box-shadow: 0 12px 24px rgb(var(--btn-accent-rgb) / 0.14);
@@ -480,7 +466,6 @@
 
 :where(.shop-card__btn, .settings-ghost-btn, .reset-btn):disabled {
   opacity: 0.5;
-  filter: grayscale(0.12);
 }
 
 .shop-card__btn[aria-disabled='true']:not(:disabled) {
@@ -492,7 +477,6 @@
 .shop-card__btn[aria-disabled='true']:not(:disabled):hover {
   transform: none;
   border-color: rgb(var(--accent-danger-rgb) / 0.34);
-  background: linear-gradient(180deg, rgb(var(--accent-danger-rgb) / 0.2), rgb(var(--accent-danger-rgb) / 0.11));
   box-shadow: inset 0 1px 0 rgb(var(--white-rgb) / 0.06);
 }
 

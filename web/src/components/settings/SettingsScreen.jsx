@@ -31,6 +31,18 @@ export function SettingsScreen() {
   const [transferStatus, setTransferStatus] = useState(null)
   const [exportedSaveText, setExportedSaveText] = useState('')
 
+  const effectSummary = [
+    { icon: '✨', label: 'Эмодзи и шишки', value: `до ${visualEffectCaps.particleCap}`, hint: 'частицы на экране' },
+    { icon: '🔢', label: 'Числа', value: `до ${visualEffectCaps.burstCap}`, hint: 'всплывающих значений' },
+    { icon: '🌰', label: 'Спрайты', value: `до ${visualEffectCaps.coneCap}`, hint: 'дополнительных шишек' },
+    { icon: '📦', label: 'Бюджет', value: visualEffectCaps.totalHint, hint: 'общий лимит эффектов' },
+  ]
+
+  const aboutSummary = [
+    { icon: '🧩', label: 'Версия', value: APP_VERSION, hint: 'текущая сборка' },
+    { icon: '🧑‍💻', label: 'Репозиторий', value: 'GitHub', hint: 'ссылка в блоке ниже' },
+  ]
+
   const currentSaveText = useMemo(() => {
     const bundle = createSaveBundle({
       gameState: exportGameSave(),
@@ -40,29 +52,6 @@ export function SettingsScreen() {
 
     return JSON.stringify(bundle, null, 2)
   }, [exportGameSave, exportSettings])
-
-  const statusTiles = [
-    {
-      label: 'Музыка',
-      value: settings.musicEnabled ? 'Вкл' : 'Выкл',
-      hint: `${settings.musicVolume}% громкости`,
-    },
-    {
-      label: 'Эффекты',
-      value: settings.soundEnabled ? 'Вкл' : 'Выкл',
-      hint: `${settings.effectsVolume}% громкости`,
-    },
-    {
-      label: 'Плотность FX',
-      value: `${settings.visualEffectsDensity}%`,
-      hint: `бюджет ${visualEffectCaps.totalHint}`,
-    },
-    {
-      label: 'Версия',
-      value: APP_VERSION,
-      hint: 'текущая сборка',
-    },
-  ]
 
   const handleMusicToggle = () => {
     if (settings.musicEnabled) markSilenceLover()

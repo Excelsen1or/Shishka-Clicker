@@ -7,6 +7,7 @@ import {ProgressRow} from "./ProgressRow.jsx"
 import {AchievementsGrid} from "./AchievementsGrid.jsx"
 import {ShardsLaboratory} from "./ShardsLaboratory.jsx"
 import {LifetimeCard} from "./LifetimeCard.jsx"
+import {StatCard} from "../stats/StatCard.jsx"
 
 
 export function MetaScreen() {
@@ -29,27 +30,35 @@ export function MetaScreen() {
     }))
   }, [achievements])
 
-  const heroStats = [
-    {
-      label: 'Ребёрсы',
-      value: formatNumber(state.rebirths),
-      hint: 'завершённых циклов',
-    },
-    {
-      label: 'Осколки',
-      value: `${formatNumber(state.prestigeShards)} 💎`,
-      hint: 'доступно сейчас',
-    },
-    {
-      label: 'Множитель',
-      value: `x${formatNumber(state.prestigeMultiplier)}`,
-      hint: 'постоянный буст',
-    },
-    {
-      label: 'Достижения',
-      value: `${unlockedCount}/${achievements.length}`,
-      hint: prestige.canRebirth ? 'квота готова' : 'в прогрессе',
-    },
+  const prestigeStats = [
+    { icon: '♻️', label: 'Ребёрсов', value: formatNumber(state.rebirths), hint: 'завершённых циклов' },
+    { icon: '💎', label: 'Осколков', value: formatNumber(state.prestigeShards), hint: 'на руках сейчас' },
+    { icon: '📈', label: 'Общий буст', value: `x${formatNumber(state.prestigeMultiplier)}`, hint: 'постоянный множитель' },
+  ]
+
+  const forecastStats = [
+    { icon: '🔮', label: 'Прогноз', value: formatNumber(prestige.projectedShards), hint: 'осколков за ребёрс' },
+    { icon: '📊', label: 'Квота', value: formatNumber(prestige.quotaScore), hint: 'текущая оценка цикла' },
+    { icon: '🌰', label: 'След. квота', value: `${formatNumber(prestige.nextQuota.shishki)} 🌰`, hint: 'по шишкам' },
+    { icon: '📚', label: 'След. знания', value: `${formatNumber(prestige.nextQuota.knowledge)} 📚`, hint: 'по знаниям' },
+  ]
+
+  const lifetimeStats = [
+    { icon: '🌰', label: 'Шишки', value: formatNumber(state.lifetimeShishkiEarned), hint: 'за всё время' },
+    { icon: '💵', label: 'Деньги', value: formatNumber(state.lifetimeMoneyEarned), hint: 'заработано всего' },
+    { icon: '📚', label: 'Знания', value: formatNumber(state.lifetimeKnowledgeEarned), hint: 'заработано всего' },
+    { icon: '⚡', label: 'Мега-клики', value: formatNumber(state.megaClicks), hint: 'ручные усиления' },
+    { icon: '🎉', label: 'Взрывы', value: formatNumber(state.emojiBursts), hint: 'эмодзи-эффектов' },
+    { icon: '🏆', label: 'Достижения', value: `${unlockedCount}/${achievements.length}`, hint: 'открыто навсегда' },
+  ]
+
+  const prestigeLabSummary = [
+    { icon: '💎', label: 'На руках', value: `${formatNumber(state.prestigeShards)} 💎`, hint: 'свободный баланс' },
+    { icon: '🏦', label: 'Заработано', value: `${formatNumber(state.totalPrestigeShardsEarned)} 💎`, hint: 'за все циклы' },
+    { icon: '🌰', label: 'Квота шишек', value: `-${formatNumber(prestige.bonuses.shishkiQuotaReduction * 100)}%`, hint: 'снижение требования' },
+    { icon: '📚', label: 'Квота знаний', value: `-${formatNumber(prestige.bonuses.knowledgeQuotaReduction * 100)}%`, hint: 'снижение требования' },
+    { icon: '🏆', label: 'Достижения', value: `-${formatNumber(prestige.bonuses.achievementQuotaReduction)}`, hint: 'срез по квоте' },
+    { icon: '🚀', label: 'Бонус', value: `+x${formatNumber(prestige.bonuses.permanentMultiplierBonus)}`, hint: 'к постоянному престижу' },
   ]
 
   return (
@@ -69,11 +78,11 @@ export function MetaScreen() {
           <article className="meta-card prestige-card">
             <div className="meta-card__kicker">Престиж</div>
             <h3 className="meta-card__title">Система перерождения</h3>
-            <div className="meta-stats">
-              <div><b>{formatNumber(state.rebirths)}</b><span>ребёрсов</span></div>
-              <div><b>{formatNumber(state.prestigeShards)}</b><span>осколков на руках</span></div>
-              <div><b>x{formatNumber(state.prestigeMultiplier)}</b><span>общий буст</span></div>
-            </div>
+            <section className="stats-bar stats-bar--shop meta-stats">
+              {prestigeStats.map((item) => (
+                <StatCard key={item.label} {...item} formatValue={false} />
+              ))}
+            </section>
 
             <div className="prestige-steps">
               <PrestigeStep index="1" title="Открытие" text="Один раз добей лайфтайм-порог по шишкам, знаниям и достижениям." active={!prestige.isUnlocked} />
@@ -101,24 +110,11 @@ export function MetaScreen() {
                   <ProgressRow label="🏆 Квота достижений" current={prestige.cycleProgress.achievements} goal={prestige.rebirthRule.achievements} />
                 </div>
 
-                <div className="prestige-forecast-grid">
-                  <div>
-                    <span>Прогноз осколков</span>
-                    <b>{formatNumber(prestige.projectedShards)}</b>
-                  </div>
-                  <div>
-                    <span>Оценка квоты</span>
-                    <b>{formatNumber(prestige.quotaScore)}</b>
-                  </div>
-                  <div>
-                    <span>Следующая квота</span>
-                    <b>{formatNumber(prestige.nextQuota.shishki)} 🌰</b>
-                  </div>
-                  <div>
-                    <span>След. знания</span>
-                    <b>{formatNumber(prestige.nextQuota.knowledge)} 📚</b>
-                  </div>
-                </div>
+                <section className="stats-bar stats-bar--shop prestige-forecast-grid">
+                  {forecastStats.map((item) => (
+                    <StatCard key={item.label} {...item} formatValue={false} />
+                  ))}
+                </section>
 
                 <div className="meta-card__hint">
                   {prestige.canRebirth
@@ -144,9 +140,7 @@ export function MetaScreen() {
         <aside className="meta-dashboard__side">
           <ProgressLoopCard />
           <LifetimeCard
-            state={state}
-            unlockedCount={unlockedCount}
-            achievements={achievements}
+						lifetimeStats={lifetimeStats}
           />
         </aside>
       </div>
@@ -155,7 +149,7 @@ export function MetaScreen() {
         buyPrestigeUpgrade={buyPrestigeUpgrade}
         economy={economy}
         state={state}
-        prestige={prestige}
+				prestigeLabSummary={prestigeLabSummary}
       />
 
       <div className="meta-section-head">
