@@ -11,8 +11,7 @@ RUN pnpm i
 
 COPY ./ ./
 
-# prisma & server build
-RUN pnpm exec prisma generate
+# server build
 RUN pnpm build
 
 # runtime stage
