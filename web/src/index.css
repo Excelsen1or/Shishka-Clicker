@@ -2514,65 +2514,7 @@ body {
   z-index: 1;
 }
 
-body::before,
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 480ms ease;
-}
 
-body::before {
-  z-index: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px),
-    linear-gradient(125deg, rgba(255,0,102,0.26), rgba(255,153,0,0.24), rgba(255,238,0,0.22), rgba(34,211,238,0.24), rgba(124,58,237,0.26));
-  background-size: var(--fx-grid-size, 40px) var(--fx-grid-size, 40px), var(--fx-grid-size, 40px) var(--fx-grid-size, 40px), 280% 280%;
-  background-position: 0 0, 0 0, 0% 50%;
-  mix-blend-mode: screen;
-}
-
-body::after {
-  z-index: 0;
-  background:
-    radial-gradient(circle at 15% 20%, rgba(255,0,140,0.20), transparent 24%),
-    radial-gradient(circle at 85% 15%, rgba(255,200,0,0.18), transparent 24%),
-    radial-gradient(circle at 50% 80%, rgba(34,211,238,0.18), transparent 28%);
-  filter: blur(40px) saturate(1.2);
-}
-
-body.body--mega-click::before,
-body.body--mega-click::after {
-  opacity: calc(0.46 * var(--fx-density, 1));
-}
-
-body.body--mega-click::before {
-  animation: rgbGridShift 6s linear infinite, rgbBodyFlow 4.6s linear infinite, rgbHueRotate 8s linear infinite;
-}
-
-body.body--mega-click::after {
-  animation: rgbAuraPulse 2.8s ease-in-out infinite;
-}
-
-body.body--rgb-festival::before,
-body.body--rgb-festival::after {
-  opacity: calc(0.78 * var(--fx-density, 1));
-}
-
-body.body--rgb-festival::before {
-  background-image:
-    linear-gradient(rgba(255,255,255,0.11) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.11) 1px, transparent 1px),
-    linear-gradient(125deg, rgba(255,0,102,0.34), rgba(255,153,0,0.32), rgba(255,238,0,0.28), rgba(34,211,238,0.32), rgba(124,58,237,0.34));
-  animation: rgbGridShift 4s linear infinite, rgbBodyFlow 2.6s linear infinite, rgbHueRotate 5.4s linear infinite;
-}
-
-body.body--rgb-festival::after {
-  animation: rgbAuraPulse 1.6s ease-in-out infinite;
-}
 
 .clicker-btn {
   overflow: visible;
@@ -2682,27 +2624,13 @@ body.body--rgb-festival::after {
   will-change: transform, opacity;
 }
 
-@keyframes rgbBodyFlow {
-  0% { background-position: 0 0, 0 0, 0% 50%; }
-  50% { background-position: 18px 24px, 24px 18px, 100% 50%; }
-  100% { background-position: 36px 48px, 48px 36px, 0% 50%; }
-}
 
-@keyframes rgbGridShift {
-  0% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(0, -10px, 0) scale(1.015); }
-  100% { transform: translate3d(0, 0, 0) scale(1); }
-}
 
-@keyframes rgbAuraPulse {
-  0%, 100% { transform: scale(1); opacity: 0.75; }
-  50% { transform: scale(1.06); opacity: 1; }
-}
 
-@keyframes rgbHueRotate {
-  0% { filter: hue-rotate(0deg) saturate(1.08); }
-  100% { filter: hue-rotate(360deg) saturate(1.22); }
-}
+
+
+
+
 
 @keyframes rgbButtonBreath {
   0% { transform: translateY(0) scale(1); }
@@ -2794,20 +2722,7 @@ body.body--rgb-festival::after {
 
 
 /* --- Overlay performance and nav priority fixes --- */
-body::before,
-body::after,
-.screen-fireworks,
-.emoji-rain,
-.screen-firework,
-.emoji-rain__item {
-  backface-visibility: hidden;
-  transform: translateZ(0);
-}
 
-body::before,
-body::after {
-  will-change: opacity, transform, background-position, filter;
-}
 
 .screen-fireworks,
 .emoji-rain {
@@ -3136,41 +3051,7 @@ body {
   background-size: 40px 40px, 40px 40px, auto !important;
 }
 
-/* Restore body VFX pseudo elements */
-body::before,
-body::after {
-  display: block !important;
-  animation: none;
-  filter: none;
-  opacity: 0;
-  transition: opacity 480ms ease !important;
-}
 
-body.body--mega-click::before,
-body.body--mega-click::after {
-  opacity: calc(0.46 * var(--fx-density, 1));
-}
-
-body.body--mega-click::before {
-  animation: rgbGridShift 6s linear infinite, rgbBodyFlow 4.6s linear infinite, rgbHueRotate 8s linear infinite !important;
-}
-
-body.body--mega-click::after {
-  animation: rgbAuraPulse 2.8s ease-in-out infinite !important;
-}
-
-body.body--rgb-festival::before,
-body.body--rgb-festival::after {
-  opacity: calc(0.78 * var(--fx-density, 1));
-}
-
-body.body--rgb-festival::before {
-  animation: rgbGridShift 4s linear infinite, rgbBodyFlow 2.6s linear infinite, rgbHueRotate 5.4s linear infinite !important;
-}
-
-body.body--rgb-festival::after {
-  animation: rgbAuraPulse 1.6s ease-in-out infinite !important;
-}
 
 /* Restore backdrop filters */
 .app-header,
