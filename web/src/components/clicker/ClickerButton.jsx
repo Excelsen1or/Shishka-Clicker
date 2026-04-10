@@ -14,15 +14,16 @@ function pickRandom(pool) {
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
-const getRandomAngle = () => Math.random() * Math.PI * 2
+function getRandomAngle() {
+  return Math.random() * Math.PI * 2
+}
 
 function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosion, particleCap) {
   const now = Date.now()
-  const capped = Math.max(1, Math.min(isEmojiExplosion ? particleCap : Math.min(particleCap, 16), amount))
+  const total = Math.max(1, Math.min(isEmojiExplosion ? particleCap : Math.min(particleCap, 16), amount))
   const pool = Array.isArray(symbols) ? symbols : [symbols]
 
-  return Array.from({ length: capped }, (_, index) => {
-    // const angle = (Math.PI * 2 * index) / capped + Math.random() * 0.7
+  return Array.from({ length: total }, (_, index) => {
     const angle = getRandomAngle()
     const distance = (isEmojiExplosion ? 98 : 22) + Math.random() * (isMega ? 180 : 92)
 
@@ -87,7 +88,6 @@ function createViewportFireworks(amount, symbols, particleCap) {
   })
 }
 
-
 function createFallingEmojis(amount, symbols, limit) {
   const now = Date.now()
   const pool = Array.isArray(symbols) ? symbols : [symbols]
@@ -105,23 +105,21 @@ function createFallingEmojis(amount, symbols, limit) {
   }))
 }
 
-const PRESS_ANIMATION_MS = 240
-const MEGA_ANIMATION_MS = 760
-const RGB_BURST_MS = 2100
+const VISUAL_DURATIONS = {
+  tap: 240,
+  mega: 680,
+  prism: 1300,
+}
 
 export function ClickerButton() {
   const [particles, setParticles] = useState([])
   const [coneSprites, setConeSprites] = useState([])
   const [screenFireworks, setScreenFireworks] = useState([])
   const [fallingEmojis, setFallingEmojis] = useState([])
-  const [isPressed, setIsPressed] = useState(false)
-  const [isMegaPressed, setIsMegaPressed] = useState(false)
-  const [isRgbBurst, setIsRgbBurst] = useState(false)
+  const [visualState, setVisualState] = useState('idle')
   const [shockwaves, setShockwaves] = useState([])
 
-  const pressTimeoutRef = useRef(null)
-  const megaPressTimeoutRef = useRef(null)
-  const rgbTimeoutRef = useRef(null)
+  const visualTimeoutRef = useRef(null)
 
   const { state, mineShishki } = useGameContext()
   const { visualEffectCaps, visualEffectsFactor } = useSettingsContext()
@@ -133,83 +131,82 @@ export function ClickerButton() {
     [state.clickPower, visualEffectCaps.particleCap, visualEffectsFactor],
   )
 
+  const metricItems = useMemo(
+    () => [
+      { label: 'за клик', value: `+${formatNumber(state.clickPower)} 🌰` },
+      { label: 'мега-шанс', value: `${formatNumber(state.megaClickChance)}%` },
+      { label: 'эмодзи', value: `${formatNumber(state.emojiMegaChance)}%` },
+      { label: 'лимит частиц', value: formatNumber(particleLimitHint) },
+    ],
+    [particleLimitHint, state.clickPower, state.emojiMegaChance, state.megaClickChance],
+  )
+
   const overlayRoot = typeof document !== 'undefined' ? document.body : null
+  const isCharged =
+    visualState !== 'idle' ||
+    particles.length > 0 ||
+    coneSprites.length > 0 ||
+    shockwaves.length > 0
 
   useEffect(() => {
     return () => {
-      if (pressTimeoutRef.current) window.clearTimeout(pressTimeoutRef.current)
-      if (megaPressTimeoutRef.current) window.clearTimeout(megaPressTimeoutRef.current)
-      if (rgbTimeoutRef.current) window.clearTimeout(rgbTimeoutRef.current)
+      if (visualTimeoutRef.current) window.clearTimeout(visualTimeoutRef.current)
     }
   }, [])
 
-
-  function triggerPressAnimation() {
-    setIsMegaPressed(false)
-    setIsPressed(false)
+  function armVisualState(nextState) {
+    setVisualState('idle')
 
     requestAnimationFrame(() => {
-      setIsPressed(true)
-      if (pressTimeoutRef.current) window.clearTimeout(pressTimeoutRef.current)
-      pressTimeoutRef.current = window.setTimeout(() => setIsPressed(false), PRESS_ANIMATION_MS)
-    })
-  }
+      setVisualState(nextState)
 
-  function triggerMegaPressAnimation() {
-    setIsPressed(false)
-    setIsMegaPressed(false)
-
-    requestAnimationFrame(() => {
-      setIsMegaPressed(true)
-      if (megaPressTimeoutRef.current) window.clearTimeout(megaPressTimeoutRef.current)
-      megaPressTimeoutRef.current = window.setTimeout(() => setIsMegaPressed(false), MEGA_ANIMATION_MS)
-    })
-  }
-
-  function triggerRgbBurst() {
-    setIsRgbBurst(false)
-
-    requestAnimationFrame(() => {
-      setIsRgbBurst(true)
-      if (rgbTimeoutRef.current) window.clearTimeout(rgbTimeoutRef.current)
-      rgbTimeoutRef.current = window.setTimeout(() => setIsRgbBurst(false), RGB_BURST_MS)
+      if (visualTimeoutRef.current) window.clearTimeout(visualTimeoutRef.current)
+      visualTimeoutRef.current = window.setTimeout(() => {
+        setVisualState('idle')
+      }, VISUAL_DURATIONS[nextState])
     })
   }
 
   function spawnMegaRain(symbols, intensity = 1) {
     if (visualEffectCaps.rainCap <= 0) return
+
     const rain = createFallingEmojis(
       Math.round((2 + visualEffectCaps.burstCap * 0.35) * (0.55 + visualEffectsFactor * 0.35) * intensity),
       symbols,
       visualEffectCaps.rainCap,
     )
+
     setFallingEmojis((current) => [...current.slice(-visualEffectCaps.rainCap), ...rain])
   }
 
-  function handleClick(e) {
-    if (e.detail === 0) {
-      e.preventDefault()
-      return
+  function getLocalPoint(event) {
+    const rect = event.currentTarget.getBoundingClientRect()
+    const isKeyboardClick = event.detail === 0
+
+    return {
+      localX: isKeyboardClick ? rect.width / 2 : event.clientX - rect.left,
+      localY: isKeyboardClick ? rect.height / 2 : event.clientY - rect.top,
     }
+  }
 
+  function handleClick(event) {
     play()
+
     const result = mineShishki()
+    const nextVisualState = result.isEmojiExplosion ? 'prism' : result.isMega ? 'mega' : 'tap'
 
-    if (result.isMega) triggerMegaPressAnimation()
-    else triggerPressAnimation()
-    if (result.isEmojiExplosion) triggerRgbBurst()
+    armVisualState(nextVisualState)
 
-    const rect = e.currentTarget.getBoundingClientRect()
-    const localX = e.clientX - rect.left
-    const localY = e.clientY - rect.top
+    const { localX, localY } = getLocalPoint(event)
+    const burstValue = result.isEmojiExplosion
+      ? `🌈 ${result.amount}`
+      : result.isMega
+        ? `⚡ ${result.amount}`
+        : `+${formatNumber(result.amount)}`
 
-    addBurst(
-      localX,
-      localY,
-      result.isEmojiExplosion ? `🌈 ${result.amount}` : result.isMega ? `⚡ ${result.amount}` : `+${formatNumber(state.clickPower)}`,
-    )
+    addBurst(localX, localY, burstValue)
 
-    const spawned = createParticles(
+    const spawnedParticles = createParticles(
       localX,
       localY,
       Math.round(result.particleCount * (0.16 + visualEffectsFactor * 0.28)),
@@ -218,25 +215,32 @@ export function ClickerButton() {
       result.isEmojiExplosion,
       visualEffectCaps.particleCap,
     )
-    setParticles((current) => [...current.slice(-visualEffectCaps.particleCap), ...spawned])
 
-    const coneBurstCount = Math.max(0, Math.round((result.isEmojiExplosion ? 1 : result.isMega ? 1 : 0.5) * (0.45 + visualEffectsFactor * 0.2)))
+    setParticles((current) => [...current.slice(-visualEffectCaps.particleCap), ...spawnedParticles])
+
+    const coneBurstCount = Math.max(
+      0,
+      Math.round((result.isEmojiExplosion ? 1 : result.isMega ? 1 : 0.5) * (0.45 + visualEffectsFactor * 0.2)),
+    )
     const cones = createConeSprites(localX, localY, coneBurstCount, result.isMega, visualEffectCaps.coneCap)
     setConeSprites((current) => [...current.slice(-visualEffectCaps.coneCap), ...cones])
 
     if (result.isMega) {
       spawnMegaRain(result.symbols, result.isEmojiExplosion ? 1.5 : 1)
-      // spawn shockwave rings
+
       const now = Date.now()
-      const swCount = result.isEmojiExplosion ? 3 : 2
-      const newWaves = Array.from({ length: swCount }, (_, i) => ({
-        id: `sw-${now}-${i}`,
-        delay: i * 160,
+      const waveCount = result.isEmojiExplosion ? 3 : 2
+      const waves = Array.from({ length: waveCount }, (_, index) => ({
+        id: `sw-${now}-${index}`,
+        delay: index * 160,
         color: result.isEmojiExplosion
-          ? ['rgba(168,85,247,0.75)', 'rgba(34,211,238,0.75)', 'rgba(255,153,0,0.75)'][i]
-          : i === 0 ? 'rgba(250,204,21,0.75)' : 'rgba(34,211,238,0.65)',
+          ? ['rgba(168,85,247,0.72)', 'rgba(34,211,238,0.72)', 'rgba(255,166,0,0.72)'][index]
+          : index === 0
+            ? 'rgba(250,204,21,0.72)'
+            : 'rgba(34,211,238,0.62)',
       }))
-      setShockwaves((current) => [...current.slice(-6), ...newWaves])
+
+      setShockwaves((current) => [...current.slice(-6), ...waves])
     }
 
     if (result.isEmojiExplosion && visualEffectCaps.fireworkCap > 0 && visualEffectsFactor >= 0.35) {
@@ -245,21 +249,18 @@ export function ClickerButton() {
         result.symbols,
         visualEffectCaps.fireworkCap,
       )
+
       setScreenFireworks((current) => [...current.slice(-visualEffectCaps.fireworkCap), ...fireworks])
     }
   }
 
-  function preventKeyboard(e) {
-    if (e.key === 'Enter' || e.key === ' ') e.preventDefault()
-  }
-
   return (
     <div className="clicker-wrap">
-      <div
-        className={`clicker-btn ${isPressed ? 'clicker-btn--pressed' : ''} ${isMegaPressed ? 'clicker-btn--mega-pressed' : ''} ${isRgbBurst ? 'clicker-btn--rgb' : ''} ${particles.length ? 'clicker-btn--active' : ''}`}
-        data-buff-state={isRgbBurst ? 'emoji' : isMegaPressed ? 'mega' : isPressed ? 'click' : 'idle'}
+      <button
+        type="button"
+        className={`clicker-btn ${isCharged ? 'clicker-btn--charged' : ''} ${visualState !== 'idle' ? `clicker-btn--${visualState}` : ''}`.trim()}
+        data-buff-state={visualState}
         onClick={handleClick}
-        onKeyDown={preventKeyboard}
         aria-label="Добыть шишки"
       >
         <div className="clicker-particles" aria-hidden="true">
@@ -308,32 +309,46 @@ export function ClickerButton() {
 
         <ClickBurst bursts={bursts} />
 
-        {shockwaves.map((sw) => (
+        {shockwaves.map((wave) => (
           <span
-            key={sw.id}
+            key={wave.id}
             className="shockwave-ring"
-            style={{ '--sw-color': sw.color, animationDelay: `${sw.delay}ms` }}
-            onAnimationEnd={() => setShockwaves((c) => c.filter((s) => s.id !== sw.id))}
+            style={{ '--sw-color': wave.color, animationDelay: `${wave.delay}ms` }}
+            onAnimationEnd={() => setShockwaves((current) => current.filter((entry) => entry.id !== wave.id))}
           />
         ))}
 
-        <div className="clicker-btn__halo" />
-        <div className="clicker-btn__ring clicker-btn__ring--outer" />
-        <div className="clicker-btn__ring clicker-btn__ring--inner" />
+        <span className="clicker-btn__aura" />
+        <span className="clicker-btn__sheen" />
 
-        <img
-          src={discoImage}
-          alt="Шишка"
-          className="clicker-btn__hero"
-          draggable={false}
-        />
-
-        <div className="clicker-btn__label">Кликни и добудь вышку</div>
-        <div className="clicker-btn__sub">За клик: +{formatNumber(state.clickPower)} 🌰</div>
-        <div className="clicker-btn__meta">
-          Мега-клик: {formatNumber(state.megaClickChance)}% · эмодзи при мега: {formatNumber(state.emojiMegaChance)}% · макс. частиц: {particleLimitHint}
+        <div className="clicker-btn__core">
+          <span className="clicker-btn__core-ring clicker-btn__core-ring--outer" />
+          <span className="clicker-btn__core-ring clicker-btn__core-ring--inner" />
+          <div className="clicker-btn__hero-shell">
+            <img
+              src={discoImage}
+              alt="Шишка"
+              className="clicker-btn__hero"
+              draggable={false}
+            />
+          </div>
         </div>
-      </div>
+
+        <div className="clicker-btn__content">
+          <span className="clicker-btn__eyebrow">Активная добыча</span>
+          <span className="clicker-btn__label">Жми и разгоняй прогресс</span>
+          <span className="clicker-btn__sub">Каждое нажатие приносит шишки и может запустить мега-эффект</span>
+        </div>
+
+        <div className="clicker-btn__metrics">
+          {metricItems.map((item) => (
+            <span key={item.label} className="clicker-btn__metric">
+              <b>{item.value}</b>
+              <small>{item.label}</small>
+            </span>
+          ))}
+        </div>
+      </button>
 
       {overlayRoot && createPortal(
         <>

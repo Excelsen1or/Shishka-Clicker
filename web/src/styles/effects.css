@@ -30,7 +30,7 @@
   animation: burst 840ms var(--ease-out) forwards;
 }
 
-.clicker-btn--rgb .click-burst {
+.clicker-btn--prism .click-burst {
   background: linear-gradient(135deg, #ff0066, #ff9900, #22d3ee);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -225,8 +225,8 @@
 .screen,
 .clicker-wrap,
 .clicker-layout,
-.clicker-layout__left,
-.clicker-layout__right,
+.clicker-stage,
+.clicker-sidebar,
 #root {
   position: relative;
   z-index: 1;
@@ -301,88 +301,7 @@ body {
   }
 }
 
-@keyframes clickPressPremium {
-  0% { transform: translateY(0) scale(1); filter: brightness(1); }
-  28% { transform: translateY(3px) scale(0.965); filter: brightness(1.05); }
-  62% { transform: translateY(-1px) scale(1.02); filter: brightness(1.03); }
-  100% { transform: translateY(0) scale(1); filter: brightness(1); }
-}
-
-@keyframes clickHeroPremium {
-  0% { transform: scale(1); filter: brightness(1); }
-  28% { transform: scale(0.935); filter: brightness(1.02); }
-  62% { transform: scale(1.035); filter: brightness(1.06); }
-  100% { transform: scale(1); filter: brightness(1); }
-}
-
-@keyframes clickGlowPremium {
-  0% { opacity: 0.18; transform: scale(0.96); }
-  50% { opacity: 0.42; transform: scale(1.08); }
-  100% { opacity: 0.2; transform: scale(1); }
-}
-
-@keyframes clickRingOuterPremium {
-  0% { opacity: 0.22; transform: translate(-50%, -55%) scale(1); }
-  50% { opacity: 0.34; transform: translate(-50%, -55%) scale(1.05); }
-  100% { opacity: 0.22; transform: translate(-50%, -55%) scale(1); }
-}
-
-@keyframes clickRingInnerPremium {
-  0% { opacity: 0.26; transform: translate(-50%, -55%) scale(1); }
-  50% { opacity: 0.36; transform: translate(-50%, -55%) scale(0.985); }
-  100% { opacity: 0.26; transform: translate(-50%, -55%) scale(1); }
-}
-
-@keyframes megaWarp {
-  0% { transform: translateY(0) scaleX(1) scaleY(1); filter: brightness(1); }
-  18% { transform: translateY(6px) scaleX(1.09) scaleY(0.88); filter: brightness(1.14); }
-  48% { transform: translateY(-5px) scaleX(0.93) scaleY(1.08); filter: brightness(1.18); }
-  72% { transform: translateY(2px) scaleX(1.02) scaleY(0.99); filter: brightness(1.06); }
-  100% { transform: translateY(0) scaleX(1) scaleY(1); filter: brightness(1); }
-}
-
-@keyframes megaHeroWarp {
-  0% { transform: scale(1) rotate(0deg) skewX(0deg); filter: brightness(1); }
-  18% { transform: scale(0.84) rotate(-4deg) skewX(-6deg); filter: brightness(1.1) saturate(1.15); }
-  50% { transform: scale(1.14) rotate(3deg) skewX(3deg); filter: brightness(1.2) saturate(1.22); }
-  75% { transform: scale(1.04) rotate(-1deg) skewX(-1deg); filter: brightness(1.08); }
-  100% { transform: scale(1) rotate(0deg) skewX(0deg); filter: brightness(1); }
-}
-
-@keyframes megaHaloBlast {
-  0% { opacity: 0.15; transform: scale(0.88); }
-  35% { opacity: 0.82; transform: scale(1.2); }
-  65% { opacity: 0.52; transform: scale(1.1); }
-  100% { opacity: 0.18; transform: scale(1); }
-}
-
-@keyframes megaRingExpand {
-  0% { opacity: 0.22; transform: translate(-50%, -55%) scale(1); }
-  45% { opacity: 0.72; transform: translate(-50%, -55%) scale(1.18); }
-  100% { opacity: 0.24; transform: translate(-50%, -55%) scale(1); }
-}
-
-@keyframes megaRingContract {
-  0% { opacity: 0.26; transform: translate(-50%, -55%) scale(1); }
-  45% { opacity: 0.62; transform: translate(-50%, -55%) scale(0.84); }
-  100% { opacity: 0.28; transform: translate(-50%, -55%) scale(1); }
-}
-
-@keyframes rgbButtonBreath {
-  0% { transform: translateY(0) scale(1); }
-  100% { transform: translateY(-2px) scale(1.018); }
-}
-
-@keyframes emojiHeroFiesta {
-  0% { transform: scale(1) rotate(-1deg); filter: saturate(1) brightness(1.02); }
-  50% { transform: scale(1.04) rotate(1deg); filter: saturate(1.12) brightness(1.08); }
-  100% { transform: scale(1.02) rotate(-0.6deg); filter: saturate(1.06) brightness(1.05); }
-}
-
-@keyframes rgbRingGlow {
-  0% { opacity: 0.55; }
-  100% { opacity: 0.95; }
-}
+/* Button keyframes are in clicker.css (btn-tap, btn-mega, btn-prism, btn-orbit) */
 
 @keyframes screenEmojiFirework {
   0% {

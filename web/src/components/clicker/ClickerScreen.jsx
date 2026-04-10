@@ -3,6 +3,7 @@ import { ProgressOverview } from './ProgressOverview'
 import { useGameContext } from '../../context/GameContext'
 import { buildStats } from '../stats/StatsBar'
 import { StatCard } from '../stats/StatCard'
+import { formatNumber } from '../../lib/format'
 
 export function ClickerScreen() {
   const { state, contributions } = useGameContext()
@@ -18,13 +19,11 @@ export function ClickerScreen() {
       </div>
 
       <div className="clicker-layout">
-        <div className="clicker-layout__left">
           <ClickerButton />
-        </div>
 
-        <div className="clicker-layout__right">
+        <aside className="clicker-sidebar">
           <div className="clicker-panel">
-            <div className="clicker-panel__head">
+            <div className="clicker-panel__header">
               <span className="clicker-panel__kicker">Текущие показатели</span>
             </div>
 
@@ -34,7 +33,7 @@ export function ClickerScreen() {
               ))}
             </div>
           </div>
-        </div>
+        </aside>
       </div>
 
       <div className="clicker-below">
