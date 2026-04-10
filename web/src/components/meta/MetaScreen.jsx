@@ -63,8 +63,6 @@ export function MetaScreen() {
 
   return (
     <section className="screen meta-screen">
-      <div className="screen__glow" />
-
       <div className="screen__header">
         <span className="screen__kicker">Мета</span>
         <h2 className="screen__title">Престиж, квоты и осколки</h2>

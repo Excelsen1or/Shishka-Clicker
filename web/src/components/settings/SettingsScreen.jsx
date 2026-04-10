@@ -149,8 +149,6 @@ export function SettingsScreen() {
 
   return (
     <section className="screen settings-screen">
-      <div className="screen__glow" />
-
       <div className="screen__header">
         <span className="screen__kicker">Настройки</span>
         <h2 className="screen__title">Звук, эффекты и информация о приложении</h2>

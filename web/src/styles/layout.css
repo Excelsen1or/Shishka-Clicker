@@ -1,6 +1,7 @@
 .app-shell,
 .app-content,
 .app-main,
+.screen-bg,
 .screen,
 .clicker-wrap,
 .clicker-layout,
@@ -36,9 +37,10 @@
   position: fixed;
   border-radius: 50%;
   pointer-events: none;
-  filter: none;
-  opacity: 0;
+  filter: blur(60px);
+  opacity: 1;
   z-index: -2;
+  transition: background 0.8s ease;
 }
 
 .ambient--a {
@@ -65,11 +67,13 @@
   background: radial-gradient(circle, rgb(var(--accent-fuchsia-rgb) / 0.11), transparent 70%);
 }
 
+
+
 .noise-overlay {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  opacity: 0;
+  opacity: 0.04;
   z-index: -1;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.05' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 120px 120px;
@@ -137,13 +141,24 @@
   background: rgb(var(--accent-primary-rgb) / 0.12);
 }
 
+.screen-bg {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-strong);
+  background: linear-gradient(180deg, rgb(var(--surface-2-rgb)), rgb(var(--surface-1-rgb)));
+  box-shadow: var(--shadow-lg);
+  --screen-accent-rgb: var(--accent-primary-rgb);
+  transition: border-color 0.8s ease;
+}
+
+.screen-bg__hidden {
+  display: none;
+}
+
 .screen {
   overflow: hidden;
   padding: clamp(1rem, 2vw, 1.5rem);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-strong);
-  background: linear-gradient(180deg, rgb(var(--surface-2-rgb) / 0.96), rgb(var(--surface-1-rgb) / 0.88));
-  box-shadow: var(--shadow-lg);
   --screen-accent-rgb: var(--accent-primary-rgb);
 }
 
