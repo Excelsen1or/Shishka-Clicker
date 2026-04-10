@@ -1384,12 +1384,10 @@ img { display: block; }
   animation: clickParticleFly 820ms var(--ease-out) forwards;
   font-size: 1.2rem;
   will-change: transform, opacity;
-  filter: drop-shadow(0 4px 12px rgba(255,255,255,0.12));
 }
 
 .clicker-particle--mega {
   font-size: 1.45rem;
-  filter: drop-shadow(0 6px 14px rgba(245,158,11,0.32));
 }
 
 @keyframes clickParticleFly {
@@ -1416,13 +1414,11 @@ img { display: block; }
   animation: coneShardFly 760ms cubic-bezier(0.18, 0.86, 0.32, 1) forwards;
   pointer-events: none;
   will-change: transform, opacity;
-  filter: drop-shadow(0 10px 18px rgba(0,0,0,0.28));
 }
 
 .cone-sprite--mega {
   width: 24px;
   height: 24px;
-  filter: drop-shadow(0 12px 22px rgba(245,158,11,0.28));
 }
 
 @keyframes coneShardFly {
@@ -1655,18 +1651,15 @@ img { display: block; }
   z-index: 6;
   font-size: 1.45rem;
   animation: clickParticleFly 960ms cubic-bezier(0.12, 0.82, 0.18, 1) forwards;
-  filter: drop-shadow(0 8px 18px rgba(255,255,255,0.2));
 }
 
 .clicker-particle--mega {
   font-size: 1.8rem;
-  filter: drop-shadow(0 10px 24px rgba(245,158,11,0.48));
 }
 
 .clicker-particle--emoji-explosion {
   font-size: 2rem;
   animation-duration: 1180ms;
-  filter: drop-shadow(0 12px 24px rgba(255,184,77,0.35));
 }
 
 @keyframes clickParticleFly {
@@ -1694,13 +1687,11 @@ img { display: block; }
   width: 22px;
   height: 22px;
   animation: coneShardFly 960ms cubic-bezier(0.16, 1, 0.22, 1) forwards;
-  filter: drop-shadow(0 14px 24px rgba(0,0,0,0.3));
 }
 
 .cone-sprite--mega {
   width: 30px;
   height: 30px;
-  filter: drop-shadow(0 16px 28px rgba(245,158,11,0.42));
 }
 
 @keyframes coneShardFly {
@@ -2030,17 +2021,14 @@ img { display: block; }
   0% {
     opacity: 0.18;
     transform: scale(0.96);
-    filter: blur(0px);
   }
   50% {
     opacity: 0.42;
     transform: scale(1.08);
-    filter: blur(2px);
   }
   100% {
     opacity: 0.2;
     transform: scale(1);
-    filter: blur(0px);
   }
 }
 
@@ -2141,17 +2129,14 @@ img { display: block; }
   0% {
     opacity: 0.2;
     transform: scale(0.94);
-    filter: blur(0px);
   }
   45% {
     opacity: 0.62;
     transform: scale(1.14);
-    filter: blur(4px);
   }
   100% {
     opacity: 0.22;
     transform: scale(1);
-    filter: blur(0px);
   }
 }
 
@@ -2382,7 +2367,6 @@ img { display: block; }
 
 .clicker-btn--rgb .clicker-btn__halo {
   background: linear-gradient(120deg, rgba(255,0,102,0.28), rgba(255,153,0,0.22), rgba(34,211,238,0.24), rgba(168,85,247,0.28));
-  filter: blur(18px);
 }
 
 .clicker-btn--rgb .clicker-btn__ring--outer,
@@ -2667,7 +2651,6 @@ body.body--rgb-festival::after {
 
 .clicker-btn--rgb .clicker-btn__halo {
   background: linear-gradient(120deg, rgba(255,0,102,0.34), rgba(255,153,0,0.26), rgba(255,238,0,0.24), rgba(34,211,238,0.26), rgba(168,85,247,0.34));
-  filter: blur(22px);
 }
 
 .clicker-btn--rgb .clicker-btn__ring--outer,
@@ -2683,7 +2666,6 @@ body.body--rgb-festival::after {
 .clicker-particle--emoji-explosion {
   animation-duration: 1700ms;
   font-size: clamp(1.6rem, 2.4vw, 2.4rem) !important;
-  filter: drop-shadow(0 0 12px rgba(255,255,255,0.35));
 }
 
 .screen-fireworks {
@@ -2701,7 +2683,6 @@ body.body--rgb-festival::after {
   font-size: clamp(1.7rem, 3.2vw, 3rem);
   transform: translate3d(0, 0, 0) scale(calc(var(--scale, 1) * var(--fx-firework-scale, 1)));
   animation: screenEmojiFirework 1560ms cubic-bezier(0.12, 0.84, 0.18, 1) forwards;
-  filter: drop-shadow(0 0 14px rgba(255,255,255,0.24)) drop-shadow(0 0 24px rgba(168,85,247,0.22));
   will-change: transform, opacity;
 }
 
@@ -2805,7 +2786,6 @@ body.body--rgb-festival::after {
   display: block;
   font-size: clamp(1.35rem, 2.3vw, 2.4rem);
   line-height: 1;
-  filter: drop-shadow(0 0 10px rgba(255,255,255,0.22)) drop-shadow(0 0 20px rgba(255,190,92,0.18));
   will-change: transform, opacity;
   animation-name: megaEmojiRain;
   animation-timing-function: linear;
@@ -2848,11 +2828,9 @@ body::after {
 
 .emoji-rain__item {
   font-size: clamp(1.1rem, 1.9vw, 1.9rem);
-  filter: drop-shadow(0 0 6px rgba(255,255,255,0.16));
 }
 
 .screen-firework {
-  filter: drop-shadow(0 0 8px rgba(255,255,255,0.18));
 }
 
 .bottom-nav {
@@ -3037,10 +3015,10 @@ body::after {
 }
 
 @keyframes megaHaloBlast {
-  0%   { opacity: 0.15; transform: scale(0.88); filter: blur(0px); }
-  35%  { opacity: 0.82; transform: scale(1.2); filter: blur(6px); }
-  65%  { opacity: 0.52; transform: scale(1.1); filter: blur(3px); }
-  100% { opacity: 0.18; transform: scale(1); filter: blur(0px); }
+  0%   { opacity: 0.15; transform: scale(0.88); }
+  35%  { opacity: 0.82; transform: scale(1.2); }
+  65%  { opacity: 0.52; transform: scale(1.1); }
+  100% { opacity: 0.18; transform: scale(1); }
 }
 
 @keyframes megaRingExpand {
@@ -3110,7 +3088,6 @@ body::after {
     rgba(34,211,238,0.26), rgba(168,85,247,0.3),
     rgba(255,0,102,0.3)
   ) !important;
-  filter: blur(24px) !important;
   opacity: 0.9;
   animation: rgbHaloSpin 2s linear infinite !important;
 }
