@@ -1,93 +1,13 @@
 import { useMemo } from 'react'
 import { useGameContext } from '../../context/GameContext'
 import { formatNumber } from '../../lib/format'
-import { ProgressLoopCard } from '../clicker/ProgressOverview'
+import { ProgressLoopCard } from '../clicker/ProgressLoopCard.jsx'
+import {PrestigeStep} from "./PrestigeStep.jsx"
+import {ProgressRow} from "./ProgressRow.jsx"
+import {AchievementsGrid} from "./AchievementsGrid.jsx"
+import {ShardsLaboratory} from "./ShardsLaboratory.jsx"
+import {LifetimeCard} from "./LifetimeCard.jsx"
 
-function AchievementCard({ achievement }) {
-  return (
-    <article className={`meta-card achievement-card ${achievement.unlocked ? 'achievement-card--done' : ''} ${achievement.secret ? 'achievement-card--secret' : ''}`}>
-      <div className="achievement-card__head">
-        <span>{achievement.category}</span>
-        <span>ур. {achievement.tier}</span>
-      </div>
-      <h3 className="achievement-card__title">
-        {achievement.unlocked ? achievement.title : achievement.secret ? '??? Секретное достижение' : achievement.title}
-      </h3>
-      <p className="achievement-card__desc">
-        {achievement.unlocked || !achievement.secret
-          ? achievement.description
-          : 'Откроется только после выполнения скрытого условия.'}
-      </p>
-      <div className="achievement-card__status">
-        {achievement.unlocked ? '🏆 Открыто' : achievement.secret ? '🕶️ Скрыто' : '🔒 В процессе'}
-      </div>
-    </article>
-  )
-}
-
-function ProgressRow({ label, current, goal, alt = false }) {
-  const percent = Math.min(100, (current / Math.max(1, goal)) * 100)
-
-  return (
-    <>
-      <div className="unlock-progress__row">
-        <span>{label}</span>
-        <span>{formatNumber(current)} / {formatNumber(goal)}</span>
-      </div>
-      <div className="unlock-progress__track">
-        <div className={`unlock-progress__fill ${alt ? 'unlock-progress__fill--alt' : ''}`} style={{ width: `${percent}%` }} />
-      </div>
-    </>
-  )
-}
-
-function PrestigeStep({ index, title, text, active = false }) {
-  return (
-    <div className={`prestige-step ${active ? 'prestige-step--active' : ''}`}>
-      <div className="prestige-step__index">{index}</div>
-      <div>
-        <div className="prestige-step__title">{title}</div>
-        <div className="prestige-step__text">{text}</div>
-      </div>
-    </div>
-  )
-}
-
-function LabCard({ item, canBuy, onBuy }) {
-  return (
-    <article className={`prestige-lab-card prestige-lab-card--${item.tint ?? 'amber'}`}>
-      <div className="prestige-lab-card__head">
-        <div>
-          <div className="prestige-lab-card__kicker">Метапрокачка</div>
-          <h3 className="prestige-lab-card__title">{item.title}</h3>
-        </div>
-        <div className="prestige-lab-card__level">ур. {item.level}</div>
-      </div>
-
-      <p className="prestige-lab-card__desc">{item.description}</p>
-
-      <div className="prestige-lab-card__effect">{item.effectPreview?.currentText}</div>
-      <div className="prestige-lab-card__next">{item.effectPreview?.nextText}</div>
-
-      <div className="prestige-lab-card__footer">
-        <div className="prestige-lab-card__price">💎 {formatNumber(item.cost)}</div>
-        <button type="button" className="shop-card__btn" disabled={!canBuy} onClick={onBuy}>
-          {canBuy ? 'Улучшить за осколки' : 'Не хватает осколков'}
-        </button>
-      </div>
-    </article>
-  )
-}
-
-function HeroStat({ label, value, hint }) {
-  return (
-    <article className="meta-hero-stat">
-      <span className="meta-hero-stat__label">{label}</span>
-      <strong className="meta-hero-stat__value">{value}</strong>
-      <span className="meta-hero-stat__hint">{hint}</span>
-    </article>
-  )
-}
 
 export function MetaScreen() {
   const { state, economy, achievements, prestige, prestigeReset, buyPrestigeUpgrade, resetGame } = useGameContext()
@@ -219,62 +139,24 @@ export function MetaScreen() {
                 : 'Сначала открой систему престижа'}
             </button>
           </article>
-
         </div>
 
         <aside className="meta-dashboard__side">
           <ProgressLoopCard />
-
-          <article className="meta-card meta-card--stats">
-            <div className="meta-card__kicker">Лайфтайм</div>
-            <h3 className="meta-card__title">Глобальный прогресс</h3>
-            <div className="meta-lifetime-grid">
-              <div><span>Всего шишек</span><b>{formatNumber(state.lifetimeShishkiEarned)}</b></div>
-              <div><span>Всего денег</span><b>{formatNumber(state.lifetimeMoneyEarned)}</b></div>
-              <div><span>Всего знаний</span><b>{formatNumber(state.lifetimeKnowledgeEarned)}</b></div>
-              <div><span>Мега-кликов</span><b>{formatNumber(state.megaClicks)}</b></div>
-              <div><span>Эмодзи-взрывов</span><b>{formatNumber(state.emojiBursts)}</b></div>
-              <div><span>Достижений</span><b>{unlockedCount}/{achievements.length}</b></div>
-            </div>
-
-            <div className="meta-card__hint">
-              После ребёрса сбрасываются текущие ресурсы и уровни магазина, но сохраняются достижения, осколки, мета-улучшения и общий множитель престижа.
-            </div>
-
-            <button type="button" className="reset-btn" onClick={resetGame}>
-              Стереть весь прогресс
-            </button>
-          </article>
+          <LifetimeCard
+            state={state}
+            unlockedCount={unlockedCount}
+            achievements={achievements}
+          />
         </aside>
       </div>
 
-      <article className="meta-card prestige-lab">
-        <div className="meta-card__kicker">Лаборатория осколков</div>
-        <h3 className="meta-card__title">Постоянные улучшения престижа</h3>
-        <p className="meta-card__desc">
-          Осколки редкие, поэтому здесь нет мусорных покупок: часть веток режет квоту, часть усиливает престиж, а часть повышает награду за перелив сверх квоты.
-        </p>
-
-        <div className="prestige-lab__summary">
-          <div><span>На руках</span><b>{formatNumber(state.prestigeShards)} 💎</b></div>
-          <div><span>Суммарно заработано</span><b>{formatNumber(state.totalPrestigeShardsEarned)} 💎</b></div>
-          <div><span>Снижение квоты шишек</span><b>-{formatNumber(prestige.bonuses.shishkiQuotaReduction * 100)}%</b></div>
-          <div><span>Снижение квоты знаний</span><b>-{formatNumber(prestige.bonuses.knowledgeQuotaReduction * 100)}%</b></div>
-          <div><span>Срез достижений</span><b>-{formatNumber(prestige.bonuses.achievementQuotaReduction)}</b></div>
-          <div><span>Бонус к престижу</span><b>+x{formatNumber(prestige.bonuses.permanentMultiplierBonus)}</b></div>
-        </div>
-
-        <div className="prestige-lab__grid">
-          {economy.prestigeUpgrades.map((item) => (
-            <LabCard
-              key={item.id}
-              item={item}
-              canBuy={state.prestigeShards >= item.cost}
-              onBuy={() => buyPrestigeUpgrade(item.id)}
-            />
-          ))}
-        </div>
-      </article>
+      <ShardsLaboratory
+        buyPrestigeUpgrade={buyPrestigeUpgrade}
+        economy={economy}
+        state={state}
+        prestige={prestige}
+      />
 
       <div className="meta-section-head">
         <div>
@@ -284,25 +166,9 @@ export function MetaScreen() {
         <div className="meta-section-head__meta">Открыто {unlockedCount} из {achievements.length}</div>
       </div>
 
-      <div className="achievement-category-grid">
-        {grouped.map((group) => (
-          <article key={group.category} className="achievement-category">
-            <div className="achievement-category__head">
-              <div>
-                <div className="achievement-category__kicker">Категория</div>
-                <h3 className="achievement-category__title">{group.category}</h3>
-              </div>
-              <div className="achievement-category__count">{group.unlocked}/{group.total}</div>
-            </div>
-
-            <div className="achievement-grid">
-              {group.items.map((achievement) => (
-                <AchievementCard key={achievement.id} achievement={achievement} />
-              ))}
-            </div>
-          </article>
-        ))}
-      </div>
+      <AchievementsGrid
+        grouped={grouped}
+      />
     </section>
   )
 }

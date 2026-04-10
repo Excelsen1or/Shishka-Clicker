@@ -1,4 +1,4 @@
-import { APP_VERSION, CHANGELOG_URL } from '../../config/appMeta'
+import { APP_VERSION, CHANGELOG_URL } from '../../config/appMeta.js'
 
 export function Header() {
   return (

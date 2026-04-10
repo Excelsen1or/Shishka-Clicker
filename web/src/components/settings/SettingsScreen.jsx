@@ -7,73 +7,13 @@ import {
   normalizeImportedBundle,
 } from '../../lib/saveTransfer'
 import {
-  APP_VERSION,
-  REPOSITORY_URL,
-  CHANGELOG_URL,
-  PRIVACY_URL,
-  TERMS_URL,
+  APP_VERSION
 } from '../../config/appMeta'
+import {SettingsSaveCard} from "./SettingsSaveCard.jsx"
+import {SettingsAudio} from "./SettingsAudio.jsx"
+import {SettingsEffects} from "./SettingsEffects.jsx"
+import {SettingsAbout} from "./SettingsAbout.jsx"
 
-function ToggleRow({ label, hint, checked, onChange }) {
-  return (
-    <label className="settings-toggle">
-      <div>
-        <div className="settings-card__label">{label}</div>
-        <div className="settings-card__hint">{hint}</div>
-      </div>
-      <button
-        type="button"
-        className={`settings-switch ${checked ? 'settings-switch--active' : ''}`}
-        onClick={onChange}
-        aria-pressed={checked}
-      >
-        <span className="settings-switch__thumb" />
-      </button>
-    </label>
-  )
-}
-
-function RangeRow({ label, hint, value, onChange, min = 0, max = 100, step = 1, suffix = '%' }) {
-  return (
-    <label className="settings-range">
-      <div className="settings-range__head">
-        <div>
-          <div className="settings-card__label">{label}</div>
-          <div className="settings-card__hint">{hint}</div>
-        </div>
-        <div className="settings-range__value">{value}{suffix}</div>
-      </div>
-
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
-      />
-    </label>
-  )
-}
-
-function LinkTile({ title, hint, href }) {
-  return (
-    <a className="settings-link-tile" href={href} target="_blank" rel="noreferrer">
-      <span className="settings-link-tile__title">{title}</span>
-      <span className="settings-link-tile__hint">{hint}</span>
-    </a>
-  )
-}
-
-function StatusTile({ label, value, hint }) {
-  return (
-    <article className="settings-status-tile">
-      <span className="settings-status-tile__label">{label}</span>
-      <strong className="settings-status-tile__value">{value}</strong>
-      <span className="settings-status-tile__hint">{hint}</span>
-    </article>
-  )
-}
 
 export function SettingsScreen() {
   const { resetGame, markSilenceLover, exportGameSave, importGameSave } = useGameContext()
@@ -232,203 +172,37 @@ export function SettingsScreen() {
 
       <div className="settings-layout">
         <div className="settings-layout__main">
-          <article className="settings-card">
-            <div className="settings-card__head">
-              <h3 className="settings-card__title">Аудио</h3>
-              <span className="settings-chip">Основное</span>
-            </div>
+          <SettingsAudio
+            handleMusicVolume={handleMusicVolume}
+            handleMusicToggle={handleMusicToggle}
+            toggle={toggle}
+            setVolume={setVolume}
+            settings={settings}
+            resetSettings={resetSettings}
+          />
 
-            <div className="settings-stack">
-              <ToggleRow
-                label="Звуковые эффекты"
-                hint="Клики, покупки и переключение вкладок"
-                checked={settings.soundEnabled}
-                onChange={() => toggle('soundEnabled')}
-              />
+          <SettingsEffects
+            settings={settings}
+            setVolume={setVolume}
+            visualEffectCaps={visualEffectCaps}
+          />
 
-              <ToggleRow
-                label="Фоновая музыка"
-                hint="Выключение откроет секретное достижение для любителей тишины"
-                checked={settings.musicEnabled}
-                onChange={handleMusicToggle}
-              />
-
-              <RangeRow
-                label="Общая громкость"
-                hint="Главный множитель для всех звуков"
-                value={settings.masterVolume}
-                onChange={(value) => setVolume('masterVolume', value)}
-              />
-
-              <RangeRow
-                label="Громкость эффектов"
-                hint="Клики, покупки и UI"
-                value={settings.effectsVolume}
-                onChange={(value) => setVolume('effectsVolume', value)}
-              />
-
-              <RangeRow
-                label="Громкость музыки"
-                hint="Опусти почти в ноль, если хочешь тишины"
-                value={settings.musicVolume}
-                onChange={handleMusicVolume}
-              />
-            </div>
-
-            <button type="button" className="settings-ghost-btn" onClick={resetSettings}>
-              Сбросить настройки звука
-            </button>
-          </article>
-
-          <article className="settings-card">
-            <div className="settings-card__head">
-              <h3 className="settings-card__title">Визуальные эффекты</h3>
-              <span className="settings-chip">Производительность</span>
-            </div>
-
-            <RangeRow
-              label="Плотность эффектов"
-              hint="Один ползунок управляет общим лимитом шишек, эмодзи и всплывающих чисел на экране."
-              value={settings.visualEffectsDensity}
-              min={20}
-              max={200}
-              suffix="%"
-              onChange={(value) => setVolume('visualEffectsDensity', value)}
-            />
-
-            <div className="settings-info-box">
-              <div className="settings-info-box__title">Текущий лимит эффектов</div>
-              <div className="settings-info-box__grid">
-                <div>
-                  <span>Эмодзи и шишки</span>
-                  <strong>до {visualEffectCaps.particleCap}</strong>
-                </div>
-                <div>
-                  <span>Всплывающие числа</span>
-                  <strong>до {visualEffectCaps.burstCap}</strong>
-                </div>
-                <div>
-                  <span>Доп. спрайты шишек</span>
-                  <strong>до {visualEffectCaps.coneCap}</strong>
-                </div>
-                <div>
-                  <span>Общий бюджет</span>
-                  <strong>{visualEffectCaps.totalHint}</strong>
-                </div>
-              </div>
-            </div>
-          </article>
-
-          <article className="settings-card settings-card--save">
-            <div className="settings-card__head">
-              <h3 className="settings-card__title">Экспорт и импорт сейвов</h3>
-              <span className="settings-chip">Backup</span>
-            </div>
-
-            <p className="settings-card__hint settings-card__hint--block">
-              Экспорт создаёт JSON-файл с полным прогрессом игрока, достижениями, престижем и локальными настройками.
-              Импорт заменяет текущий сейв данными из файла.
-            </p>
-
-            <div className="settings-transfer-actions">
-              <button type="button" className="settings-ghost-btn" onClick={handleExportSave}>
-                Экспортировать сейв
-              </button>
-              <button type="button" className="settings-ghost-btn" onClick={handleImportClick}>
-                Импортировать сейв
-              </button>
-              <button type="button" className="settings-ghost-btn" onClick={handleRevealSaveText}>
-                Показать текст сейва
-              </button>
-              <button type="button" className="settings-ghost-btn" onClick={handleCopySaveText}>
-                Скопировать текст сейва
-              </button>
-            </div>
-
-            <input
-              ref={importInputRef}
-              type="file"
-              accept="application/json,.json,.shishka-save.json"
-              className="settings-file-input"
-              onChange={handleImportSave}
-            />
-
-            {transferStatus ? (
-              <div className={`settings-transfer-status settings-transfer-status--${transferStatus.type}`}>
-                {transferStatus.text}
-              </div>
-            ) : null}
-
-            {exportedSaveText ? (
-              <div className="settings-save-text-box">
-                <div className="settings-save-text-box__head">
-                  <div className="settings-card__label">Текст экспортированного сейва</div>
-                  <div className="settings-card__hint">Можно скопировать вручную и отправить как обычный текст.</div>
-                </div>
-                <textarea
-                  ref={exportTextRef}
-                  className="settings-save-textarea"
-                  value={exportedSaveText}
-                  readOnly
-                  spellCheck={false}
-                  onFocus={(event) => event.target.select()}
-                />
-              </div>
-            ) : null}
-          </article>
+          <SettingsSaveCard
+            handleExportSave={handleExportSave}
+            handleImportSave={handleImportSave}
+            handleImportClick={handleImportClick}
+            handleRevealSaveText={handleRevealSaveText}
+            handleCopySaveText={handleCopySaveText}
+            importInputRef={importInputRef}
+            transferStatus={transferStatus}
+            exportedSaveText={exportedSaveText}
+            exportTextRef={exportTextRef}
+          />
         </div>
 
-        <aside className="settings-layout__side">
-          <article className="settings-card">
-            <div className="settings-card__head">
-              <h3 className="settings-card__title">О приложении</h3>
-              <span className="settings-chip">v{APP_VERSION}</span>
-            </div>
-
-            <div className="settings-about-grid">
-              <div className="settings-about-item">
-                <span>Версия</span>
-                <strong>{APP_VERSION}</strong>
-              </div>
-              <div className="settings-about-item">
-                <span>Репозиторий</span>
-                <strong>GitHub</strong>
-              </div>
-            </div>
-
-            <div className="settings-links-grid">
-              <LinkTile title="Репозиторий" hint="Исходный код проекта на GitHub" href={REPOSITORY_URL} />
-              <LinkTile title="Changelog" hint="Последние changelogs и обновления" href={CHANGELOG_URL} />
-            </div>
-          </article>
-
-          <article className="settings-card">
-            <div className="settings-card__head">
-              <h3 className="settings-card__title">Документы</h3>
-              <span className="settings-chip">Policy</span>
-            </div>
-
-            <div className="settings-links-grid">
-              <LinkTile title="Privacy Policy" hint="Политика конфиденциальности" href={PRIVACY_URL} />
-              <LinkTile title="Terms of Service" hint="Пользовательское соглашение" href={TERMS_URL} />
-            </div>
-          </article>
-
-          <article className="settings-card settings-card--danger">
-            <div className="settings-card__head">
-              <h3 className="settings-card__title">Игра</h3>
-              <span className="settings-chip settings-chip--danger">Опасно</span>
-            </div>
-
-            <p className="settings-card__hint settings-card__hint--block">
-              Кнопка ниже очищает только игровое сохранение. Аудио и остальные локальные настройки останутся как есть.
-            </p>
-
-            <button type="button" className="reset-btn" onClick={resetGame}>
-              Сбросить весь прогресс
-            </button>
-          </article>
-        </aside>
+        <SettingsAbout
+          resetGame={resetGame}
+        />
       </div>
     </section>
   )

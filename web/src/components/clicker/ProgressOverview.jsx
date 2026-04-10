@@ -1,61 +1,8 @@
 import { useMemo } from 'react'
 import { useGameContext } from '../../context/GameContext'
 import { formatNumber } from '../../lib/format'
+import {UnlockCard} from "./UnlockCard.jsx"
 
-function UnlockCard({ title, item, accentClass }) {
-  if (!item) {
-    return (
-      <div className="unlock-card">
-        <div className="unlock-card__label">{title}</div>
-        <div className="unlock-card__value unlock-card__value--done">✓ Всё открыто</div>
-        <div className="unlock-card__text">Фокус на прокачке уровней и престиже.</div>
-      </div>
-    )
-  }
-
-  const shishkiPct = Math.min(100, (item.unlockProgress.shishki / Math.max(1, item.unlockRule.shishki)) * 100)
-  const knowledgePct = Math.min(100, (item.unlockProgress.knowledge / Math.max(1, item.unlockRule.knowledge)) * 100)
-
-  return (
-    <div className="unlock-card">
-      <div className="unlock-card__label">{title}</div>
-      <div className={`unlock-card__value ${accentClass}`}>{item.title}</div>
-      <div className="unlock-card__text">{item.unlockText}</div>
-
-      <div className="unlock-progress">
-        <div className="unlock-progress__row">
-          <span>🌰 Шишки</span>
-          <span>{formatNumber(item.unlockProgress.shishki)} / {formatNumber(item.unlockRule.shishki)}</span>
-        </div>
-        <div className="unlock-progress__track">
-          <div className="unlock-progress__fill" style={{ width: `${shishkiPct}%` }} />
-        </div>
-
-        <div className="unlock-progress__row">
-          <span>📚 Знания</span>
-          <span>{formatNumber(item.unlockProgress.knowledge)} / {formatNumber(item.unlockRule.knowledge)}</span>
-        </div>
-        <div className="unlock-progress__track">
-          <div className="unlock-progress__fill unlock-progress__fill--alt" style={{ width: `${knowledgePct}%` }} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export function ProgressLoopCard() {
-  return (
-    <article className="meta-card progress-loop-card">
-      <div className="meta-card__kicker">Петля прогресса</div>
-      <h3 className="meta-card__title">Как теперь устроен цикл</h3>
-      <div className="progress-loop__steps">
-        <div className="loop-step"><b>1.</b> Кликаешь и фармишь <b>🌰 шишки</b>.</div>
-        <div className="loop-step"><b>2.</b> Вкладываешь их в ветки за <b>💵 деньги</b>, <b>📚 знания</b> и <b>🌰 шишечные апгрейды</b>.</div>
-        <div className="loop-step"><b>3.</b> Открываешь престиж, закрываешь квоту цикла и получаешь редкие <b>💎 осколки</b>.</div>
-      </div>
-    </article>
-  )
-}
 
 export function ProgressOverview() {
   const { economy, state, prestige, achievements } = useGameContext()

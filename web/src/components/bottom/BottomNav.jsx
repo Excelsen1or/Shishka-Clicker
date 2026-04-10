@@ -1,6 +1,6 @@
-import { useNav } from '../../context/NavContext'
-import { useGameContext } from '../../context/GameContext'
-import { useSound } from '../../hooks/useSound'
+import { useNav } from '../../context/NavContext.jsx'
+import { useGameContext } from '../../context/GameContext.jsx'
+import { useSound } from '../../hooks/useSound.js'
 import switchSound from '../../assets/audio/ui/wpn_select.mp3'
 
 function getButtonClassName(isActive) {

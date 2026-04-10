@@ -3,7 +3,6 @@ import { ProgressOverview } from './ProgressOverview'
 import { useGameContext } from '../../context/GameContext'
 import { buildStats } from '../stats/StatsBar'
 import { StatCard } from '../stats/StatCard'
-import { formatNumber } from '../../lib/format'
 
 export function ClickerScreen() {
   const { state, contributions } = useGameContext()

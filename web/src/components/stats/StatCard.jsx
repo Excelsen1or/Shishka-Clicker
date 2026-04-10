@@ -1,23 +1,8 @@
 import { formatNumber } from '../../lib/format'
+import {ContributionBar} from "./ContributionBar.jsx"
 
-function ContributionBar({ entry, total, index }) {
-  const share = total > 0 ? Math.max(6, Math.round((entry.value / total) * 100)) : 0
 
-  return (
-    <div className="contribution-row">
-      <div className="contribution-row__info">
-        <span className="contribution-row__rank">#{index + 1}</span>
-        <span className="contribution-row__name">{entry.title}</span>
-        <span className="contribution-row__val">{formatNumber(entry.value)}</span>
-      </div>
-      <div className="contribution-bar">
-        <div className="contribution-bar__fill" style={{ width: `${share}%` }} />
-      </div>
-    </div>
-  )
-}
-
-export function StatCard({ icon, label, value, hint, contributions, delay = 0, compact = false }) {
+export const StatCard = ({ icon, label, value, hint, contributions, delay = 0, compact = false }) => {
   const items = compact ? (contributions?.items?.slice(0, 2) ?? []) : (contributions?.items ?? [])
   const total = items.reduce((s, e) => s + e.value, 0) ?? 0
   const topContributor = items[0] ?? null

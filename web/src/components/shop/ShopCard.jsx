@@ -3,6 +3,8 @@ import { formatNumber } from '../../lib/format'
 import { useSound } from '../../hooks/useSound'
 import buySound from '../../assets/audio/ui/blip1.mp3'
 import denySound from '../../assets/audio/ui/wpn_denyselect.mp3'
+import {LockBadge} from "./LockBadge.jsx"
+
 
 const CURRENCY_META = {
   money: { icon: '💵', label: 'деньги' },
@@ -54,19 +56,6 @@ function splitEffectLines(text, stripNextPrefix = false) {
     .split(' · ')
     .map((line) => line.trim())
     .filter(Boolean)
-}
-
-function LockBadge({ item }) {
-  return (
-    <div className="shop-card__lock">
-      <div className="shop-card__lock-title">🔒 Заблокировано</div>
-      <div className="shop-card__lock-text">{item.unlockText}</div>
-      <div className="shop-card__lock-progress">
-        <span>🌰 {formatNumber(item.unlockProgress.shishki)} / {formatNumber(item.unlockRule.shishki)}</span>
-        <span>📚 {formatNumber(item.unlockProgress.knowledge)} / {formatNumber(item.unlockRule.knowledge)}</span>
-      </div>
-    </div>
-  )
 }
 
 function getCardClassName(item, isLocked, canBuy) {
