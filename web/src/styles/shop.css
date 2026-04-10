@@ -1,0 +1,508 @@
+/* Accent lines for shop screens */
+.shop-screen--fuchsia .screen__glow {
+  background: linear-gradient(90deg, transparent, var(--fuchsia), transparent);
+}
+.shop-screen--cyan .screen__glow {
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+}
+
+/* ─── Shop Grid ─────────────────────────────────────────────── */
+.shop-grid {
+  display: grid;
+  gap: 0.875rem;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px)  { .shop-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1100px) { .shop-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.shop-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  padding: 3rem;
+  font-size: 0.8rem;
+}
+
+/* ─── Shop Card ─────────────────────────────────────────────── */
+.shop-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  overflow: hidden;
+  padding: 1.1rem;
+  transition:
+    transform var(--dur-mid) var(--ease-out),
+    border-color var(--dur-mid) ease,
+    box-shadow var(--dur-mid) ease;
+}
+.shop-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--border-2);
+}
+.shop-card--can-buy {
+  border-color: rgba(245,158,11,0.25);
+}
+.shop-card--can-buy:hover {
+  border-color: var(--amber);
+  box-shadow: 0 0 28px var(--amber-glow);
+}
+.shop-card--locked {
+  opacity: 0.72;
+}
+.shop-card__glow {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--amber-dim), transparent);
+  pointer-events: none;
+}
+.shop-screen--fuchsia .shop-card--can-buy { border-color: rgba(232,121,249,0.25); }
+.shop-screen--fuchsia .shop-card--can-buy:hover {
+  border-color: var(--fuchsia);
+  box-shadow: 0 0 28px var(--fuchsia-dim);
+}
+.shop-screen--cyan .shop-card--can-buy { border-color: rgba(34,211,238,0.25); }
+.shop-screen--cyan .shop-card--can-buy:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 28px var(--cyan-dim);
+}
+
+.shop-card__head { margin-bottom: 0.875rem; }
+.shop-card__meta {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+.shop-card__tier,
+.shop-card__level {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--r-pill);
+}
+.shop-card__tier {
+  background: var(--amber-dim);
+  color: var(--amber);
+  border: 1px solid rgba(245,158,11,0.2);
+}
+.shop-card__level {
+  background: var(--surface-3);
+  color: var(--text-2);
+  border: 1px solid var(--border);
+}
+.shop-card__title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--white);
+  margin: 0 0 0.35rem;
+}
+.shop-card__desc {
+  font-size: 0.78rem;
+  color: var(--text-2);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.shop-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.shop-card__effect-box,
+.shop-card__price-box {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  padding: 0.75rem;
+}
+.shop-card__effect-label,
+.shop-card__price-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--text-3);
+  margin-bottom: 0.4rem;
+}
+.shop-card__effect-val {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--fuchsia);
+}
+.shop-screen--cyan .shop-card__effect-val { color: var(--cyan); }
+.shop-card__effect-next {
+  font-size: 0.7rem;
+  color: var(--text-3);
+  margin-top: 0.2rem;
+}
+
+.shop-card__price {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+.shop-card__price-num {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--white);
+}
+.shop-card__price-icon { font-size: 1rem; }
+.shop-card__price-cur {
+  font-size: 0.7rem;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+}
+
+.shop-card__lock {
+  border: 1px solid rgba(251,191,36,0.2);
+  border-radius: var(--r-md);
+  background: rgba(251,191,36,0.06);
+  padding: 0.75rem;
+}
+.shop-card__lock-title {
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #fbbf24;
+  margin-bottom: 0.3rem;
+}
+.shop-card__lock-text {
+  font-size: 0.75rem;
+  color: rgba(251,191,36,0.7);
+  margin-bottom: 0.5rem;
+}
+.shop-card__lock-progress {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.68rem;
+  color: rgba(251,191,36,0.55);
+  font-family: var(--font-mono);
+  flex-wrap: wrap;
+}
+
+.shop-card__footer { margin-top: 0.875rem; }
+.shop-card__btn {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border-radius: var(--r-md);
+  font-weight: 700;
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+  border: 1px solid var(--amber);
+  background: var(--amber-dim);
+  color: var(--amber-2);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) ease,
+    transform var(--dur-fast) ease,
+    box-shadow var(--dur-fast) ease;
+}
+.shop-card__btn:hover:not(:disabled) {
+  background: rgba(245,158,11,0.25);
+  box-shadow: 0 0 20px var(--amber-glow);
+  transform: translateY(-1px);
+}
+.shop-card__btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+.shop-card__btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text-3);
+}
+
+.shop-screen--fuchsia .shop-card__btn {
+  border-color: var(--fuchsia);
+  background: var(--fuchsia-dim);
+  color: var(--fuchsia);
+}
+.shop-screen--fuchsia .shop-card__btn:hover:not(:disabled) {
+  background: rgba(232,121,249,0.22);
+  box-shadow: 0 0 20px var(--fuchsia-dim);
+}
+.shop-screen--cyan .shop-card__btn {
+  border-color: var(--cyan);
+  background: var(--cyan-dim);
+  color: var(--cyan);
+}
+.shop-screen--cyan .shop-card__btn:hover:not(:disabled) {
+  background: rgba(34,211,238,0.22);
+  box-shadow: 0 0 20px var(--cyan-dim);
+}
+
+/* --- Shop card hover refresh --- */
+.shop-card {
+  isolation: isolate;
+  transform-origin: center bottom;
+}
+
+.shop-card__shine {
+  position: absolute;
+  inset: -35% auto auto -20%;
+  width: 42%;
+  height: 190%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.22), transparent 55%);
+  transform: rotate(18deg) translateX(-180%);
+  transition: transform 520ms var(--ease-out), opacity 320ms ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.shop-card:hover,
+.shop-card:focus-within {
+  transform: translateY(-8px) scale(1.01);
+  border-color: rgba(255,255,255,0.18);
+  box-shadow: 0 24px 50px rgba(0,0,0,0.22);
+}
+
+.shop-card:hover .shop-card__shine,
+.shop-card:focus-within .shop-card__shine {
+  transform: rotate(18deg) translateX(340%);
+  opacity: 1;
+}
+
+.shop-card__head,
+.shop-card__body,
+.shop-card__footer {
+  position: relative;
+  z-index: 1;
+  transition: transform 240ms var(--ease-out), opacity 240ms ease;
+}
+
+.shop-card:hover .shop-card__head,
+.shop-card:focus-within .shop-card__head {
+  transform: translateY(-2px);
+}
+
+.shop-card:hover .shop-card__body,
+.shop-card:focus-within .shop-card__body {
+  transform: translateY(-1px);
+}
+
+.shop-card:hover .shop-card__footer,
+.shop-card:focus-within .shop-card__footer {
+  transform: translateY(1px);
+}
+
+.shop-card--money:hover,
+.shop-card--money:focus-within {
+  box-shadow: 0 26px 60px rgba(245,158,11,0.18);
+}
+
+.shop-card--knowledge:hover,
+.shop-card--knowledge:focus-within {
+  box-shadow: 0 26px 60px rgba(34,211,238,0.16);
+}
+
+.shop-card--shishki:hover,
+.shop-card--shishki:focus-within {
+  box-shadow: 0 26px 60px rgba(16,185,129,0.16);
+}
+
+.shop-card__btn {
+  transition: transform 180ms var(--ease-out), box-shadow 180ms ease, background 180ms ease;
+}
+
+.shop-card__btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+/* ── Base card setup ────────────────────────────────────────── */
+.shop-card {
+  position: relative;
+  isolation: isolate;
+  transform-origin: center center;
+  transition:
+    transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 320ms ease,
+    border-color 320ms ease !important;
+  overflow: hidden;
+}
+
+/* Remove old shine, we'll replace with better version */
+.shop-card__shine {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255,255,255,0.18) 50%,
+    transparent 65%
+  );
+  background-size: 200% 100%;
+  background-position: -100% 0;
+  transition: background-position 600ms cubic-bezier(0.16, 1, 0.24, 1), opacity 300ms ease;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Corner accent pips */
+.shop-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  background: linear-gradient(90deg, transparent, currentColor, transparent);
+  opacity: 0;
+  transition: opacity 320ms ease;
+  color: var(--amber);
+  z-index: 3;
+}
+.shop-screen--fuchsia .shop-card::before { color: var(--fuchsia); }
+.shop-screen--cyan    .shop-card::before { color: var(--cyan); }
+
+/* Scan line effect */
+.shop-card::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, currentColor 30%, rgba(255,255,255,0.5) 50%, currentColor 70%, transparent 100%);
+  color: rgba(245,158,11,0.5);
+  top: -2px;
+  opacity: 0;
+  transition: opacity 200ms ease;
+  z-index: 4;
+  pointer-events: none;
+}
+.shop-screen--fuchsia .shop-card::after { color: rgba(232,121,249,0.5); }
+.shop-screen--cyan    .shop-card::after { color: rgba(34,211,238,0.5); }
+
+/* ── Hover state: lift + 3D tilt hint + shine sweep ──────────── */
+.shop-card:hover,
+.shop-card:focus-within {
+  transform: translateY(-10px) scale(1.018) !important;
+  border-color: rgba(255,255,255,0.22) !important;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 28px 60px rgba(0,0,0,0.3),
+    0 12px 28px rgba(0,0,0,0.2) !important;
+}
+
+.shop-card:hover .shop-card__shine,
+.shop-card:focus-within .shop-card__shine {
+  background-position: 200% 0;
+  opacity: 1;
+}
+
+.shop-card:hover::before,
+.shop-card:focus-within::before {
+  opacity: 1;
+}
+
+.shop-card:hover::after,
+.shop-card:focus-within::after {
+  opacity: 1;
+  animation: scanLine 1s ease-in-out forwards;
+}
+
+@keyframes scanLine {
+  0%   { top: 0%; opacity: 0; }
+  5%   { opacity: 1; }
+  90%  { opacity: 0.5; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* ── Can-buy state: pulsing border glow ──────────────────────── */
+.shop-card--can-buy {
+  border-color: rgba(245,158,11,0.45);
+  box-shadow: 0 0 18px rgba(245,158,11,0.12);
+}
+
+.shop-screen--fuchsia .shop-card--can-buy {
+  border-color: rgba(232,121,249,0.45);
+  box-shadow: 0 0 18px rgba(232,121,249,0.12);
+}
+
+.shop-screen--cyan .shop-card--can-buy {
+  border-color: rgba(34,211,238,0.45);
+  box-shadow: 0 0 18px rgba(34,211,238,0.12);
+}
+
+
+/* ── Can-buy hover: bigger glow + color-matched ──────────────── */
+
+.shop-screen--fuchsia .shop-card--can-buy:hover,
+.shop-screen--fuchsia .shop-card--can-buy:focus-within {
+  border-color: var(--fuchsia) !important;
+  box-shadow:
+    0 0 0 1px rgba(232,121,249,0.2),
+    0 0 40px rgba(232,121,249,0.22),
+    0 28px 60px rgba(0,0,0,0.28) !important;
+}
+
+.shop-screen--cyan .shop-card--can-buy:hover,
+.shop-screen--cyan .shop-card--can-buy:focus-within {
+  border-color: var(--cyan) !important;
+  box-shadow:
+    0 0 0 1px rgba(34,211,238,0.2),
+    0 0 40px rgba(34,211,238,0.22),
+    0 28px 60px rgba(0,0,0,0.28) !important;
+}
+
+/* ── Inner content subtle parallax ──────────────────────────── */
+.shop-card__head,
+.shop-card__body,
+.shop-card__footer {
+  position: relative;
+  z-index: 1;
+  transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+.shop-card:hover .shop-card__head,
+.shop-card:focus-within .shop-card__head {
+  transform: translateY(-3px) translateZ(4px) !important;
+}
+
+.shop-card:hover .shop-card__body,
+.shop-card:focus-within .shop-card__body {
+  transform: translateY(-1.5px) translateZ(2px) !important;
+}
+
+.shop-card:hover .shop-card__footer,
+.shop-card:focus-within .shop-card__footer {
+  transform: translateY(1px) !important;
+}
+
+/* ── Button hover: grow + glow pop ──────────────────────────── */
+.shop-card__btn {
+  transition:
+    background 180ms ease,
+    transform 180ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 180ms ease,
+    letter-spacing 200ms ease !important;
+  letter-spacing: 0;
+}
+
+.shop-card__btn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02) !important;
+  letter-spacing: 0.02em;
+}
+
+.shop-card__btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.97) !important;
+  letter-spacing: 0;
+}
+
+/* ── Price flash on can-buy ──────────────────────────────────── */
+
+
+.shop-screen--fuchsia 
+.shop-screen--cyan
