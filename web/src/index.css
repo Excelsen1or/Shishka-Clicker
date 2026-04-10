@@ -2735,11 +2735,6 @@ body {
 }
 
 .emoji-rain__item {
-  font-size: clamp(1.1rem, 1.9vw, 1.9rem);
-}
-
-.screen-firework {
-}
 
 .bottom-nav {
   position: fixed !important;
@@ -3040,23 +3035,6 @@ body {
 
 /* Restore body animation (subtle grid drift) */
 body {
-  animation: moveGrid 20s linear infinite !important;
-  transition:
-    background-color 900ms ease,
-    background-image 900ms ease,
-    filter 700ms ease !important;
-  background-size: 40px 40px, 40px 40px, auto !important;
-}
-
-
-
-/* Restore backdrop filters */
-.app-header,
-.screen,
-.meta-card,
-.achievement-card,
-.bottom-nav {
-}
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -3178,18 +3156,8 @@ body {
   box-shadow: 0 0 18px rgba(34,211,238,0.12);
 }
 
-  50%       { border-color: rgba(245,158,11,0.55); box-shadow: 0 0 26px rgba(245,158,11,0.18); }
-}
-  50%       { border-color: rgba(232,121,249,0.55); box-shadow: 0 0 26px rgba(232,121,249,0.18); }
-}
-  50%       { border-color: rgba(34,211,238,0.55); box-shadow: 0 0 26px rgba(34,211,238,0.18); }
-}
 
 /* ── Can-buy hover: bigger glow + color-matched ──────────────── */
-.shop-card--can-buy:hover,
-.shop-screen--fuchsia .shop-card--can-buy:hover {
-  animation: none !important;
-}
 
 .shop-screen--fuchsia .shop-card--can-buy:hover,
 .shop-screen--fuchsia .shop-card--can-buy:focus-within {
@@ -3255,15 +3223,9 @@ body {
 
 /* ── Price flash on can-buy ──────────────────────────────────── */
 
-  50%       { color: var(--amber-2); text-shadow: 0 0 12px rgba(245,158,11,0.35); }
-}
 
-.shop-screen--fuchsia   50%       { color: var(--fuchsia); text-shadow: 0 0 12px rgba(232,121,249,0.35); }
-}
-
-.shop-screen--cyan   50%       { color: var(--cyan); text-shadow: 0 0 12px rgba(34,211,238,0.35); }
-}
-
+.shop-screen--fuchsia 
+.shop-screen--cyan 
 
 /* ═══════════════════════════════════════════════════════════════════════════
    GLOBAL PERFORMANCE — contain & will-change where it matters
