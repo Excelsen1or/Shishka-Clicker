@@ -18,6 +18,27 @@ function getRandomAngle() {
   return Math.random() * Math.PI * 2
 }
 
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function getRandomClickThreshold() {
+  return getRandomInt(6, 12)
+}
+
+const DEFAULT_CLICKER_LABEL = 'Нажми на меня'
+
+const CLICKER_LABEL_POOL = [
+  'ЖМИИИИ!!!!',
+  'ЕБАНУТЫЙ РАЗГОН НАХУЙ',
+  'ЕБАТЬ ТЫ ЖМЯКАЕШЬ',
+  'Лучше бы котиков гладил',
+  'Ахахах - лисимп',
+  'Тапай, пока шишка горячая',
+  'Тапай, тапай этого хомячка',
+  'КЛИК = ПРОФИТ',
+]
+
 function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosion, particleCap) {
   const now = Date.now()
   const maxParticles = isEmojiExplosion ? Math.min(particleCap, 12) : Math.min(particleCap, 16)
@@ -78,8 +99,11 @@ export function ClickerButton() {
   const [coneSprites, setConeSprites] = useState([])
   const [visualState, setVisualState] = useState('idle')
   const [shockwaves, setShockwaves] = useState([])
+  const [clickerLabel, setClickerLabel] = useState(DEFAULT_CLICKER_LABEL)
 
   const visualTimeoutRef = useRef(null)
+  const clicksUntilLabelChangeRef = useRef(getRandomClickThreshold())
+  const clickerLabelIndexRef = useRef(-1)
 
   const { state, mineShishki } = useGameContext()
   const { visualEffectCaps, visualEffectsFactor } = useSettingsContext()
@@ -156,6 +180,24 @@ export function ClickerButton() {
     event.stopPropagation()
   }
 
+  function rotateClickerLabel() {
+    clicksUntilLabelChangeRef.current -= 1
+
+    if (clicksUntilLabelChangeRef.current > 0) return
+
+    let nextIndex = getRandomInt(0, CLICKER_LABEL_POOL.length - 1)
+
+    if (CLICKER_LABEL_POOL.length > 1) {
+      while (nextIndex === clickerLabelIndexRef.current) {
+        nextIndex = getRandomInt(0, CLICKER_LABEL_POOL.length - 1)
+      }
+    }
+
+    clickerLabelIndexRef.current = nextIndex
+    setClickerLabel(CLICKER_LABEL_POOL[nextIndex])
+    clicksUntilLabelChangeRef.current = getRandomClickThreshold()
+  }
+
   function handleClick(event) {
     if (event.detail === 0) {
       event.preventDefault()
@@ -169,6 +211,7 @@ export function ClickerButton() {
     const formattedAmount = formatNumber(result.amount)
 
     armVisualState(nextVisualState)
+    rotateClickerLabel()
 
     const { x, y } = getRandomBurstPoint(event.currentTarget)
     const burstValue = result.isEmojiExplosion
@@ -307,9 +350,7 @@ export function ClickerButton() {
         </div>
 
         <div className="clicker-btn__content">
-          <span className="clicker-btn__eyebrow">Активная добыча</span>
-          <span className="clicker-btn__label">Жми и разгоняй прогресс</span>
-          <span className="clicker-btn__sub">Каждое нажатие приносит шишки и может запустить мега-эффект</span>
+          <span className="clicker-btn__label">{clickerLabel}</span>
         </div>
 
         <div className="clicker-btn__metrics">
