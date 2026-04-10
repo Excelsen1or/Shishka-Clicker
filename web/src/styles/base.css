@@ -25,6 +25,26 @@ body {
     linear-gradient(180deg, var(--color-bg-elevated), var(--color-bg));
   background-position: top left, bottom right, center, center, center;
   background-size: auto, auto, var(--fx-grid-size) var(--fx-grid-size), var(--fx-grid-size) var(--fx-grid-size), auto;
+  animation: pageBackgroundDrift 28s linear infinite;
+}
+
+@keyframes pageBackgroundDrift {
+  0% {
+    background-position:
+      0% 0%,
+      100% 100%,
+      center,
+      center,
+      center;
+  }
+  100% {
+    background-position:
+      18% 14%,
+      118% 114%,
+      calc(50% + 32px) calc(50% + 24px),
+      calc(50% + 32px) calc(50% + 24px),
+      center;
+  }
 }
 
 body::after {

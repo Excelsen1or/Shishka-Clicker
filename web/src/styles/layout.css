@@ -223,14 +223,8 @@
 }
 
 .clicker-screen,
-.settings-screen {
-  --screen-accent-rgb: var(--accent-primary-rgb);
-}
-
-.meta-screen {
-  --screen-accent-rgb: var(--accent-emerald-rgb);
-}
-
+.settings-screen,
+.meta-screen,
 .shop-screen--orange,
 .shop-screen--fuchsia,
 .shop-screen--cyan {
