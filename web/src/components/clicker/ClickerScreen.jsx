@@ -10,8 +10,6 @@ export function ClickerScreen() {
 
   return (
     <section className="screen clicker-screen">
-      <div className="screen__glow" />
-
       <div className="clicker-layout">
         <aside className="clicker-sidebar">
           <div className="clicker-panel">
