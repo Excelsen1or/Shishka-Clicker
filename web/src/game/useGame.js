@@ -263,22 +263,22 @@ export function useGame() {
   }, [derived, safeState])
 
   function mineShishki() {
-    const megaClickChance = getMegaClickChance(state)
+    const snapshot = mergeState(state)
+    const megaClickChance = getMegaClickChance(snapshot)
     const isMega = Math.random() < megaClickChance
-    const isEmojiBurst = isMega && Math.random() < getMegaEmojiChance(state)
+    const isEmojiBurst = isMega && Math.random() < getMegaEmojiChance(snapshot)
     const emoji = isEmojiBurst ? getRandomMegaEmoji() : '🌰'
+    const rates = deriveEconomy(snapshot)
+    const rawClickValue = isMega ? rates.clickPower * 5 : rates.clickPower
+    const clickValue = Number.isFinite(rawClickValue) ? Math.max(rawClickValue, 0.1) : 0.1
     const emojiExplosionPool = [
       '😀', '😎', '🥳', '🤯', '😈', '🤖', '👾', '🦄', '🪩', '🔥', '⚡', '🌈', '💥', '🎉', '✨', '🍄', '🐸', '🐙', '🐲', '🦊',
       '🍓', '🍍', '🍕', '🍩', '🧃', '🌟', '⭐', '💫', '🎊', '🎵', '🎮', '🛸', '🌸', '🌻', '🌴', '❄️', '☄️', '🌋', '🦋', '🐣',
       '🐼', '🪅', '💎', '🍀', '🫧', '🧠', '👑', '🫶', '🎯', '🏆'
     ]
-    let burstValue = ''
 
     setState((current) => {
       current = mergeState(current)
-      const rates = deriveEconomy(current)
-      const clickValue = isMega ? rates.clickPower * 5 : rates.clickPower
-      burstValue = `${isMega ? 'МЕГА ' : '+'}${Math.round(clickValue * 10) / 10}`
 
       const result = unlockAchievements({
         ...current,
@@ -298,8 +298,8 @@ export function useGame() {
     })
 
     return {
-      amount: burstValue,
-      particleCount: Math.max(6, Math.min(isEmojiBurst ? 52 : 28, Math.ceil((state.clickPower * (isMega ? 3.1 : 1.2)) / 1.35))),
+      amount: clickValue,
+      particleCount: Math.max(6, Math.min(isEmojiBurst ? 52 : 28, Math.ceil((rates.clickPower * (isMega ? 3.1 : 1.2)) / 1.35))),
       symbols: isEmojiBurst ? emojiExplosionPool : isMega ? [emoji, '⚡', '🌰', '✨'] : [emoji, '🌰'],
       isMega,
       isEmojiExplosion: isEmojiBurst,
