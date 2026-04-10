@@ -2734,8 +2734,6 @@ body {
   z-index: 9;
 }
 
-.emoji-rain__item {
-
 .bottom-nav {
   position: fixed !important;
   left: 0;
@@ -3032,10 +3030,6 @@ body {
 .noise-overlay {
   display: block !important;
 }
-
-/* Restore body animation (subtle grid drift) */
-body {
-
 
 /* ═══════════════════════════════════════════════════════════════════════════
    SHOP CARDS — PREMIUM HOVER OVERHAUL
