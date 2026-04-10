@@ -6,6 +6,12 @@
 
 .clicker-sidebar {
   order: -1;
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.85rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgb(var(--white-rgb) / 0.06);
+  background: linear-gradient(180deg, rgb(var(--white-rgb) / 0.03), transparent);
 }
 
 .clicker-wrap {
@@ -216,6 +222,13 @@
   background:
     linear-gradient(180deg, rgb(var(--surface-2-rgb) / 0.96), rgb(var(--surface-1-rgb) / 0.92)),
     radial-gradient(circle at top, rgb(var(--accent-primary-rgb) / 0.1), transparent 60%);
+}
+
+.clicker-sidebar .clicker-panel {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .clicker-panel__header {
@@ -661,6 +674,15 @@
     var(--shadow-md);
 }
 
+.shop-card--buyable-new {
+  border-color: rgb(var(--accent-emerald-rgb) / 0.34);
+  box-shadow:
+    0 0 0 1px rgb(var(--accent-emerald-rgb) / 0.16),
+    0 20px 38px rgb(var(--accent-emerald-rgb) / 0.1),
+    var(--shadow-md);
+  animation: shopCardReadyPulse 2.4s ease-in-out infinite;
+}
+
 .shop-card--can-buy {
   border-color: rgb(var(--card-rarity-rgb) / 0.36);
   box-shadow: 0 24px 46px rgb(var(--card-rarity-rgb) / 0.12), var(--shadow-md);
@@ -678,6 +700,11 @@
     0 18px 36px rgb(var(--card-rarity-rgb) / 0.14),
     var(--shadow-lg);
   background-position: center, 6% 0, 100% 100%;
+}
+
+.shop-card--buyable-new:hover,
+.shop-card--buyable-new:focus-within {
+  animation-play-state: paused;
 }
 
 .shop-card:hover::before,
@@ -770,6 +797,10 @@
   min-width: 0;
 }
 
+.shop-card__badge-wrap > div {
+  min-width: 0;
+}
+
 .shop-card__emoji {
   width: 2.55rem;
   height: 2.55rem;
@@ -785,9 +816,11 @@
 }
 
 .shop-card__chips {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
   gap: 0.45rem;
+  justify-content: end;
+  align-content: start;
 }
 
 .shop-card__new-badge {
@@ -805,6 +838,13 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   box-shadow: inset 0 1px 0 rgb(var(--white-rgb) / 0.08);
+}
+
+.shop-card__new-badge--ready {
+  border-color: rgb(var(--accent-emerald-rgb) / 0.24);
+  background: linear-gradient(180deg, rgb(var(--accent-emerald-rgb) / 0.2), rgb(var(--accent-emerald-rgb) / 0.08));
+  color: var(--accent-emerald);
+  animation: shopBadgeReadyPulse 1.8s ease-in-out infinite;
 }
 
 .shop-card__currency-chip {
@@ -854,8 +894,17 @@
 .prestige-step__title,
 .prestige-lab-card__title {
   color: var(--text-strong);
-  font-size: 0.98rem;
+  font-size: clamp(0.88rem, 1.2vw, 0.98rem);
   line-height: 1.18;
+}
+
+.shop-card__title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .shop-card__desc {
@@ -981,12 +1030,12 @@
   pointer-events: none;
 }
 
-.shop-card__btn:hover:not(:disabled) {
+.shop-card__btn:hover:not(:disabled):not([aria-disabled='true']) {
   transform: translateY(-2px) scale(1.01);
   box-shadow: 0 14px 26px rgb(var(--btn-accent-rgb) / 0.18);
 }
 
-.shop-card__btn:hover:not(:disabled)::before,
+.shop-card__btn:hover:not(:disabled):not([aria-disabled='true'])::before,
 .shop-card__btn:focus-visible::before {
   transform: translateX(120%);
 }
@@ -1021,6 +1070,12 @@
 
   .shop-card__meta {
     flex-wrap: wrap;
+  }
+
+  .shop-card__chips {
+    width: 100%;
+    justify-content: start;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

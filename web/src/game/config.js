@@ -19,6 +19,7 @@ export const BALANCE = {
     emojiBursts: 0,
     achievements: {},
     seenShopItems: {},
+    seenBuyableShopItems: {},
     prestigeUpgrades: {
       coneTheory: 0,
       archiveIndex: 0,
@@ -279,7 +280,7 @@ export const BALANCE = {
     },
     internship: {
       id: 'internship',
-      title: 'Склад OZON: смена 12ч',
+      title: 'Склад OZON 12ч',
       description: 'Первый серьёзный кэшфлоу: смена прошла, ноги болят, зато бюджет на апгрейды появился.',
       currency: 'shishki',
       baseCost: 120,
@@ -294,7 +295,7 @@ export const BALANCE = {
     },
     pickupPointShift: {
       id: 'pickupPointShift',
-      title: 'ПВЗ WB: поток ультра обиженных скуфов',
+      title: 'ПВЗ WB: вечная очередь',
       description: 'Смена на выдаче: сканер пищит, очередь не кончается, а баланс денег всё-таки растёт.',
       currency: 'shishki',
       baseCost: 180,
@@ -309,7 +310,7 @@ export const BALANCE = {
     },
     courierRush: {
       id: 'courierRush',
-      title: 'Курьер: 30 заказов до дождя',
+      title: 'Курьер: 30 до дождя',
       description: 'Темп как в пятницу вечером: лифт занят, самокат пищит, зато зарплата капает стабильнее.',
       currency: 'shishki',
       baseCost: 260,

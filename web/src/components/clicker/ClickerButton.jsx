@@ -205,15 +205,16 @@ export function ClickerButton() {
 
     const result = mineShishki()
     const nextVisualState = result.isEmojiExplosion ? 'prism' : result.isMega ? 'mega' : 'tap'
+    const formattedAmount = formatNumber(result.amount)
 
     armVisualState(nextVisualState)
 
     const { localX, localY } = getLocalPoint(event)
     const burstValue = result.isEmojiExplosion
-      ? `🌈 ${result.amount}`
+      ? `🌈 +${formattedAmount}`
       : result.isMega
-        ? `⚡ МЕГА ${result.amount}`
-        : `+${result.amount}`
+        ? `⚡ МЕГА +${formattedAmount}`
+        : `+${formattedAmount}`
 
     addBurst(localX, localY, burstValue)
 
