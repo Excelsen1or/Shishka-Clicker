@@ -60,9 +60,34 @@ function createConeSprites(localX, localY, amount, isMega, coneCap) {
   })
 }
 
+function createViewportFireworks(amount, symbols, particleCap) {
+  const now = Date.now()
+  const pool = Array.isArray(symbols) ? symbols : [symbols]
+  const total = Math.max(18, Math.min(Math.round(particleCap * 0.95), amount))
+
+  return Array.from({ length: total }, (_, index) => {
+    const lane = index / Math.max(1, total - 1)
+    const launchX = 4 + lane * 92 + (Math.random() - 0.5) * 8
+    const dx = (Math.random() - 0.5) * 36
+    const dy = -(160 + Math.random() * 260 + (index % 5) * 14)
+
+    return {
+      id: `fw-${now}-${index}-${Math.random().toString(36).slice(2)}`,
+      x: launchX,
+      dx,
+      dy,
+      rotate: Math.round((Math.random() - 0.5) * 520),
+      scale: 0.9 + Math.random() * 1.35,
+      delay: Math.round(Math.random() * 240),
+      symbol: pickRandom(pool),
+    }
+  })
+}
+
 export function ClickerButton() {
   const [particles, setParticles] = useState([])
   const [coneSprites, setConeSprites] = useState([])
+  const [screenFireworks, setScreenFireworks] = useState([])
   const [isPressed, setIsPressed] = useState(false)
   const [isMegaPressed, setIsMegaPressed] = useState(false)
   const [isRgbBurst, setIsRgbBurst] = useState(false)
@@ -70,15 +95,17 @@ export function ClickerButton() {
   const pressTimeoutRef = useRef(null)
   const megaPressTimeoutRef = useRef(null)
   const rgbTimeoutRef = useRef(null)
+  const bodyMegaTimeoutRef = useRef(null)
+  const bodyRgbTimeoutRef = useRef(null)
 
   const { state, mineShishki } = useGameContext()
-  const { visualEffectCaps } = useSettingsContext()
+  const { visualEffectCaps, visualEffectsFactor } = useSettingsContext()
   const { bursts, addBurst } = useBursts()
   const { play } = useSound(shishkaSound, { volume: 0.42 })
 
   const particleLimitHint = useMemo(
-    () => Math.min(visualEffectCaps.particleCap, Math.ceil(state.clickPower * 1.45)),
-    [state.clickPower, visualEffectCaps.particleCap],
+    () => Math.min(visualEffectCaps.particleCap, Math.ceil(state.clickPower * (1.15 + visualEffectsFactor * 0.6))),
+    [state.clickPower, visualEffectCaps.particleCap, visualEffectsFactor],
   )
 
   useEffect(() => {
@@ -86,8 +113,41 @@ export function ClickerButton() {
       if (pressTimeoutRef.current) window.clearTimeout(pressTimeoutRef.current)
       if (megaPressTimeoutRef.current) window.clearTimeout(megaPressTimeoutRef.current)
       if (rgbTimeoutRef.current) window.clearTimeout(rgbTimeoutRef.current)
+      if (bodyMegaTimeoutRef.current) window.clearTimeout(bodyMegaTimeoutRef.current)
+      if (bodyRgbTimeoutRef.current) window.clearTimeout(bodyRgbTimeoutRef.current)
+      document.body.classList.remove('body--mega-click', 'body--rgb-festival')
     }
   }, [])
+
+  useEffect(() => {
+    if (!isMegaPressed) return
+
+    document.body.classList.add('body--mega-click')
+    if (bodyMegaTimeoutRef.current) window.clearTimeout(bodyMegaTimeoutRef.current)
+    bodyMegaTimeoutRef.current = window.setTimeout(() => {
+      document.body.classList.remove('body--mega-click')
+    }, 1650)
+
+    return () => {
+      if (bodyMegaTimeoutRef.current) window.clearTimeout(bodyMegaTimeoutRef.current)
+      document.body.classList.remove('body--mega-click')
+    }
+  }, [isMegaPressed])
+
+  useEffect(() => {
+    if (!isRgbBurst) return
+
+    document.body.classList.add('body--rgb-festival', 'body--mega-click')
+    if (bodyRgbTimeoutRef.current) window.clearTimeout(bodyRgbTimeoutRef.current)
+    bodyRgbTimeoutRef.current = window.setTimeout(() => {
+      document.body.classList.remove('body--rgb-festival', 'body--mega-click')
+    }, 3400)
+
+    return () => {
+      if (bodyRgbTimeoutRef.current) window.clearTimeout(bodyRgbTimeoutRef.current)
+      document.body.classList.remove('body--rgb-festival', 'body--mega-click')
+    }
+  }, [isRgbBurst])
 
   function triggerPressAnimation() {
     setIsPressed(false)
@@ -105,14 +165,14 @@ export function ClickerButton() {
     requestAnimationFrame(() => {
       setIsMegaPressed(true)
       if (megaPressTimeoutRef.current) window.clearTimeout(megaPressTimeoutRef.current)
-      megaPressTimeoutRef.current = window.setTimeout(() => setIsMegaPressed(false), 320)
+      megaPressTimeoutRef.current = window.setTimeout(() => setIsMegaPressed(false), 760)
     })
   }
 
   function triggerRgbBurst() {
     setIsRgbBurst(true)
     if (rgbTimeoutRef.current) window.clearTimeout(rgbTimeoutRef.current)
-    rgbTimeoutRef.current = window.setTimeout(() => setIsRgbBurst(false), 1850)
+    rgbTimeoutRef.current = window.setTimeout(() => setIsRgbBurst(false), 2400)
   }
 
   function handleClick(e) {
@@ -141,7 +201,7 @@ export function ClickerButton() {
     const spawned = createParticles(
       localX,
       localY,
-      result.particleCount,
+      Math.round(result.particleCount * (0.55 + visualEffectsFactor)),
       result.symbols,
       result.isMega,
       result.isEmojiExplosion,
@@ -149,9 +209,18 @@ export function ClickerButton() {
     )
     setParticles((current) => [...current.slice(-(visualEffectCaps.particleCap * 2)), ...spawned])
 
-    const coneBurstCount = result.isEmojiExplosion ? 2 : result.isMega ? 3 : 1
+    const coneBurstCount = Math.max(1, Math.round((result.isEmojiExplosion ? 2 : result.isMega ? 3 : 1) * (0.7 + visualEffectsFactor * 0.55)))
     const cones = createConeSprites(localX, localY, coneBurstCount, result.isMega, visualEffectCaps.coneCap)
     setConeSprites((current) => [...current.slice(-(visualEffectCaps.coneCap * 2)), ...cones])
+
+    if (result.isEmojiExplosion) {
+      const fireworks = createViewportFireworks(
+        Math.round(Math.max(visualEffectCaps.particleCap + 18, result.particleCount + 22) * (0.7 + visualEffectsFactor * 0.9)),
+        result.symbols,
+        visualEffectCaps.particleCap + visualEffectCaps.burstCap,
+      )
+      setScreenFireworks((current) => [...current.slice(-visualEffectCaps.particleCap), ...fireworks])
+    }
   }
 
   function preventKeyboard(e) {
@@ -164,6 +233,7 @@ export function ClickerButton() {
     <div className="clicker-wrap">
       <div
         className={`clicker-btn ${isPressed ? 'clicker-btn--pressed' : ''} ${isMegaPressed ? 'clicker-btn--mega-pressed' : ''} ${isRgbBurst ? 'clicker-btn--rgb' : ''} ${particles.length ? 'clicker-btn--active' : ''}`}
+        data-buff-state={isRgbBurst ? 'emoji' : isMegaPressed ? 'mega' : isPressed ? 'click' : 'idle'}
         onClick={handleClick}
         onKeyDown={preventKeyboard}
         aria-label="Добыть шишки"
@@ -213,6 +283,28 @@ export function ClickerButton() {
         </div>
 
         <ClickBurst bursts={bursts} />
+
+        <div className="screen-fireworks" aria-hidden="true">
+          {screenFireworks.map((firework) => (
+            <span
+              key={firework.id}
+              className="screen-firework"
+              style={{
+                left: `${firework.x}vw`,
+                '--dx': `${firework.dx}vw`,
+                '--dy': `${firework.dy}px`,
+                '--rot': `${firework.rotate}deg`,
+                '--scale': firework.scale,
+                animationDelay: `${firework.delay}ms`,
+              }}
+              onAnimationEnd={() => {
+                setScreenFireworks((current) => current.filter((entry) => entry.id !== firework.id))
+              }}
+            >
+              {firework.symbol}
+            </span>
+          ))}
+        </div>
 
         <div className="clicker-btn__halo" />
         <div className="clicker-btn__ring clicker-btn__ring--outer" />

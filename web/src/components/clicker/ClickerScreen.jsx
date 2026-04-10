@@ -29,6 +29,7 @@ export function ClickerScreen() {
           <div className="clicker-panel">
             <div className="clicker-panel__head">
               <span className="clicker-panel__kicker">Текущие показатели</span>
+              <h3 className="clicker-panel__title">Все ключевые stat-card рядом с кликером</h3>
             </div>
 
             <div className="clicker-stats-stack">

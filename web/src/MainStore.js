@@ -13,7 +13,7 @@ export class MainStore {
 			i++
 		}
 
-		let sym
+		let sym = ""
 
 		if (i > 8) {
 			const zeros = i * 3

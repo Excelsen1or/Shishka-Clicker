@@ -192,7 +192,11 @@ export function useGame() {
     const isMega = Math.random() < megaClickChance
     const isEmojiBurst = isMega && Math.random() < getMegaEmojiChance(state)
     const emoji = isEmojiBurst ? getRandomMegaEmoji() : '🌰'
-    const emojiExplosionPool = ['😀', '🥳', '🤯', '😈', '🤖', '👾', '🦄', '🪩', '🔥', '⚡', '🌈', '💥', '🎉', '✨', '🍄', '🐸']
+    const emojiExplosionPool = [
+      '😀', '😎', '🥳', '🤯', '😈', '🤖', '👾', '🦄', '🪩', '🔥', '⚡', '🌈', '💥', '🎉', '✨', '🍄', '🐸', '🐙', '🐲', '🦊',
+      '🍓', '🍍', '🍕', '🍩', '🧃', '🌟', '⭐', '💫', '🎊', '🎵', '🎮', '🛸', '🌸', '🌻', '🌴', '❄️', '☄️', '🌋', '🦋', '🐣',
+      '🐼', '🪅', '💎', '🍀', '🫧', '🧠', '👑', '🫶', '🎯', '🏆'
+    ]
     let burstValue = ''
 
     setState((current) => {
