@@ -1,7 +1,7 @@
 import { useGameContext } from '../../context/GameContext'
 import { useSettingsContext } from '../../context/SettingsContext'
 
-const APP_VERSION = '1.5.41'
+const APP_VERSION = '1.5.42'
 const REPOSITORY_URL = 'https://github.com/AREKKUZZERA/Shishka-Clicker'
 const CHANGELOG_URL = 'https://github.com/AREKKUZZERA/Shishka-Clicker/releases'
 const PRIVACY_URL = 'https://arekkuzzera.github.io/privacy-policy-terms-of-service/privacy-policy.html'

@@ -110,6 +110,7 @@ export function ClickerButton() {
   const [isPressed, setIsPressed] = useState(false)
   const [isMegaPressed, setIsMegaPressed] = useState(false)
   const [isRgbBurst, setIsRgbBurst] = useState(false)
+  const [shockwaves, setShockwaves] = useState([])
 
   const pressTimeoutRef = useRef(null)
   const megaPressTimeoutRef = useRef(null)
@@ -212,6 +213,17 @@ export function ClickerButton() {
 
     if (result.isMega) {
       spawnMegaRain(result.symbols, result.isEmojiExplosion ? 1.5 : 1)
+      // spawn shockwave rings
+      const now = Date.now()
+      const swCount = result.isEmojiExplosion ? 3 : 2
+      const newWaves = Array.from({ length: swCount }, (_, i) => ({
+        id: `sw-\${now}-\${i}`,
+        delay: i * 160,
+        color: result.isEmojiExplosion
+          ? ['rgba(168,85,247,0.75)', 'rgba(34,211,238,0.75)', 'rgba(255,153,0,0.75)'][i]
+          : i === 0 ? 'rgba(250,204,21,0.75)' : 'rgba(34,211,238,0.65)',
+      }))
+      setShockwaves((current) => [...current.slice(-6), ...newWaves])
     }
 
     if (result.isEmojiExplosion && visualEffectCaps.fireworkCap > 0 && visualEffectsFactor >= 0.35) {
@@ -282,6 +294,15 @@ export function ClickerButton() {
         </div>
 
         <ClickBurst bursts={bursts} />
+
+        {shockwaves.map((sw) => (
+          <span
+            key={sw.id}
+            className="shockwave-ring"
+            style={{ '--sw-color': sw.color, animationDelay: `${sw.delay}ms` }}
+            onAnimationEnd={() => setShockwaves((c) => c.filter((s) => s.id !== sw.id))}
+          />
+        ))}
 
         <div className="clicker-btn__halo" />
         <div className="clicker-btn__ring clicker-btn__ring--outer" />
