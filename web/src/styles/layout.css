@@ -240,7 +240,6 @@
   background: linear-gradient(90deg, transparent, var(--amber), transparent);
   opacity: 0.6;
 }
-.screen__header { margin-bottom: 1.75rem; }
 .screen__kicker {
   font-family: var(--font-mono);
   font-size: 0.65rem;
@@ -255,7 +254,6 @@
   font-size: clamp(1.3rem, 3vw, 2rem);
   font-weight: 700;
   color: var(--white);
-  margin: 0 0 0.5rem;
   letter-spacing: -0.02em;
 }
 .screen__desc {
