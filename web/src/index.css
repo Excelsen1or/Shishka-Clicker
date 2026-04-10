@@ -7,9 +7,9 @@
   --bg:          #0a0d0a;
   --bg-2:        #0d1210;
   --bg-3:        #111a14;
-  --surface:     rgba(255,255,255,0.04);
-  --surface-2:   rgba(255,255,255,0.07);
-  --surface-3:   rgba(255,255,255,0.11);
+  --surface:     rgba(255,255,255,0.10);
+  --surface-2:   rgba(255,255,255,0.15);
+  --surface-3:   rgba(255,255,255,0.20);
   --border:      rgba(255,255,255,0.08);
   --border-2:    rgba(255,255,255,0.14);
 
@@ -221,7 +221,7 @@ img { display: block; }
   padding: 0.7rem 0.95rem;
   border-radius: var(--r-lg);
   border: 1px solid var(--border);
-  background: rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.10);
   color: var(--text);
   font-size: 0.82rem;
   font-weight: 700;
@@ -232,7 +232,7 @@ img { display: block; }
 .app-header__link:hover {
   transform: translateY(-1px);
   border-color: var(--border-2);
-  background: rgba(255,255,255,0.07);
+  background: rgba(255,255,255,0.15);
 }
 @media (max-width: 640px) {
   .app-header__inner {
@@ -409,7 +409,7 @@ img { display: block; }
 .clicker-panel {
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
-  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015));
+  background: linear-gradient(180deg, rgba(255,255,255,0.13), rgba(255,255,255,0.07));
   padding: 0.9rem;
 }
 
@@ -677,7 +677,7 @@ img { display: block; }
   color: var(--text-2);
   padding: 0.5rem 0.75rem;
   border-radius: var(--r-sm);
-  background: rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.10);
 }
 .loop-step b { color: var(--white); }
 
@@ -1121,7 +1121,7 @@ img { display: block; }
   grid-column: span 12;
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
-  background: linear-gradient(180deg, var(--surface-2), rgba(255,255,255,0.03));
+  background: linear-gradient(180deg, var(--surface-2), rgba(255,255,255,0.08));
   padding: 1.1rem;
   display: flex;
   flex-direction: column;
@@ -1171,7 +1171,7 @@ img { display: block; }
   padding: 0.25rem 0.7rem;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.10);
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1197,7 +1197,7 @@ img { display: block; }
   gap: 0.75rem;
   padding: 0.9rem 0.95rem;
   border-radius: var(--r-lg);
-  background: rgba(255,255,255,0.03);
+  background: rgba(255,255,255,0.09);
   border: 1px solid rgba(255,255,255,0.06);
 }
 
@@ -1212,7 +1212,7 @@ img { display: block; }
   width: 3.5rem;
   height: 2rem;
   border-radius: 999px;
-  background: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.18);
   padding: 0.25rem;
   position: relative;
   transition: background var(--dur-mid) var(--ease-out);
@@ -1259,7 +1259,7 @@ img { display: block; }
   gap: 0.9rem;
   padding: 1rem;
   border-radius: var(--r-lg);
-  background: rgba(255,255,255,0.03);
+  background: rgba(255,255,255,0.09);
   border: 1px solid rgba(255,255,255,0.06);
 }
 
@@ -1281,7 +1281,7 @@ img { display: block; }
 .settings-link-tile {
   padding: 0.8rem 0.9rem;
   border-radius: 1rem;
-  background: rgba(255,255,255,0.035);
+  background: rgba(255,255,255,0.10);
   border: 1px solid rgba(255,255,255,0.05);
   display: flex;
   flex-direction: column;
@@ -1325,7 +1325,7 @@ img { display: block; }
 .settings-ghost-btn {
   color: var(--text);
   border: 1px solid var(--border-2);
-  background: rgba(255,255,255,0.03);
+  background: rgba(255,255,255,0.09);
 }
 
 .settings-ghost-btn:hover,
@@ -1456,7 +1456,7 @@ img { display: block; }
 .meta-card,
 .achievement-card {
   border: 1px solid var(--border);
-  background: linear-gradient(180deg, var(--surface-2), rgba(255,255,255,0.03));
+  background: linear-gradient(180deg, var(--surface-2), rgba(255,255,255,0.08));
   border-radius: var(--r-lg);
   padding: 1rem;
 }
@@ -1499,7 +1499,7 @@ img { display: block; }
 .meta-stats div,
 .meta-lifetime-grid > div {
   border: 1px solid var(--border);
-  background: rgba(255,255,255,0.03);
+  background: rgba(255,255,255,0.09);
   border-radius: var(--r-md);
   padding: 0.8rem;
 }
@@ -2180,7 +2180,7 @@ img { display: block; }
   padding: 0.75rem 0.85rem;
   border-radius: var(--r-md);
   border: 1px solid var(--border);
-  background: rgba(255,255,255,0.03);
+  background: rgba(255,255,255,0.09);
 }
 
 .prestige-step--active {
@@ -2225,7 +2225,7 @@ img { display: block; }
 .prestige-lab__summary > div {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  background: rgba(255,255,255,0.03);
+  background: rgba(255,255,255,0.09);
   padding: 0.75rem;
 }
 

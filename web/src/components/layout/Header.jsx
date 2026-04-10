@@ -13,7 +13,7 @@ export function Header() {
           target="_blank"
           rel="noreferrer"
         >
-          v1.5.44
+          v1.5.45
         </a>
       </div>
     </header>
