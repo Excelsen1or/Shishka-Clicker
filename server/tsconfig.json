@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "./dist",
+
+    "module": "NodeNext",
+    "moduleResolution": "bundler",
+    "target": "ES2023",
+    "strict": true,
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "types": ["node", "express"]
+  },
+  "include": [
+    "src/**/*.ts",
+  ]
+}

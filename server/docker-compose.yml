@@ -1,0 +1,11 @@
+services:
+  server:
+    container_name: shishki_server
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8000"
+    command:
+      sh -c "cd /app/server && node ./dist/index.js"
