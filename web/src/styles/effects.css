@@ -1,0 +1,464 @@
+/* ─── Burst / particles / overlays ─────────────────────────── */
+.clicker-particles {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.bursts-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  overflow: visible;
+  border-radius: var(--r-xl);
+}
+
+.click-burst {
+  position: absolute;
+  z-index: 4;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--amber-2);
+  text-shadow: 0 0 12px var(--amber-glow);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: burst 840ms var(--ease-out) forwards;
+}
+
+.clicker-btn--rgb .click-burst {
+  background: linear-gradient(135deg, #ff0066, #ff9900, #22d3ee);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.clicker-particle,
+.cone-sprite,
+.screen-firework,
+.emoji-rain__item {
+  contain: layout style;
+  will-change: transform, opacity;
+}
+
+.clicker-particle {
+  position: absolute;
+  z-index: 6;
+  transform: translate(-50%, -50%);
+  font-size: 1.45rem;
+  animation: clickParticleFly 900ms cubic-bezier(0.12, 0.82, 0.18, 1) forwards;
+}
+
+.clicker-particle--mega {
+  font-size: 1.8rem;
+  animation-duration: 1100ms;
+}
+
+.clicker-particle--emoji-explosion {
+  font-size: clamp(1.6rem, 2.4vw, 2.4rem);
+  animation-duration: 1600ms;
+}
+
+.cone-sprite {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  transform: translate(-50%, -50%) rotate(var(--rot-start)) scale(var(--cone-scale));
+  animation: coneShardFly 920ms cubic-bezier(0.16, 1, 0.22, 1) forwards;
+  pointer-events: none;
+}
+
+.cone-sprite--mega {
+  width: 30px;
+  height: 30px;
+}
+
+.shockwave-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120px;
+  height: 120px;
+  margin-top: -60px;
+  margin-left: -60px;
+  border-radius: 50%;
+  border: 2px solid var(--sw-color, rgba(250, 204, 21, 0.75));
+  pointer-events: none;
+  z-index: 5;
+  animation: shockwaveExpand 700ms cubic-bezier(0.16, 1, 0.24, 1) forwards;
+}
+
+.screen-fireworks,
+.emoji-rain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  contain: layout paint style;
+}
+
+.emoji-rain {
+  z-index: 8;
+}
+
+.screen-fireworks {
+  z-index: 9;
+}
+
+.emoji-rain__item {
+  position: absolute;
+  top: -12vh;
+  display: block;
+  font-size: clamp(1.35rem, 2.3vw, 2.4rem);
+  line-height: 1;
+  animation-name: megaEmojiRain;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.screen-firework {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) - 8px);
+  font-size: clamp(1.7rem, 3.2vw, 3rem);
+  transform: translate3d(0, 0, 0) scale(calc(var(--scale, 1) * var(--fx-firework-scale, 1)));
+  animation: screenEmojiFirework 1560ms cubic-bezier(0.12, 0.84, 0.18, 1) forwards;
+}
+
+/* ─── Achievement toast ─────────────────────────────────────── */
+.achievement-toast {
+  position: fixed;
+  right: 20px;
+  bottom: 94px;
+  z-index: 90;
+  width: min(420px, calc(100vw - 32px));
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(135deg, rgba(14, 18, 28, 0.96), rgba(37, 52, 74, 0.96));
+  box-shadow: 0 22px 80px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  animation: achievement-toast-in 0.28s ease-out, achievement-toast-glow 1.8s ease-in-out infinite alternate;
+}
+
+.achievement-toast::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255, 184, 77, 0.18), transparent 38%);
+  pointer-events: none;
+}
+
+.achievement-toast--secret {
+  background: linear-gradient(135deg, rgba(24, 18, 28, 0.97), rgba(68, 46, 95, 0.96));
+}
+
+.achievement-toast__steam {
+  position: absolute;
+  top: 8px;
+  right: 14px;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.achievement-toast__icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  font-size: 34px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 214, 102, 0.38), rgba(255, 170, 0, 0.12));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.achievement-toast__body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.achievement-toast__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #ffcf70;
+}
+
+.achievement-toast__title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.achievement-toast__desc {
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.app-shell,
+.app-content,
+.app-main,
+.screen,
+.clicker-wrap,
+.clicker-layout,
+.clicker-layout__left,
+.clicker-layout__right,
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+body {
+  transition: background 900ms ease, background-image 900ms ease, filter 700ms ease;
+}
+
+.bottom-nav {
+  position: fixed !important;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1300 !important;
+  isolation: isolate;
+}
+
+.bottom-nav__track {
+  position: relative;
+  z-index: 1301;
+}
+
+/* ─── Animations ────────────────────────────────────────────── */
+@keyframes spin-ring {
+  from { transform: translate(-50%, -55%) rotate(0deg); }
+  to { transform: translate(-50%, -55%) rotate(360deg); }
+}
+
+@keyframes pulseHalo {
+  0% { transform: scale(0.92); opacity: 0.2; }
+  50% { transform: scale(1.08); opacity: 0.42; }
+  100% { transform: scale(1); opacity: 0.18; }
+}
+
+@keyframes burst {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.7); }
+  30% { opacity: 1; transform: translate(-50%, calc(-50% - 18px)) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, calc(-50% - 52px)) scale(0.85); }
+}
+
+@keyframes clickParticleFly {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.35) rotate(0deg);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.25) rotate(calc(var(--rot) * 0.18));
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(var(--scale)) rotate(var(--rot));
+  }
+}
+
+@keyframes coneShardFly {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--rot-start)) scale(0.3);
+  }
+  12% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--rot-start)) scale(var(--cone-scale));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot-end)) scale(calc(var(--cone-scale) * 0.72));
+  }
+}
+
+@keyframes clickPressPremium {
+  0% { transform: translateY(0) scale(1); filter: brightness(1); }
+  28% { transform: translateY(3px) scale(0.965); filter: brightness(1.05); }
+  62% { transform: translateY(-1px) scale(1.02); filter: brightness(1.03); }
+  100% { transform: translateY(0) scale(1); filter: brightness(1); }
+}
+
+@keyframes clickHeroPremium {
+  0% { transform: scale(1); filter: brightness(1); }
+  28% { transform: scale(0.935); filter: brightness(1.02); }
+  62% { transform: scale(1.035); filter: brightness(1.06); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+@keyframes clickGlowPremium {
+  0% { opacity: 0.18; transform: scale(0.96); }
+  50% { opacity: 0.42; transform: scale(1.08); }
+  100% { opacity: 0.2; transform: scale(1); }
+}
+
+@keyframes clickRingOuterPremium {
+  0% { opacity: 0.22; transform: translate(-50%, -55%) scale(1); }
+  50% { opacity: 0.34; transform: translate(-50%, -55%) scale(1.05); }
+  100% { opacity: 0.22; transform: translate(-50%, -55%) scale(1); }
+}
+
+@keyframes clickRingInnerPremium {
+  0% { opacity: 0.26; transform: translate(-50%, -55%) scale(1); }
+  50% { opacity: 0.36; transform: translate(-50%, -55%) scale(0.985); }
+  100% { opacity: 0.26; transform: translate(-50%, -55%) scale(1); }
+}
+
+@keyframes megaWarp {
+  0% { transform: translateY(0) scaleX(1) scaleY(1); filter: brightness(1); }
+  18% { transform: translateY(6px) scaleX(1.09) scaleY(0.88); filter: brightness(1.14); }
+  48% { transform: translateY(-5px) scaleX(0.93) scaleY(1.08); filter: brightness(1.18); }
+  72% { transform: translateY(2px) scaleX(1.02) scaleY(0.99); filter: brightness(1.06); }
+  100% { transform: translateY(0) scaleX(1) scaleY(1); filter: brightness(1); }
+}
+
+@keyframes megaHeroWarp {
+  0% { transform: scale(1) rotate(0deg) skewX(0deg); filter: brightness(1); }
+  18% { transform: scale(0.84) rotate(-4deg) skewX(-6deg); filter: brightness(1.1) saturate(1.15); }
+  50% { transform: scale(1.14) rotate(3deg) skewX(3deg); filter: brightness(1.2) saturate(1.22); }
+  75% { transform: scale(1.04) rotate(-1deg) skewX(-1deg); filter: brightness(1.08); }
+  100% { transform: scale(1) rotate(0deg) skewX(0deg); filter: brightness(1); }
+}
+
+@keyframes megaHaloBlast {
+  0% { opacity: 0.15; transform: scale(0.88); }
+  35% { opacity: 0.82; transform: scale(1.2); }
+  65% { opacity: 0.52; transform: scale(1.1); }
+  100% { opacity: 0.18; transform: scale(1); }
+}
+
+@keyframes megaRingExpand {
+  0% { opacity: 0.22; transform: translate(-50%, -55%) scale(1); }
+  45% { opacity: 0.72; transform: translate(-50%, -55%) scale(1.18); }
+  100% { opacity: 0.24; transform: translate(-50%, -55%) scale(1); }
+}
+
+@keyframes megaRingContract {
+  0% { opacity: 0.26; transform: translate(-50%, -55%) scale(1); }
+  45% { opacity: 0.62; transform: translate(-50%, -55%) scale(0.84); }
+  100% { opacity: 0.28; transform: translate(-50%, -55%) scale(1); }
+}
+
+@keyframes rgbButtonBreath {
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(-2px) scale(1.018); }
+}
+
+@keyframes emojiHeroFiesta {
+  0% { transform: scale(1) rotate(-1deg); filter: saturate(1) brightness(1.02); }
+  50% { transform: scale(1.04) rotate(1deg); filter: saturate(1.12) brightness(1.08); }
+  100% { transform: scale(1.02) rotate(-0.6deg); filter: saturate(1.06) brightness(1.05); }
+}
+
+@keyframes rgbRingGlow {
+  0% { opacity: 0.55; }
+  100% { opacity: 0.95; }
+}
+
+@keyframes screenEmojiFirework {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0) scale(0.4) rotate(0deg);
+  }
+  12% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+    transform: translate3d(var(--dx), var(--dy), 0) scale(calc(var(--scale) * 1.08)) rotate(calc(var(--rot) * 0.72));
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(calc(var(--dx) * 1.18), calc(var(--dy) * 1.08), 0) scale(calc(var(--scale) * 0.82)) rotate(var(--rot));
+  }
+}
+
+@keyframes megaEmojiRain {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -6vh, 0) scale(calc(var(--rain-scale, 1) * 0.82)) rotate(0deg);
+  }
+  10% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--rain-drift, 0vw), 118vh, 0) scale(var(--rain-scale, 1)) rotate(var(--rain-rotate, 0deg));
+  }
+}
+
+@keyframes shockwaveExpand {
+  0% { transform: scale(0.4); opacity: 1; }
+  60% { opacity: 0.7; }
+  100% { transform: scale(2.8); opacity: 0; }
+}
+
+@keyframes achievement-toast-in {
+  from { transform: translate3d(22px, 18px, 0) scale(0.96); opacity: 0; }
+  to { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+}
+
+@keyframes achievement-toast-glow {
+  from { box-shadow: 0 22px 80px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08); }
+  to { box-shadow: 0 24px 90px rgba(255, 184, 77, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.08); }
+}
+
+@media (max-width: 640px) {
+  .achievement-toast {
+    right: 12px;
+    left: 12px;
+    bottom: 88px;
+    width: auto;
+    grid-template-columns: 60px 1fr;
+    padding-inline: 14px;
+  }
+
+  .achievement-toast__icon {
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
