@@ -102,8 +102,8 @@ export function getPrestigeBonuses(state = {}) {
 
 function getRawQuota(rebirths = 0) {
   return {
-    shishki: Math.floor(95_000 * Math.pow(1.82, rebirths) + rebirths * rebirths * 36_000),
-    knowledge: Math.floor(2_600 * Math.pow(1.74, rebirths) + rebirths * rebirths * 760),
+    shishki: Math.floor(95_000 * Math.pow(1.5, rebirths)),
+    knowledge: Math.floor(2_600 * Math.pow(1.8, rebirths)),
     achievements: Math.floor(45 + rebirths * 3 + Math.max(0, rebirths - 2) * 2),
   }
 }
