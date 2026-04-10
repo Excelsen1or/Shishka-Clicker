@@ -220,7 +220,7 @@ export function ClickerButton() {
       const now = Date.now()
       const swCount = result.isEmojiExplosion ? 3 : 2
       const newWaves = Array.from({ length: swCount }, (_, i) => ({
-        id: `sw-\${now}-\${i}`,
+        id: `sw-${now}-${i}`,
         delay: i * 160,
         color: result.isEmojiExplosion
           ? ['rgba(168,85,247,0.75)', 'rgba(34,211,238,0.75)', 'rgba(255,153,0,0.75)'][i]
