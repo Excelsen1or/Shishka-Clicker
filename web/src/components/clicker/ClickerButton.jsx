@@ -14,13 +14,16 @@ function pickRandom(pool) {
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
+const getRandomAngle = () => Math.random() * Math.PI * 2
+
 function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosion, particleCap) {
   const now = Date.now()
   const capped = Math.max(1, Math.min(isEmojiExplosion ? particleCap : Math.min(particleCap, 16), amount))
   const pool = Array.isArray(symbols) ? symbols : [symbols]
 
   return Array.from({ length: capped }, (_, index) => {
-    const angle = (Math.PI * 2 * index) / capped + Math.random() * 0.7
+    // const angle = (Math.PI * 2 * index) / capped + Math.random() * 0.7
+    const angle = getRandomAngle()
     const distance = (isEmojiExplosion ? 98 : 22) + Math.random() * (isMega ? 180 : 92)
 
     return {
@@ -43,7 +46,7 @@ function createConeSprites(localX, localY, amount, isMega, coneCap) {
   const total = Math.min(coneCap, isMega ? amount + 3 : amount + 1)
 
   return Array.from({ length: total }, (_, index) => {
-    const angle = (-Math.PI / 2) + (Math.random() - 0.5) * 2.2
+    const angle = getRandomAngle()
     const distance = 56 + Math.random() * (isMega ? 165 : 84)
 
     return {
@@ -51,7 +54,7 @@ function createConeSprites(localX, localY, amount, isMega, coneCap) {
       x: localX,
       y: localY,
       dx: Math.cos(angle) * distance,
-      dy: -24 - Math.abs(Math.sin(angle) * distance),
+      dy: Math.sin(angle) * distance,
       rotateStart: Math.round(Math.random() * 180),
       rotateEnd: Math.round((Math.random() - 0.5) * 720),
       scale: 0.6 + Math.random() * (isMega ? 0.95 : 0.5),
