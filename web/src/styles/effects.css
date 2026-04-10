@@ -428,15 +428,18 @@
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.35) rotate(0deg);
   }
-  12% {
+  20% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1.18) rotate(calc(var(--rot) * 0.16));
+    transform: translate(-50%, -50%) scale(1.2) rotate(calc(var(--rot) * 0.16));
   }
-  52% {
-    opacity: 0.88;
+  40% {
+    opacity: 0.6;
   }
-  76% {
-    opacity: 0.42;
+  60% {
+    opacity: 0.4;
+  }
+  80% {
+    opacity: 0.2;
   }
   100% {
     opacity: 0;
@@ -589,7 +592,7 @@
     transform: translateY(0px) scale(1);
   }
   50% {
-    transform: translateY(-5px) scale(1.018);
+    transform: translateY(-20px) scale(1.018);
   }
 }
 
