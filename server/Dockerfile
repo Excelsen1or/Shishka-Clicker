@@ -1,12 +1,10 @@
 # build stage
 FROM node:alpine as server-build
-WORKDIR /app
+WORKDIR /server
 RUN npm i -g pnpm
 
 COPY package.json ./
 COPY pnpm-lock.yaml ./
-
-WORKDIR /app/server
 RUN pnpm i
 
 COPY ./ ./
@@ -16,16 +14,13 @@ RUN pnpm build
 
 # runtime stage
 FROM node:alpine
-WORKDIR /app
 RUN npm i -g pnpm
 
 COPY package.json ./
 COPY pnpm-lock.yaml ./
-WORKDIR /app/server
 RUN pnpm i
 
-WORKDIR /app
-COPY --from=server-build /app/server/dist ./dist
+COPY --from=server-build /server/dist ./dist
 
 ENV NODE_ENV=development
 
