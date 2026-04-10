@@ -79,6 +79,7 @@ function getCardClassName(item, isLocked, canBuy) {
     toneClass,
     rarityClass,
     item.isNew ? 'shop-card--new' : '',
+    item.isBuyableNew ? 'shop-card--buyable-new' : '',
     isLocked ? 'shop-card--locked' : '',
     canBuy && !isLocked ? 'shop-card--can-buy' : '',
   ].filter(Boolean).join(' ')
@@ -194,7 +195,7 @@ export function ShopCard({ item, canBuy, balance = 0, onBuy, onInspect, delay = 
   }
 
   const handleInspect = () => {
-    if (!item.isNew) return
+    if (!item.isNew && !item.isBuyableNew) return
     onInspect?.()
   }
 
@@ -225,6 +226,7 @@ export function ShopCard({ item, canBuy, balance = 0, onBuy, onInspect, delay = 
 
         <div className="shop-card__chips">
           {item.isNew && <span className="shop-card__new-badge">новое</span>}
+          {item.isBuyableNew && <span className="shop-card__new-badge shop-card__new-badge--ready">можно взять</span>}
           <span className="shop-card__tier">тир {item.tier}</span>
           {!isLocked && <span className="shop-card__level">ур. {item.level}</span>}
           <span className="shop-card__currency-chip">{currency.icon} {currency.label}</span>

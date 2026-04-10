@@ -30,11 +30,32 @@ function buildSeenShopItems(snapshot = STARTING_STATE) {
   }, {})
 }
 
+function buildSeenBuyableShopItems(snapshot = STARTING_STATE) {
+  const safeSnapshot = snapshot ?? STARTING_STATE
+
+  return [...SUBSCRIPTIONS, ...UPGRADES].reduce((accumulator, item) => {
+    const level = item.currency
+      ? (safeSnapshot.upgrades?.[item.id] ?? 0)
+      : (safeSnapshot.subscriptions?.[item.id] ?? 0)
+    const currency = item.currency ?? 'money'
+    const unlock = getUnlockStatus(safeSnapshot, item.id)
+    const cost = getScaledCost(item.baseCost, item.costScale, level)
+    const balance = safeSnapshot[currency] ?? 0
+
+    if (level > 0 || (unlock.unlocked && balance >= cost)) {
+      accumulator[item.id] = true
+    }
+
+    return accumulator
+  }, {})
+}
+
 function mergeState(saved) {
   if (!saved || typeof saved !== 'object' || Array.isArray(saved)) {
     return {
       ...STARTING_STATE,
       seenShopItems: buildSeenShopItems(STARTING_STATE),
+      seenBuyableShopItems: buildSeenBuyableShopItems(STARTING_STATE),
     }
   }
 
@@ -47,6 +68,20 @@ function mergeState(saved) {
     seenShopItems: saved.seenShopItems
       ? { ...(saved.seenShopItems ?? {}) }
       : buildSeenShopItems({
+          ...STARTING_STATE,
+          ...saved,
+          subscriptions: {
+            ...STARTING_STATE.subscriptions,
+            ...(saved.subscriptions ?? {}),
+          },
+          upgrades: {
+            ...STARTING_STATE.upgrades,
+            ...(saved.upgrades ?? {}),
+          },
+        }),
+    seenBuyableShopItems: saved.seenBuyableShopItems
+      ? { ...(saved.seenBuyableShopItems ?? {}) }
+      : buildSeenBuyableShopItems({
           ...STARTING_STATE,
           ...saved,
           subscriptions: {
@@ -78,13 +113,19 @@ function mergeState(saved) {
 function enrichItem(state, item, level, aiMultiplier, prestigeMultiplier) {
   const unlock = getUnlockStatus(state, item.id)
   const effectPreview = getItemEffectPreview(item, level, aiMultiplier, prestigeMultiplier)
+  const cost = getScaledCost(item.baseCost, item.costScale, level)
+  const balance = Number(state?.[item.currency] ?? 0)
 
   return {
     ...item,
     level,
-    cost: getScaledCost(item.baseCost, item.costScale, level),
+    cost,
     unlocked: unlock.unlocked,
     isNew: unlock.unlocked && !state?.seenShopItems?.[item.id],
+    isBuyableNew: unlock.unlocked
+      && level === 0
+      && balance >= cost
+      && !state?.seenBuyableShopItems?.[item.id],
     unlockRule: unlock.rule,
     unlockText: formatUnlockText(unlock.rule),
     unlockProgress: unlock.progress,
@@ -281,6 +322,14 @@ export function useGame() {
       const result = unlockAchievements({
         ...current,
         money: current.money - cost,
+        seenShopItems: {
+          ...current.seenShopItems,
+          [id]: true,
+        },
+        seenBuyableShopItems: {
+          ...current.seenBuyableShopItems,
+          [id]: true,
+        },
         subscriptions: {
           ...current.subscriptions,
           [id]: level + 1,
@@ -312,6 +361,14 @@ export function useGame() {
       const result = unlockAchievements({
         ...current,
         [item.currency]: current[item.currency] - cost,
+        seenShopItems: {
+          ...current.seenShopItems,
+          [id]: true,
+        },
+        seenBuyableShopItems: {
+          ...current.seenBuyableShopItems,
+          [id]: true,
+        },
         upgrades: {
           ...current.upgrades,
           [id]: level + 1,
@@ -350,12 +407,19 @@ export function useGame() {
   function markShopItemSeen(id) {
     setState((current) => {
       current = mergeState(current)
-      if (!id || current.seenShopItems?.[id]) return current
+      if (!id) return current
+
+      const alreadySeen = current.seenShopItems?.[id] && current.seenBuyableShopItems?.[id]
+      if (alreadySeen) return current
 
       return {
         ...current,
         seenShopItems: {
           ...current.seenShopItems,
+          [id]: true,
+        },
+        seenBuyableShopItems: {
+          ...current.seenBuyableShopItems,
           [id]: true,
         },
       }
@@ -391,6 +455,7 @@ export function useGame() {
         ...STARTING_STATE,
         achievements: current.achievements,
         seenShopItems: buildSeenShopItems(STARTING_STATE),
+        seenBuyableShopItems: buildSeenBuyableShopItems(STARTING_STATE),
         prestigeUpgrades: current.prestigeUpgrades,
         prestigeShards: current.prestigeShards + preview.shards,
         totalPrestigeShardsEarned: current.totalPrestigeShardsEarned + preview.shards,
@@ -418,6 +483,7 @@ export function useGame() {
     setState(() => ({
       ...STARTING_STATE,
       seenShopItems: buildSeenShopItems(STARTING_STATE),
+      seenBuyableShopItems: buildSeenBuyableShopItems(STARTING_STATE),
     }))
   }
 

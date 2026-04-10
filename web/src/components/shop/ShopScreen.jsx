@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useGameContext } from '../../context/GameContext'
 import { ShopCard } from './ShopCard'
 
@@ -156,6 +157,14 @@ export function ShopScreen({ type }) {
   const lockedItems = items.filter((item) => !item.unlocked)
   const unlockedByCategory = hasItemCategories ? groupItemsByCategory(unlockedItems, type, meta.categories) : []
   const lockedByCategory = hasItemCategories ? groupItemsByCategory(lockedItems, type, meta.categories) : []
+
+  useEffect(() => {
+    items.forEach((item) => {
+      if (item.isNew || item.isBuyableNew) {
+        markShopItemSeen(item.id)
+      }
+    })
+  }, [items, markShopItemSeen])
 
   return (
     <section className={`screen shop-screen shop-screen--${meta.accent}`}>

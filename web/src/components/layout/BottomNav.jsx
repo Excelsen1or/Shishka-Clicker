@@ -1,4 +1,5 @@
 import { useNav } from '../../context/NavContext'
+import { useGameContext } from '../../context/GameContext'
 import { useSound } from '../../hooks/useSound'
 import switchSound from '../../assets/audio/ui/wpn_select.mp3'
 
@@ -8,7 +9,29 @@ function getButtonClassName(isActive) {
 
 export function BottomNav() {
   const { activeTab, setActiveTab, tabs } = useNav()
+  const { economy } = useGameContext()
   const { play } = useSound(switchSound, { volume: 0.1 })
+
+  const tabAlerts = {
+    subscriptions: (() => {
+      const items = economy.subscriptions ?? []
+      const readyCount = items.filter((item) => item.isBuyableNew).length
+      const newCount = items.filter((item) => item.isNew && !item.isBuyableNew).length
+      return {
+        count: readyCount || newCount,
+        hasReady: readyCount > 0,
+      }
+    })(),
+    upgrades: (() => {
+      const items = economy.upgrades ?? []
+      const readyCount = items.filter((item) => item.isBuyableNew).length
+      const newCount = items.filter((item) => item.isNew && !item.isBuyableNew).length
+      return {
+        count: readyCount || newCount,
+        hasReady: readyCount > 0,
+      }
+    })(),
+  }
 
   const handleTabChange = (tabId) => {
     if (tabId === activeTab) return
@@ -22,6 +45,7 @@ export function BottomNav() {
       <div className="bottom-nav__track">
         {tabs.map((tab) => {
           const isActive = tab.id === activeTab
+          const alert = tabAlerts[tab.id]
 
           return (
             <button
@@ -33,6 +57,14 @@ export function BottomNav() {
             >
               <span className="bottom-nav__icon">{tab.icon}</span>
               <span className="bottom-nav__label">{tab.label}</span>
+              {alert?.count > 0 && (
+                <span
+                  className={`bottom-nav__alert ${alert.hasReady ? 'bottom-nav__alert--ready' : 'bottom-nav__alert--new'}`}
+                  aria-hidden="true"
+                >
+                  {alert.count > 9 ? '9+' : alert.count}
+                </span>
+              )}
               {isActive && <span className="bottom-nav__pip" />}
             </button>
           )

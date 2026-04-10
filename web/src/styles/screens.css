@@ -674,6 +674,15 @@
     var(--shadow-md);
 }
 
+.shop-card--buyable-new {
+  border-color: rgb(var(--accent-emerald-rgb) / 0.34);
+  box-shadow:
+    0 0 0 1px rgb(var(--accent-emerald-rgb) / 0.16),
+    0 20px 38px rgb(var(--accent-emerald-rgb) / 0.1),
+    var(--shadow-md);
+  animation: shopCardReadyPulse 2.4s ease-in-out infinite;
+}
+
 .shop-card--can-buy {
   border-color: rgb(var(--card-rarity-rgb) / 0.36);
   box-shadow: 0 24px 46px rgb(var(--card-rarity-rgb) / 0.12), var(--shadow-md);
@@ -691,6 +700,11 @@
     0 18px 36px rgb(var(--card-rarity-rgb) / 0.14),
     var(--shadow-lg);
   background-position: center, 6% 0, 100% 100%;
+}
+
+.shop-card--buyable-new:hover,
+.shop-card--buyable-new:focus-within {
+  animation-play-state: paused;
 }
 
 .shop-card:hover::before,
@@ -824,6 +838,13 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   box-shadow: inset 0 1px 0 rgb(var(--white-rgb) / 0.08);
+}
+
+.shop-card__new-badge--ready {
+  border-color: rgb(var(--accent-emerald-rgb) / 0.24);
+  background: linear-gradient(180deg, rgb(var(--accent-emerald-rgb) / 0.2), rgb(var(--accent-emerald-rgb) / 0.08));
+  color: var(--accent-emerald);
+  animation: shopBadgeReadyPulse 1.8s ease-in-out infinite;
 }
 
 .shop-card__currency-chip {

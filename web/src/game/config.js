@@ -19,6 +19,7 @@ export const BALANCE = {
     emojiBursts: 0,
     achievements: {},
     seenShopItems: {},
+    seenBuyableShopItems: {},
     prestigeUpgrades: {
       coneTheory: 0,
       archiveIndex: 0,
