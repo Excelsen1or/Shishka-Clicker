@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useSettingsContext } from '../context/SettingsContext'
 
 export function useSound(src, { volume = 1 } = {}) {
@@ -14,7 +14,7 @@ export function useSound(src, { volume = 1 } = {}) {
     }
   }, [])
 
-  function play() {
+  const play = useCallback(() => {
     if (effectVolumeFactor <= 0) return
 
     if (!audioRef.current) {
@@ -27,7 +27,7 @@ export function useSound(src, { volume = 1 } = {}) {
     audioRef.current.play().catch((error) => {
       console.log('Playback error:', error)
     })
-  }
+  }, [effectVolumeFactor, src, volume])
 
   return { play }
 }

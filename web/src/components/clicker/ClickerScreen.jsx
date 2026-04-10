@@ -13,19 +13,9 @@ export function ClickerScreen() {
     <section className="screen clicker-screen">
       <div className="screen__glow" />
 
-      <div className="screen__header">
-        <span className="screen__kicker">Главный экран</span>
-        <h2 className="screen__title">Добыча и прогресс</h2>
-      </div>
-
       <div className="clicker-layout">
-          <ClickerButton />
-
         <aside className="clicker-sidebar">
           <div className="clicker-panel">
-            <div className="clicker-panel__header">
-              <span className="clicker-panel__kicker">Текущие показатели</span>
-            </div>
 
             <div className="clicker-stats-stack">
               {stats.map((item, index) => (
@@ -34,6 +24,8 @@ export function ClickerScreen() {
             </div>
           </div>
         </aside>
+
+        <ClickerButton />
       </div>
 
       <div className="clicker-below">

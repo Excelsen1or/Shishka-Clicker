@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useGameContext } from '../../context/GameContext'
 import { useSound } from '../../hooks/useSound'
 import achievementSound from '../../assets/audio/ui/opoveshchenie.mp3'
@@ -6,17 +6,20 @@ import achievementSound from '../../assets/audio/ui/opoveshchenie.mp3'
 export function AchievementToast() {
   const { achievementQueue, dismissAchievement } = useGameContext()
   const current = achievementQueue[0]
+  const currentId = current?.id
   const { play } = useSound(achievementSound, { volume: 0.65 })
+  const playRef = useRef(play)
+  playRef.current = play
 
   useEffect(() => {
-    if (!current) return
-    play()
+    if (!currentId) return
+    playRef.current()
     const timer = window.setTimeout(() => {
       dismissAchievement()
     }, 4200)
 
     return () => window.clearTimeout(timer)
-  }, [current?.id])
+  }, [currentId, dismissAchievement])
 
   if (!current) return null
 

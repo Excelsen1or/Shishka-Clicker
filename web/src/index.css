@@ -1,7 +1,5 @@
+@import './styles/theme.css';
 @import './styles/base.css';
 @import './styles/layout.css';
-@import './styles/shop.css';
-@import './styles/settings.css';
-@import './styles/clicker.css';
-@import './styles/meta.css';
+@import './styles/screens.css';
 @import './styles/effects.css';

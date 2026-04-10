@@ -181,15 +181,26 @@ export function ClickerButton() {
 
   function getLocalPoint(event) {
     const rect = event.currentTarget.getBoundingClientRect()
-    const isKeyboardClick = event.detail === 0
+    const hasPointerCoords = Number.isFinite(event.clientX) && Number.isFinite(event.clientY)
 
     return {
-      localX: isKeyboardClick ? rect.width / 2 : event.clientX - rect.left,
-      localY: isKeyboardClick ? rect.height / 2 : event.clientY - rect.top,
+      localX: hasPointerCoords ? event.clientX - rect.left : rect.width / 2,
+      localY: hasPointerCoords ? event.clientY - rect.top : rect.height / 2,
     }
   }
 
+  function blockKeyboardActivation(event) {
+    if (event.key !== 'Enter' && event.key !== ' ') return
+    event.preventDefault()
+    event.stopPropagation()
+  }
+
   function handleClick(event) {
+    if (event.detail === 0) {
+      event.preventDefault()
+      return
+    }
+
     play()
 
     const result = mineShishki()
@@ -261,6 +272,8 @@ export function ClickerButton() {
         className={`clicker-btn ${isCharged ? 'clicker-btn--charged' : ''} ${visualState !== 'idle' ? `clicker-btn--${visualState}` : ''}`.trim()}
         data-buff-state={visualState}
         onClick={handleClick}
+        onKeyDown={blockKeyboardActivation}
+        onKeyUp={blockKeyboardActivation}
         aria-label="Добыть шишки"
       >
         <div className="clicker-particles" aria-hidden="true">
@@ -319,7 +332,6 @@ export function ClickerButton() {
         ))}
 
         <span className="clicker-btn__aura" />
-        <span className="clicker-btn__sheen" />
 
         <div className="clicker-btn__core">
           <span className="clicker-btn__core-ring clicker-btn__core-ring--outer" />

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   STARTING_STATE,
   SUBSCRIPTIONS,
@@ -19,15 +19,46 @@ import { getPrestigeUpgradeCards, PRESTIGE_UPGRADES, getPrestigeUpgradeCost } fr
 import { loadGame, saveGame, clearGame } from '../lib/storage'
 import {formatNumber} from "../lib/format.js";
 
-function mergeState(saved) {
-  if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return STARTING_STATE
+function buildSeenShopItems(snapshot = STARTING_STATE) {
+  const safeSnapshot = snapshot ?? STARTING_STATE
 
-  return {
+  return [...SUBSCRIPTIONS, ...UPGRADES].reduce((accumulator, item) => {
+    if (getUnlockStatus(safeSnapshot, item.id).unlocked) {
+      accumulator[item.id] = true
+    }
+
+    return accumulator
+  }, {})
+}
+
+function mergeState(saved) {
+  if (!saved || typeof saved !== 'object' || Array.isArray(saved)) {
+    return {
+      ...STARTING_STATE,
+      seenShopItems: buildSeenShopItems(STARTING_STATE),
+    }
+  }
+
+  const mergedState = {
     ...STARTING_STATE,
     ...saved,
     achievements: {
       ...(saved.achievements ?? {}),
     },
+    seenShopItems: saved.seenShopItems
+      ? { ...(saved.seenShopItems ?? {}) }
+      : buildSeenShopItems({
+          ...STARTING_STATE,
+          ...saved,
+          subscriptions: {
+            ...STARTING_STATE.subscriptions,
+            ...(saved.subscriptions ?? {}),
+          },
+          upgrades: {
+            ...STARTING_STATE.upgrades,
+            ...(saved.upgrades ?? {}),
+          },
+        }),
     prestigeUpgrades: {
       ...STARTING_STATE.prestigeUpgrades,
       ...(saved.prestigeUpgrades ?? {}),
@@ -41,6 +72,8 @@ function mergeState(saved) {
       ...(saved.upgrades ?? {}),
     },
   }
+
+  return mergedState
 }
 
 function enrichItem(state, item, level, aiMultiplier, prestigeMultiplier) {
@@ -52,6 +85,7 @@ function enrichItem(state, item, level, aiMultiplier, prestigeMultiplier) {
     level,
     cost: getScaledCost(item.baseCost, item.costScale, level),
     unlocked: unlock.unlocked,
+    isNew: unlock.unlocked && !state?.seenShopItems?.[item.id],
     unlockRule: unlock.rule,
     unlockText: formatUnlockText(unlock.rule),
     unlockProgress: unlock.progress,
@@ -314,6 +348,21 @@ export function useGame() {
     })
   }
 
+  function markShopItemSeen(id) {
+    setState((current) => {
+      current = mergeState(current)
+      if (!id || current.seenShopItems?.[id]) return current
+
+      return {
+        ...current,
+        seenShopItems: {
+          ...current.seenShopItems,
+          [id]: true,
+        },
+      }
+    })
+  }
+
   function markSilenceLover() {
     setState((current) => {
       current = mergeState(current)
@@ -342,6 +391,7 @@ export function useGame() {
       const result = unlockAchievements({
         ...STARTING_STATE,
         achievements: current.achievements,
+        seenShopItems: buildSeenShopItems(STARTING_STATE),
         prestigeUpgrades: current.prestigeUpgrades,
         prestigeShards: current.prestigeShards + preview.shards,
         totalPrestigeShardsEarned: current.totalPrestigeShardsEarned + preview.shards,
@@ -366,7 +416,10 @@ export function useGame() {
     skipNextSaveRef.current = true
     clearGame()
     setAchievementQueue([])
-    setState(() => ({ ...STARTING_STATE }))
+    setState(() => ({
+      ...STARTING_STATE,
+      seenShopItems: buildSeenShopItems(STARTING_STATE),
+    }))
   }
 
   function exportGameSave() {
@@ -395,12 +448,13 @@ export function useGame() {
     buySubscription,
     buyUpgrade,
     buyPrestigeUpgrade,
+    markShopItemSeen,
     markSilenceLover,
     prestigeReset,
     resetGame,
     exportGameSave,
     importGameSave,
     achievementQueue,
-    dismissAchievement: () => setAchievementQueue((queue) => queue.slice(1)),
+    dismissAchievement: useCallback(() => setAchievementQueue((queue) => queue.slice(1)), []),
   }
 }

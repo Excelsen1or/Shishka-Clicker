@@ -10,7 +10,6 @@ export function useBackgroundMusic(src) {
     const audio = new Audio(src)
     audio.loop = true
     audio.preload = 'auto'
-    audio.volume = musicVolumeFactor
     audioRef.current = audio
 
     return () => {

@@ -26,6 +26,7 @@ export function BottomNav() {
           return (
             <button
               key={tab.id}
+              type="button"
               className={getButtonClassName(isActive)}
               onClick={() => handleTabChange(tab.id)}
               aria-pressed={isActive}

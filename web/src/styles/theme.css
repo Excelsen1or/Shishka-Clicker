@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=Unbounded:wght@500;700;800&display=swap');
+
+:root {
+  color-scheme: dark;
+
+  --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Unbounded', 'Inter', system-ui, sans-serif;
+  --font-mono: 'Space Mono', 'SFMono-Regular', ui-monospace, monospace;
+
+  --color-bg: #06110c;
+  --color-bg-elevated: #0c1a13;
+  --color-bg-rgb: 6 17 12;
+  --color-bg-elevated-rgb: 12 26 19;
+
+  --surface-1-rgb: 11 23 17;
+  --surface-2-rgb: 15 31 23;
+  --surface-3-rgb: 25 46 35;
+  --surface-strong-rgb: 18 35 26;
+
+  --surface-1: rgb(var(--surface-1-rgb) / 0.88);
+  --surface-2: rgb(var(--surface-2-rgb) / 0.94);
+  --surface-3: rgb(var(--surface-3-rgb) / 0.7);
+  --surface-strong: rgb(var(--surface-strong-rgb) / 0.96);
+  --surface-frost: rgb(255 255 255 / 0.04);
+
+  --text-strong: #f5fbf7;
+  --text-base: #dce8e1;
+  --text-muted: #9fb1a7;
+  --text-faint: #6e8077;
+
+  --white-rgb: 255 255 255;
+  --black-rgb: 0 0 0;
+
+  --accent-primary: #ff9724;
+  --accent-primary-rgb: 255 151 36;
+  --accent-primary-strong: #ffbf66;
+
+  --accent-emerald: #31cb92;
+  --accent-emerald-rgb: 49 203 146;
+
+  --accent-cyan: #42d7ff;
+  --accent-cyan-rgb: 66 215 255;
+
+  --accent-fuchsia: #dc79ff;
+  --accent-fuchsia-rgb: 220 121 255;
+
+  --accent-violet: #aa8bff;
+  --accent-violet-rgb: 170 139 255;
+
+  --accent-rose: #ff7ca4;
+  --accent-rose-rgb: 255 124 164;
+
+  --accent-danger: #ff7a72;
+  --accent-danger-rgb: 255 122 114;
+
+  --border-soft: rgb(255 255 255 / 0.08);
+  --border-strong: rgb(255 255 255 / 0.14);
+  --border-accent: rgb(var(--accent-primary-rgb) / 0.25);
+
+  --shadow-sm: 0 8px 24px rgb(0 0 0 / 0.16);
+  --shadow-md: 0 18px 40px rgb(0 0 0 / 0.26);
+  --shadow-lg: 0 30px 80px rgb(0 0 0 / 0.38);
+
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.35rem;
+  --radius-xl: 1.9rem;
+  --radius-pill: 999px;
+
+  --content-max: 82rem;
+  --nav-height: 6.5rem;
+
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 140ms;
+  --duration-medium: 260ms;
+  --duration-slow: 520ms;
+
+  --fx-density: 0.45;
+  --fx-grid-opacity: 0.08;
+  --fx-grid-size: 36px;
+  --fx-firework-scale: 0.72;
+
+  --screen-accent-rgb: var(--accent-primary-rgb);
+  --btn-accent-rgb: var(--accent-primary-rgb);
+}
+
+@media (max-width: 640px) {
+  :root {
+    --nav-height: 7.15rem;
+  }
+}

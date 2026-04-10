@@ -1,37 +1,32 @@
-/* ─── Burst / particles / overlays ─────────────────────────── */
-.clicker-particles {
-  position: absolute;
-  inset: 0;
-  z-index: 4;
-  pointer-events: none;
-  overflow: visible;
-}
-
+.clicker-particles,
 .bursts-layer {
   position: absolute;
   inset: 0;
-  z-index: 4;
+  overflow: hidden;
   pointer-events: none;
-  overflow: visible;
-  border-radius: var(--r-xl);
+}
+
+.bursts-layer {
+  z-index: 4;
+}
+
+.clicker-particles {
+  z-index: 5;
 }
 
 .click-burst {
   position: absolute;
-  z-index: 4;
   transform: translate(-50%, -50%);
+  color: var(--accent-primary-strong);
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  color: var(--amber-2);
-  text-shadow: 0 0 12px var(--amber-glow);
-  white-space: nowrap;
-  pointer-events: none;
-  animation: burst 840ms var(--ease-out) forwards;
+  text-shadow: 0 0 12px rgb(var(--accent-primary-rgb) / 0.26);
+  animation: burstFloat 840ms var(--ease-standard) forwards;
 }
 
 .clicker-btn--prism .click-burst {
-  background: linear-gradient(135deg, #ff0066, #ff9900, #22d3ee);
+  background: linear-gradient(135deg, rgb(var(--accent-fuchsia-rgb)), rgb(var(--accent-primary-rgb)), rgb(var(--accent-cyan-rgb)));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -39,6 +34,7 @@
 
 .clicker-particle,
 .cone-sprite,
+.shockwave-ring,
 .screen-firework,
 .emoji-rain__item {
   contain: layout style;
@@ -49,13 +45,13 @@
   position: absolute;
   z-index: 6;
   transform: translate(-50%, -50%);
-  font-size: 1.45rem;
+  font-size: 1.4rem;
   animation: clickParticleFly 900ms cubic-bezier(0.12, 0.82, 0.18, 1) forwards;
 }
 
 .clicker-particle--mega {
   font-size: 1.8rem;
-  animation-duration: 1100ms;
+  animation-duration: 1120ms;
 }
 
 .clicker-particle--emoji-explosion {
@@ -87,7 +83,7 @@
   margin-top: -60px;
   margin-left: -60px;
   border-radius: 50%;
-  border: 2px solid var(--sw-color, rgba(250, 204, 21, 0.75));
+  border: 2px solid var(--sw-color, rgb(var(--accent-primary-rgb) / 0.75));
   pointer-events: none;
   z-index: 5;
   animation: shockwaveExpand 700ms cubic-bezier(0.16, 1, 0.24, 1) forwards;
@@ -99,66 +95,63 @@
   inset: 0;
   pointer-events: none;
   overflow: hidden;
-  contain: layout paint style;
 }
 
 .emoji-rain {
-  z-index: 8;
+  z-index: 90;
 }
 
 .screen-fireworks {
-  z-index: 9;
+  z-index: 100;
 }
 
 .emoji-rain__item {
   position: absolute;
   top: -12vh;
   display: block;
-  font-size: clamp(1.35rem, 2.3vw, 2.4rem);
   line-height: 1;
-  animation-name: megaEmojiRain;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
+  font-size: clamp(1.35rem, 2.2vw, 2.4rem);
+  animation: megaEmojiRain linear forwards;
 }
 
 .screen-firework {
   position: absolute;
   left: 50%;
-  bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) - 8px);
-  font-size: clamp(1.7rem, 3.2vw, 3rem);
+  bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px) - 8px);
+  font-size: clamp(1.7rem, 3vw, 3rem);
   transform: translate3d(0, 0, 0) scale(calc(var(--scale, 1) * var(--fx-firework-scale, 1)));
   animation: screenEmojiFirework 1560ms cubic-bezier(0.12, 0.84, 0.18, 1) forwards;
 }
 
-/* ─── Achievement toast ─────────────────────────────────────── */
 .achievement-toast {
   position: fixed;
   right: 20px;
-  bottom: 94px;
-  z-index: 90;
+  bottom: calc(var(--nav-height) + 1rem + env(safe-area-inset-bottom, 0px));
+  z-index: 130;
   width: min(420px, calc(100vw - 32px));
   display: grid;
   grid-template-columns: 72px 1fr;
   gap: 14px;
   padding: 16px 18px;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: linear-gradient(135deg, rgba(14, 18, 28, 0.96), rgba(37, 52, 74, 0.96));
-  box-shadow: 0 22px 80px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-radius: calc(var(--radius-lg) + 0.1rem);
+  border: 1px solid rgb(var(--accent-primary-rgb) / 0.24);
+  background: linear-gradient(135deg, rgb(var(--surface-strong-rgb) / 0.96), rgb(var(--surface-2-rgb) / 0.96));
+  box-shadow: 0 22px 80px rgb(0 0 0 / 0.42), inset 0 1px 0 rgb(var(--white-rgb) / 0.08);
   overflow: hidden;
-  animation: achievement-toast-in 0.28s ease-out, achievement-toast-glow 1.8s ease-in-out infinite alternate;
+  animation: toastIn 0.28s ease-out, toastGlow 1.8s ease-in-out infinite alternate;
 }
 
 .achievement-toast::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(255, 184, 77, 0.18), transparent 38%);
+  background: linear-gradient(90deg, rgb(var(--accent-primary-rgb) / 0.16), transparent 40%);
   pointer-events: none;
 }
 
 .achievement-toast--secret {
-  background: linear-gradient(135deg, rgba(24, 18, 28, 0.97), rgba(68, 46, 95, 0.96));
+  border-color: rgb(var(--accent-fuchsia-rgb) / 0.28);
+  background: linear-gradient(135deg, rgb(34 19 39 / 0.97), rgb(61 34 83 / 0.96));
 }
 
 .achievement-toast__steam {
@@ -167,7 +160,7 @@
   right: 14px;
   font-size: 10px;
   letter-spacing: 0.24em;
-  color: rgba(255, 255, 255, 0.42);
+  color: rgb(var(--white-rgb) / 0.42);
 }
 
 .achievement-toast__icon {
@@ -179,8 +172,8 @@
   height: 72px;
   border-radius: 16px;
   font-size: 34px;
-  background: radial-gradient(circle at 30% 30%, rgba(255, 214, 102, 0.38), rgba(255, 170, 0, 0.12));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  background: radial-gradient(circle at 30% 30%, rgb(var(--accent-primary-rgb) / 0.34), rgb(var(--accent-primary-rgb) / 0.1));
+  box-shadow: inset 0 0 0 1px rgb(var(--white-rgb) / 0.08);
 }
 
 .achievement-toast__body {
@@ -195,77 +188,213 @@
   align-items: center;
   gap: 0.4rem;
   margin-top: 6px;
+  color: var(--accent-primary-strong);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #ffcf70;
 }
 
 .achievement-toast__title {
+  color: var(--text-strong);
   font-size: 18px;
   font-weight: 800;
-  color: #fff;
 }
 
 .achievement-toast__desc {
+  color: rgb(var(--white-rgb) / 0.76);
   font-size: 13px;
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.42;
 }
 
-.app-main {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.ambient {
+  animation: ambientDrift 24s ease-in-out infinite;
 }
 
-.app-shell,
-.app-content,
-.app-main,
+.ambient--b {
+  animation-delay: -8s;
+}
+
+.ambient--c {
+  animation-delay: -15s;
+}
+
 .screen,
-.clicker-wrap,
-.clicker-layout,
-.clicker-stage,
-.clicker-sidebar,
-#root {
-  position: relative;
-  z-index: 1;
+.app-header,
+.stats-bar,
+.clicker-panel,
+.settings-card,
+.meta-card,
+.meta-hero__copy,
+.achievement-category {
+  animation: revealUp 0.55s var(--ease-standard) both;
 }
 
-body {
-  transition: background 900ms ease, background-image 900ms ease, filter 700ms ease;
+.clicker-btn__aura {
+  animation: pulseHalo 2.9s ease-in-out infinite;
 }
 
-.bottom-nav {
-  position: fixed !important;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1300 !important;
-  isolation: isolate;
+.clicker-btn__hero {
+  animation: heroFloat 3.2s ease-in-out infinite;
+  will-change: transform;
 }
 
-.bottom-nav__track {
-  position: relative;
-  z-index: 1301;
+.clicker-btn__core-ring--outer {
+  animation: spinRing 14s linear infinite;
 }
 
-/* ─── Animations ────────────────────────────────────────────── */
-@keyframes spin-ring {
-  from { transform: translate(-50%, -55%) rotate(0deg); }
-  to { transform: translate(-50%, -55%) rotate(360deg); }
+.clicker-btn__core-ring--inner {
+  animation: spinRing 9s linear infinite reverse;
+}
+
+.clicker-btn--tap {
+  animation: clickerTap 240ms var(--ease-bounce);
+}
+
+.clicker-btn--mega {
+  animation: clickerMega 680ms var(--ease-bounce);
+}
+
+.clicker-btn--prism {
+  animation: clickerPrism 1300ms var(--ease-standard);
+}
+
+@keyframes revealUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ambientDrift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(2%, 4%, 0) scale(1.03);
+  }
+  66% {
+    transform: translate3d(-3%, -2%, 0) scale(0.96);
+  }
 }
 
 @keyframes pulseHalo {
-  0% { transform: scale(0.92); opacity: 0.2; }
-  50% { transform: scale(1.08); opacity: 0.42; }
-  100% { transform: scale(1); opacity: 0.18; }
+  0% {
+    opacity: 0.1;
+    transform: scale(0.85);
+  }
+  45% {
+    opacity: 0.54;
+    transform: scale(1.15);
+  }
+  72% {
+    opacity: 0.24;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 0.12;
+    transform: scale(1);
+  }
 }
 
-@keyframes burst {
-  0% { opacity: 1; transform: translate(-50%, -50%) scale(0.7); }
-  30% { opacity: 1; transform: translate(-50%, calc(-50% - 18px)) scale(1.1); }
-  100% { opacity: 0; transform: translate(-50%, calc(-50% - 52px)) scale(0.85); }
+@keyframes spinRing {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sheenSweep {
+  0% {
+    transform: translateX(-130%) skewX(-18deg);
+  }
+  22%,
+  100% {
+    transform: translateX(130%) skewX(-18deg);
+  }
+}
+
+@keyframes shopCardDeny {
+  0% {
+    filter: saturate(1);
+    box-shadow:
+      0 0 0 1px rgb(var(--accent-danger-rgb) / 0.14),
+      0 12px 24px rgb(var(--accent-danger-rgb) / 0.08),
+      var(--shadow-md);
+  }
+  50% {
+    filter: saturate(1.14);
+    box-shadow:
+      0 0 0 1px rgb(var(--accent-danger-rgb) / 0.22),
+      0 20px 40px rgb(var(--accent-danger-rgb) / 0.15),
+      var(--shadow-lg);
+  }
+  100% {
+    filter: saturate(1);
+    box-shadow:
+      0 0 0 1px rgb(var(--accent-danger-rgb) / 0.16),
+      0 16px 30px rgb(var(--accent-danger-rgb) / 0.11),
+      var(--shadow-md);
+  }
+}
+
+@keyframes shopButtonDeny {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(0.97);
+  }
+  70% {
+    transform: scale(1.015);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shopBuyPulse {
+  from {
+    box-shadow:
+      inset 0 1px 0 rgb(var(--white-rgb) / 0.08),
+      0 12px 24px rgb(var(--btn-accent-rgb) / 0.16);
+  }
+  to {
+    box-shadow:
+      inset 0 1px 0 rgb(var(--white-rgb) / 0.1),
+      0 18px 32px rgb(var(--btn-accent-rgb) / 0.26);
+  }
+}
+
+@keyframes shopDeniedGlow {
+  0%,
+  100% {
+    box-shadow: inset 0 1px 0 rgb(var(--white-rgb) / 0.06), 0 10px 20px rgb(var(--accent-danger-rgb) / 0.1);
+  }
+  50% {
+    box-shadow: inset 0 1px 0 rgb(var(--white-rgb) / 0.08), 0 14px 28px rgb(var(--accent-danger-rgb) / 0.16);
+  }
+}
+
+@keyframes burstFloat {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.75);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(-50%, calc(-50% - 18px)) scale(1.08);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% - 52px)) scale(0.86);
+  }
 }
 
 @keyframes clickParticleFly {
@@ -273,11 +402,11 @@ body {
     opacity: 0;
     transform: translate(-50%, -50%) scale(0.35) rotate(0deg);
   }
-  10% {
+  12% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1.25) rotate(calc(var(--rot) * 0.18));
+    transform: translate(-50%, -50%) scale(1.18) rotate(calc(var(--rot) * 0.16));
   }
-  70% {
+  72% {
     opacity: 1;
   }
   100% {
@@ -301,7 +430,16 @@ body {
   }
 }
 
-/* Button keyframes are in clicker.css (btn-tap, btn-mega, btn-prism, btn-orbit) */
+@keyframes shockwaveExpand {
+  0% {
+    opacity: 0.8;
+    transform: scale(0.45);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.65);
+  }
+}
 
 @keyframes screenEmojiFirework {
   0% {
@@ -324,60 +462,123 @@ body {
 @keyframes megaEmojiRain {
   0% {
     opacity: 0;
-    transform: translate3d(0, -6vh, 0) scale(calc(var(--rain-scale, 1) * 0.82)) rotate(0deg);
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(0.6);
   }
-  10% {
+  8% {
     opacity: 1;
-  }
-  55% {
-    opacity: 1;
+    transform: translate3d(calc(var(--rain-drift) * 0.15), 10vh, 0) rotate(calc(var(--rain-rotate) * 0.2)) scale(var(--rain-scale));
   }
   100% {
-    opacity: 0;
-    transform: translate3d(var(--rain-drift, 0vw), 118vh, 0) scale(var(--rain-scale, 1)) rotate(var(--rain-rotate, 0deg));
+    opacity: 0.92;
+    transform: translate3d(var(--rain-drift), 120vh, 0) rotate(var(--rain-rotate)) scale(calc(var(--rain-scale) * 1.05));
   }
 }
 
-@keyframes shockwaveExpand {
-  0% { transform: scale(0.4); opacity: 1; }
-  60% { opacity: 0.7; }
-  100% { transform: scale(2.8); opacity: 0; }
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
 }
 
-@keyframes achievement-toast-in {
-  from { transform: translate3d(22px, 18px, 0) scale(0.96); opacity: 0; }
-  to { transform: translate3d(0, 0, 0) scale(1); opacity: 1; }
+@keyframes toastGlow {
+  from {
+    box-shadow: 0 22px 80px rgb(0 0 0 / 0.42), inset 0 1px 0 rgb(var(--white-rgb) / 0.08);
+  }
+  to {
+    box-shadow: 0 26px 90px rgb(var(--accent-primary-rgb) / 0.12), 0 22px 80px rgb(0 0 0 / 0.42), inset 0 1px 0 rgb(var(--white-rgb) / 0.08);
+  }
 }
 
-@keyframes achievement-toast-glow {
-  from { box-shadow: 0 22px 80px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.08); }
-  to { box-shadow: 0 24px 90px rgba(255, 184, 77, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.08); }
+@keyframes clickerTap {
+  0% {
+    transform: scale(1);
+  }
+  22% {
+    transform: scale(0.952);
+  }
+  60% {
+    transform: scale(1.022);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes clickerMega {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  18% {
+    transform: scale(0.928) rotate(-2.8deg);
+  }
+  46% {
+    transform: scale(1.052) rotate(1.9deg);
+  }
+  72% {
+    transform: scale(1.014) rotate(-0.5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes clickerPrism {
+  0% {
+    transform: scale(1);
+    filter: saturate(1);
+  }
+  30% {
+    transform: scale(0.97);
+    filter: saturate(1.18);
+  }
+  65% {
+    transform: scale(1.03);
+    filter: saturate(1.28);
+  }
+  100% {
+    transform: scale(1);
+    filter: saturate(1);
+  }
+}
+
+@keyframes heroFloat {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.018);
+  }
+}
+
+@keyframes innerGlow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
 }
 
 @media (max-width: 640px) {
   .achievement-toast {
-    right: 12px;
-    left: 12px;
-    bottom: 88px;
+    right: 16px;
+    left: 16px;
     width: auto;
-    grid-template-columns: 60px 1fr;
-    padding-inline: 14px;
+    grid-template-columns: 56px 1fr;
+    gap: 12px;
+    padding: 14px 15px;
   }
 
   .achievement-toast__icon {
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
     font-size: 28px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
 }

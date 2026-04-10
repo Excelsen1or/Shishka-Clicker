@@ -5,32 +5,36 @@ export const PRESTIGE_UPGRADES = [
     id: 'coneTheory',
     title: 'Шишечная теория',
     description: 'Сжимает квоту по шишкам для каждого следующего перерождения.',
-    baseCost: 2,
-    costScale: 2.22,
+    baseCost: 1,
+    costScale: 2.35,
+    costRamp: 1,
     tint: 'amber',
   },
   {
     id: 'archiveIndex',
     title: 'Архив индексов',
     description: 'Снижает требование по знаниям для следующей квоты ребёрса.',
-    baseCost: 2,
-    costScale: 2.26,
+    baseCost: 1,
+    costScale: 2.38,
+    costRamp: 1,
     tint: 'cyan',
   },
   {
     id: 'trophyRoute',
     title: 'Маршрут достижений',
     description: 'Срезает требование по количеству открытых достижений.',
-    baseCost: 3,
-    costScale: 2.4,
+    baseCost: 2,
+    costScale: 2.55,
+    costRamp: 1.1,
     tint: 'fuchsia',
   },
   {
     id: 'rebirthCore',
     title: 'Ядро перерождения',
     description: 'Даёт постоянный множитель ко всей экономике поверх обычного престижа.',
-    baseCost: 4,
-    costScale: 2.45,
+    baseCost: 3,
+    costScale: 2.62,
+    costRamp: 1.15,
     tint: 'emerald',
   },
   {
@@ -38,7 +42,8 @@ export const PRESTIGE_UPGRADES = [
     title: 'Очистка осколков',
     description: 'Увеличивает количество осколков, которое выдаётся за выполненную квоту.',
     baseCost: 5,
-    costScale: 2.55,
+    costScale: 2.85,
+    costRamp: 1.2,
     tint: 'violet',
   },
   {
@@ -46,7 +51,8 @@ export const PRESTIGE_UPGRADES = [
     title: 'Доктрина перелива',
     description: 'Лучше конвертирует перебор квоты в дополнительные осколки.',
     baseCost: 6,
-    costScale: 2.62,
+    costScale: 2.95,
+    costRamp: 1.25,
     tint: 'rose',
   },
 ]
@@ -71,8 +77,10 @@ function getFlatAchievementReduction(level) {
 }
 
 export function getPrestigeUpgradeCost(item, level) {
-  const penalty = 1 + level * 0.12
-  return Math.max(1, Math.floor(item.baseCost * Math.pow(item.costScale, level) * penalty))
+  const ramp = Number(item?.costRamp ?? 1)
+  const linearPenalty = 1 + level * (0.082 * ramp)
+  const quadraticPenalty = 1 + level * level * (0.01 * ramp)
+  return Math.max(1, Math.floor(item.baseCost * Math.pow(item.costScale, level) * linearPenalty * quadraticPenalty))
 }
 
 export function getPrestigeBonuses(state = {}) {
@@ -83,12 +91,12 @@ export function getPrestigeBonuses(state = {}) {
   const shardRefinery = getUpgradeLevel(state, 'shardRefinery')
   const overflowDoctrine = getUpgradeLevel(state, 'overflowDoctrine')
 
-  const shishkiQuotaReduction = getReductionFromLevel(coneTheory, 0.055, 0.93, 0.58)
-  const knowledgeQuotaReduction = getReductionFromLevel(archiveIndex, 0.052, 0.935, 0.56)
-  const achievementQuotaReduction = getFlatAchievementReduction(trophyRoute)
-  const permanentMultiplierBonus = getReductionFromLevel(rebirthCore, 0.075, 0.95, 0.92)
-  const shardMultiplier = 1 + geometricGain(shardRefinery, 0.16, 0.955)
-  const overflowMultiplier = 1 + geometricGain(overflowDoctrine, 0.18, 0.96)
+  const shishkiQuotaReduction = getReductionFromLevel(coneTheory, 0.042, 0.943, 0.46)
+  const knowledgeQuotaReduction = getReductionFromLevel(archiveIndex, 0.04, 0.945, 0.44)
+  const achievementQuotaReduction = Math.min(14, Math.floor(trophyRoute * 0.9 + Math.max(0, trophyRoute - 3) * 0.45))
+  const permanentMultiplierBonus = getReductionFromLevel(rebirthCore, 0.06, 0.956, 0.68)
+  const shardMultiplier = 1 + geometricGain(shardRefinery, 0.08, 0.97)
+  const overflowMultiplier = 1 + geometricGain(overflowDoctrine, 0.085, 0.971)
 
   return {
     shishkiQuotaReduction,
@@ -101,10 +109,12 @@ export function getPrestigeBonuses(state = {}) {
 }
 
 function getRawQuota(rebirths = 0) {
+  const cycle = Math.max(0, rebirths)
+
   return {
-    shishki: Math.floor(95_000 * Math.pow(1.5, rebirths)),
-    knowledge: Math.floor(2_600 * Math.pow(1.8, rebirths)),
-    achievements: Math.floor(45 + rebirths * 3 + Math.max(0, rebirths - 2) * 2),
+    shishki: Math.floor(120_000 * Math.pow(1.62, cycle)),
+    knowledge: Math.floor(3_400 * Math.pow(1.95, cycle)),
+    achievements: Math.floor(52 + cycle * 3 + Math.max(0, cycle - 2) * 2),
   }
 }
 
@@ -116,9 +126,9 @@ export function getRebirthQuota(state = {}, unlockedAchievements = 0, rebirthsOv
   return {
     cycle: rebirths + 1,
     raw,
-    shishki: Math.max(60_000, Math.floor(raw.shishki * (1 - bonuses.shishkiQuotaReduction))),
-    knowledge: Math.max(1_800, Math.floor(raw.knowledge * (1 - bonuses.knowledgeQuotaReduction))),
-    achievements: Math.max(32, raw.achievements - bonuses.achievementQuotaReduction),
+    shishki: Math.max(95_000, Math.floor(raw.shishki * (1 - bonuses.shishkiQuotaReduction))),
+    knowledge: Math.max(2_400, Math.floor(raw.knowledge * (1 - bonuses.knowledgeQuotaReduction))),
+    achievements: Math.max(38, raw.achievements - bonuses.achievementQuotaReduction),
   }
 }
 
@@ -142,18 +152,22 @@ export function getShardPreview(state = {}, unlockedAchievements = 0, quota = nu
     progress.knowledge >= targetQuota.knowledge &&
     progress.achievements >= targetQuota.achievements
 
+  const shishkiOverflow = Math.max(0, ratios.shishki - 1)
+  const knowledgeOverflow = Math.max(0, ratios.knowledge - 1)
+  const achievementsOverflow = Math.max(0, ratios.achievements - 1)
+
   const overflowScore =
-    Math.max(0, ratios.shishki - 1) * 0.35 * bonuses.overflowMultiplier +
-    Math.max(0, ratios.knowledge - 1) * 0.45 * bonuses.overflowMultiplier +
-    Math.max(0, ratios.achievements - 1) * 0.22
+    Math.pow(shishkiOverflow, 0.86) * 0.28 * bonuses.overflowMultiplier +
+    Math.pow(knowledgeOverflow, 0.9) * 0.36 * bonuses.overflowMultiplier +
+    Math.pow(achievementsOverflow, 0.94) * 0.17
 
   const quotaScore =
-    ratios.shishki * 0.9 +
-    ratios.knowledge * 1.15 +
-    ratios.achievements * 0.55 +
+    ratios.shishki * 0.78 +
+    ratios.knowledge * 0.98 +
+    ratios.achievements * 0.44 +
     overflowScore
 
-  const rawShards = Math.pow(Math.max(0, quotaScore - 1.95), 2.06) * bonuses.shardMultiplier
+  const rawShards = Math.pow(Math.max(0, quotaScore - 2.04), 2.25) * bonuses.shardMultiplier
   const projectedShards = canRebirth ? Math.max(1, Math.floor(rawShards)) : Math.floor(rawShards)
 
   return {
@@ -169,17 +183,17 @@ export function getShardPreview(state = {}, unlockedAchievements = 0, quota = nu
 function getMetricValue(id, level) {
   switch (id) {
     case 'coneTheory':
-      return getReductionFromLevel(level, 0.055, 0.93, 0.58)
+      return getReductionFromLevel(level, 0.042, 0.943, 0.46)
     case 'archiveIndex':
-      return getReductionFromLevel(level, 0.052, 0.935, 0.56)
+      return getReductionFromLevel(level, 0.04, 0.945, 0.44)
     case 'trophyRoute':
-      return getFlatAchievementReduction(level)
+      return Math.min(14, Math.floor(level * 0.9 + Math.max(0, level - 3) * 0.45))
     case 'rebirthCore':
-      return getReductionFromLevel(level, 0.075, 0.95, 0.92)
+      return getReductionFromLevel(level, 0.06, 0.956, 0.68)
     case 'shardRefinery':
-      return geometricGain(level, 0.16, 0.955)
+      return geometricGain(level, 0.08, 0.97)
     case 'overflowDoctrine':
-      return geometricGain(level, 0.18, 0.96)
+      return geometricGain(level, 0.085, 0.971)
     default:
       return 0
   }

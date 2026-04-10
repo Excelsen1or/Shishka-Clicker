@@ -6,12 +6,13 @@ import {
   createSaveBundle,
   normalizeImportedBundle,
 } from '../../lib/saveTransfer'
-
-const APP_VERSION = '1.5.45'
-const REPOSITORY_URL = 'https://github.com/AREKKUZZERA/Shishka-Clicker'
-const CHANGELOG_URL = 'https://github.com/AREKKUZZERA/Shishka-Clicker/releases'
-const PRIVACY_URL = 'https://arekkuzzera.github.io/privacy-policy-terms-of-service/privacy-policy.html'
-const TERMS_URL = 'https://arekkuzzera.github.io/privacy-policy-terms-of-service/terms-of-service.html'
+import {
+  APP_VERSION,
+  REPOSITORY_URL,
+  CHANGELOG_URL,
+  PRIVACY_URL,
+  TERMS_URL,
+} from '../../config/appMeta'
 
 function ToggleRow({ label, hint, checked, onChange }) {
   return (
@@ -227,22 +228,6 @@ export function SettingsScreen() {
         <p className="screen__desc">
           Раздел собран как аккуратный центр управления: частые действия слева, служебная информация и опасные действия справа.
         </p>
-      </div>
-
-      <div className="settings-hero">
-        <div className="settings-hero__copy">
-          <span className="settings-hero__eyebrow">Control center</span>
-          <h3 className="settings-hero__title">Все ключевые параметры под рукой</h3>
-          <p className="settings-hero__desc">
-            Здесь можно быстро подстроить звук, ослабить визуальные эффекты на слабых устройствах и безопасно перенести сохранение между платформами.
-          </p>
-        </div>
-
-        <div className="settings-hero__stats">
-          {statusTiles.map((item) => (
-            <StatusTile key={item.label} {...item} />
-          ))}
-        </div>
       </div>
 
       <div className="settings-layout">

@@ -144,22 +144,6 @@ export function MetaScreen() {
         </p>
       </div>
 
-      <div className="meta-hero">
-        <div className="meta-hero__copy">
-          <span className="meta-hero__eyebrow">Стратегический слой</span>
-          <h3 className="meta-hero__title">Всё важное по престижу читается с первого взгляда</h3>
-          <p className="meta-hero__desc">
-            Здесь собраны квоты текущего цикла, прогноз награды, постоянные осколочные апгрейды и глобальный прогресс без лишнего визуального шума.
-          </p>
-        </div>
-
-        <div className="meta-hero__stats">
-          {heroStats.map((item) => (
-            <HeroStat key={item.label} {...item} />
-          ))}
-        </div>
-      </div>
-
       <div className="meta-dashboard">
         <div className="meta-dashboard__main">
           <article className="meta-card prestige-card">
@@ -236,33 +220,6 @@ export function MetaScreen() {
             </button>
           </article>
 
-          <article className="meta-card prestige-lab">
-            <div className="meta-card__kicker">Лаборатория осколков</div>
-            <h3 className="meta-card__title">Постоянные улучшения престижа</h3>
-            <p className="meta-card__desc">
-              Осколки редкие, поэтому здесь нет мусорных покупок: часть веток режет квоту, часть усиливает престиж, а часть повышает награду за перелив сверх квоты.
-            </p>
-
-            <div className="prestige-lab__summary">
-              <div><span>На руках</span><b>{formatNumber(state.prestigeShards)} 💎</b></div>
-              <div><span>Суммарно заработано</span><b>{formatNumber(state.totalPrestigeShardsEarned)} 💎</b></div>
-              <div><span>Снижение квоты шишек</span><b>-{formatNumber(prestige.bonuses.shishkiQuotaReduction * 100)}%</b></div>
-              <div><span>Снижение квоты знаний</span><b>-{formatNumber(prestige.bonuses.knowledgeQuotaReduction * 100)}%</b></div>
-              <div><span>Срез достижений</span><b>-{formatNumber(prestige.bonuses.achievementQuotaReduction)}</b></div>
-              <div><span>Бонус к престижу</span><b>+x{formatNumber(prestige.bonuses.permanentMultiplierBonus)}</b></div>
-            </div>
-
-            <div className="prestige-lab__grid">
-              {economy.prestigeUpgrades.map((item) => (
-                <LabCard
-                  key={item.id}
-                  item={item}
-                  canBuy={state.prestigeShards >= item.cost}
-                  onBuy={() => buyPrestigeUpgrade(item.id)}
-                />
-              ))}
-            </div>
-          </article>
         </div>
 
         <aside className="meta-dashboard__side">
@@ -290,6 +247,34 @@ export function MetaScreen() {
           </article>
         </aside>
       </div>
+
+      <article className="meta-card prestige-lab">
+        <div className="meta-card__kicker">Лаборатория осколков</div>
+        <h3 className="meta-card__title">Постоянные улучшения престижа</h3>
+        <p className="meta-card__desc">
+          Осколки редкие, поэтому здесь нет мусорных покупок: часть веток режет квоту, часть усиливает престиж, а часть повышает награду за перелив сверх квоты.
+        </p>
+
+        <div className="prestige-lab__summary">
+          <div><span>На руках</span><b>{formatNumber(state.prestigeShards)} 💎</b></div>
+          <div><span>Суммарно заработано</span><b>{formatNumber(state.totalPrestigeShardsEarned)} 💎</b></div>
+          <div><span>Снижение квоты шишек</span><b>-{formatNumber(prestige.bonuses.shishkiQuotaReduction * 100)}%</b></div>
+          <div><span>Снижение квоты знаний</span><b>-{formatNumber(prestige.bonuses.knowledgeQuotaReduction * 100)}%</b></div>
+          <div><span>Срез достижений</span><b>-{formatNumber(prestige.bonuses.achievementQuotaReduction)}</b></div>
+          <div><span>Бонус к престижу</span><b>+x{formatNumber(prestige.bonuses.permanentMultiplierBonus)}</b></div>
+        </div>
+
+        <div className="prestige-lab__grid">
+          {economy.prestigeUpgrades.map((item) => (
+            <LabCard
+              key={item.id}
+              item={item}
+              canBuy={state.prestigeShards >= item.cost}
+              onBuy={() => buyPrestigeUpgrade(item.id)}
+            />
+          ))}
+        </div>
+      </article>
 
       <div className="meta-section-head">
         <div>

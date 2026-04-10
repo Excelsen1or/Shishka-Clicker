@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { DEFAULT_SETTINGS, loadSettings, normalizeSettings, saveSettings } from '../lib/settingsStorage'
 
 const SettingsContext = createContext(null)
@@ -51,37 +51,35 @@ export function SettingsProvider({ children }) {
     setSettings(normalizeSettings(nextSettings))
   }
 
-  const value = useMemo(() => {
-    const densityFactor = settings.visualEffectsDensity / 100
-    const particleCap = Math.round(4 + densityFactor * 20)
-    const burstCap = Math.round(1 + densityFactor * 4)
-    const coneCap = Math.round(1 + densityFactor * 3)
-    const rainCap = Math.round(0 + densityFactor * 6)
-    const fireworkCap = Math.round(0 + densityFactor * 8)
+  const densityFactor = settings.visualEffectsDensity / 100
+  const particleCap = Math.round(4 + densityFactor * 20)
+  const burstCap = Math.round(1 + densityFactor * 4)
+  const coneCap = Math.round(1 + densityFactor * 3)
+  const rainCap = Math.round(0 + densityFactor * 6)
+  const fireworkCap = Math.round(0 + densityFactor * 8)
 
-    return {
-      settings,
-      patchSettings,
-      setVolume,
-      toggle,
-      resetSettings,
-      exportSettings,
-      importSettings,
-      effectVolumeFactor:
-        settings.soundEnabled ? (settings.masterVolume / 100) * (settings.effectsVolume / 100) : 0,
-      musicVolumeFactor:
-        settings.musicEnabled ? (settings.masterVolume / 100) * (settings.musicVolume / 100) : 0,
-      visualEffectsFactor: densityFactor,
-      visualEffectCaps: {
-        particleCap,
-        burstCap,
-        coneCap,
-        rainCap,
-        fireworkCap,
-        totalHint: particleCap + burstCap + coneCap + rainCap + fireworkCap,
-      },
-    }
-  }, [settings])
+  const value = {
+    settings,
+    patchSettings,
+    setVolume,
+    toggle,
+    resetSettings,
+    exportSettings,
+    importSettings,
+    effectVolumeFactor:
+      settings.soundEnabled ? (settings.masterVolume / 100) * (settings.effectsVolume / 100) : 0,
+    musicVolumeFactor:
+      settings.musicEnabled ? (settings.masterVolume / 100) * (settings.musicVolume / 100) : 0,
+    visualEffectsFactor: densityFactor,
+    visualEffectCaps: {
+      particleCap,
+      burstCap,
+      coneCap,
+      rainCap,
+      fireworkCap,
+      totalHint: particleCap + burstCap + coneCap + rainCap + fireworkCap,
+    },
+  }
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
 }
