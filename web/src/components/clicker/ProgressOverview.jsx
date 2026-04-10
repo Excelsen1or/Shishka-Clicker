@@ -1,15 +1,19 @@
 import { useMemo } from 'react'
 import { useGameContext } from '../../context/GameContext'
 import { formatNumber } from '../../lib/format'
+import { StatCard } from '../stats/StatCard'
 
 function UnlockCard({ title, item, accentClass }) {
   if (!item) {
     return (
-      <div className="unlock-card">
-        <div className="unlock-card__label">{title}</div>
-        <div className="unlock-card__value unlock-card__value--done">✓ Всё открыто</div>
-        <div className="unlock-card__text">Фокус на прокачке уровней и престиже.</div>
-      </div>
+      <StatCard
+        label={title}
+        value="✓ Всё открыто"
+        hint="Фокус на прокачке уровней и престиже."
+        formatValue={false}
+        className="stat-card--shop-surface stat-card--unlock"
+        valueClassName="stat-card__value--done"
+      />
     )
   }
 
@@ -17,11 +21,14 @@ function UnlockCard({ title, item, accentClass }) {
   const knowledgePct = Math.min(100, (item.unlockProgress.knowledge / Math.max(1, item.unlockRule.knowledge)) * 100)
 
   return (
-    <div className="unlock-card">
-      <div className="unlock-card__label">{title}</div>
-      <div className={`unlock-card__value ${accentClass}`}>{item.title}</div>
-      <div className="unlock-card__text">{item.unlockText}</div>
-
+    <StatCard
+      label={title}
+      value={item.title}
+      hint={item.unlockText}
+      formatValue={false}
+      className="stat-card--shop-surface stat-card--unlock"
+      valueClassName={accentClass}
+    >
       <div className="unlock-progress">
         <div className="unlock-progress__row">
           <span>🌰 Шишки</span>
@@ -39,7 +46,7 @@ function UnlockCard({ title, item, accentClass }) {
           <div className="unlock-progress__fill unlock-progress__fill--alt" style={{ width: `${knowledgePct}%` }} />
         </div>
       </div>
-    </div>
+    </StatCard>
   )
 }
 
@@ -63,46 +70,43 @@ export function ProgressOverview() {
   const nextSub = useMemo(() => economy.subscriptions.find((i) => !i.unlocked), [economy.subscriptions])
   const nextUpgrade = useMemo(() => economy.upgrades.find((i) => !i.unlocked), [economy.upgrades])
   const unlockedAchievements = achievements.filter((entry) => entry.unlocked).length
+  const metaSummary = [
+    { icon: '🏆', label: 'Достижения', value: `${unlockedAchievements}/${achievements.length}`, hint: 'открыто сейчас', },
+    { icon: '♻️', label: 'Ребёрсы', value: formatNumber(state.rebirths), hint: 'завершённых циклов', },
+    { icon: '💎', label: 'Осколки', value: prestige.isUnlocked ? `${formatNumber(state.prestigeShards)} 💎` : 'закрыто', hint: 'баланс престижа', },
+    { icon: '🔮', label: 'След. награда', value: prestige.isUnlocked ? `${formatNumber(prestige.projectedShards)} 💎` : 'закрыто', hint: 'если ребёрс сейчас', },
+  ]
+  const progressStats = [
+    { icon: '🌰', label: 'Всего шишек', value: state.lifetimeShishkiEarned },
+    { icon: '💵', label: 'Денег в цикле', value: state.totalMoneyEarned },
+    { icon: '📚', label: 'Знаний в цикле', value: state.totalKnowledgeEarned },
+    { icon: '⚡', label: 'Мега-кликов', value: state.megaClicks },
+  ]
 
   return (
     <div className="progress-overview">
       <div className="progress-stats">
-        <div className="progress-stat">
-          <span className="progress-stat__num">{formatNumber(state.lifetimeShishkiEarned)}</span>
-          <span className="progress-stat__lbl">всего шишек</span>
-        </div>
-        <div className="progress-stat">
-          <span className="progress-stat__num">{formatNumber(state.totalMoneyEarned)}</span>
-          <span className="progress-stat__lbl">денег в этом цикле</span>
-        </div>
-        <div className="progress-stat">
-          <span className="progress-stat__num">{formatNumber(state.totalKnowledgeEarned)}</span>
-          <span className="progress-stat__lbl">знаний в этом цикле</span>
-        </div>
-        <div className="progress-stat">
-          <span className="progress-stat__num">{formatNumber(state.megaClicks)}</span>
-          <span className="progress-stat__lbl">мега-кликов</span>
-        </div>
+        {progressStats.map((item, index) => (
+          <StatCard key={item.label} {...item} delay={index} className="progress-stats__card" />
+        ))}
       </div>
 
-      <div className="meta-lifetime-grid progress-overview__mini-grid">
-        <div><span>Достижения</span><b>{unlockedAchievements}/{achievements.length}</b></div>
-        <div><span>Ребёрсы</span><b>{formatNumber(state.rebirths)}</b></div>
-        <div><span>Осколки</span><b>{prestige.isUnlocked ? `${formatNumber(state.prestigeShards)} 💎` : 'закрыто'}</b></div>
-        <div><span>След. награда</span><b>{prestige.isUnlocked ? `${formatNumber(prestige.projectedShards)} 💎` : 'закрыто'}</b></div>
-      </div>
+      <section className="stats-bar stats-bar--shop meta-lifetime-grid progress-overview__mini-grid">
+        {metaSummary.map((item) => (
+          <StatCard key={item.label} {...item} formatValue={false} />
+        ))}
+      </section>
 
-      <div className="unlock-card prestige-overview-card">
-        <div className="unlock-card__label">Следующий ребёрс</div>
-        <div className="unlock-card__value text-fuchsia">
-          {prestige.isUnlocked ? `Цикл #${prestige.rebirthRule.cycle}` : 'Система ещё закрыта'}
-        </div>
-        <div className="unlock-card__text">
-          {prestige.isUnlocked
-            ? 'Чтобы переродиться, теперь нужно именно закрыть квоту текущего цикла, а не просто нажать кнопку.'
-            : 'Сначала добей лайфтайм-порог и открой престиж.'}
-        </div>
-
+      <StatCard
+        className="stat-card--shop-surface stat-card--unlock prestige-overview-card"
+        label="Следующий ребёрс"
+        value={prestige.isUnlocked ? `Цикл #${prestige.rebirthRule.cycle}` : 'Система ещё закрыта'}
+        hint={prestige.isUnlocked
+          ? 'Чтобы переродиться, теперь нужно именно закрыть квоту текущего цикла, а не просто нажать кнопку.'
+          : 'Сначала добей лайфтайм-порог и открой престиж.'}
+        valueClassName="text-fuchsia"
+        formatValue={false}
+      >
         {prestige.isUnlocked ? (
           <div className="unlock-progress">
             <div className="unlock-progress__row">
@@ -122,7 +126,7 @@ export function ProgressOverview() {
             </div>
           </div>
         ) : null}
-      </div>
+      </StatCard>
 
       {(nextSub || nextUpgrade) && (
         <div className="unlock-grid">

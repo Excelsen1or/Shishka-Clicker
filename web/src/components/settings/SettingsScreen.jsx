@@ -13,6 +13,7 @@ import {
   PRIVACY_URL,
   TERMS_URL,
 } from '../../config/appMeta'
+import { StatCard } from '../stats/StatCard'
 
 function ToggleRow({ label, hint, checked, onChange }) {
   return (
@@ -65,16 +66,6 @@ function LinkTile({ title, hint, href }) {
   )
 }
 
-function StatusTile({ label, value, hint }) {
-  return (
-    <article className="settings-status-tile">
-      <span className="settings-status-tile__label">{label}</span>
-      <strong className="settings-status-tile__value">{value}</strong>
-      <span className="settings-status-tile__hint">{hint}</span>
-    </article>
-  )
-}
-
 export function SettingsScreen() {
   const { resetGame, markSilenceLover, exportGameSave, importGameSave } = useGameContext()
   const {
@@ -91,6 +82,18 @@ export function SettingsScreen() {
   const [transferStatus, setTransferStatus] = useState(null)
   const [exportedSaveText, setExportedSaveText] = useState('')
 
+  const effectSummary = [
+    { icon: '✨', label: 'Эмодзи и шишки', value: `до ${visualEffectCaps.particleCap}`, hint: 'частицы на экране' },
+    { icon: '🔢', label: 'Числа', value: `до ${visualEffectCaps.burstCap}`, hint: 'всплывающих значений' },
+    { icon: '🌰', label: 'Спрайты', value: `до ${visualEffectCaps.coneCap}`, hint: 'дополнительных шишек' },
+    { icon: '📦', label: 'Бюджет', value: visualEffectCaps.totalHint, hint: 'общий лимит эффектов' },
+  ]
+
+  const aboutSummary = [
+    { icon: '🧩', label: 'Версия', value: APP_VERSION, hint: 'текущая сборка' },
+    { icon: '🧑‍💻', label: 'Репозиторий', value: 'GitHub', hint: 'ссылка в блоке ниже' },
+  ]
+
   const currentSaveText = useMemo(() => {
     const bundle = createSaveBundle({
       gameState: exportGameSave(),
@@ -100,29 +103,6 @@ export function SettingsScreen() {
 
     return JSON.stringify(bundle, null, 2)
   }, [exportGameSave, exportSettings])
-
-  const statusTiles = [
-    {
-      label: 'Музыка',
-      value: settings.musicEnabled ? 'Вкл' : 'Выкл',
-      hint: `${settings.musicVolume}% громкости`,
-    },
-    {
-      label: 'Эффекты',
-      value: settings.soundEnabled ? 'Вкл' : 'Выкл',
-      hint: `${settings.effectsVolume}% громкости`,
-    },
-    {
-      label: 'Плотность FX',
-      value: `${settings.visualEffectsDensity}%`,
-      hint: `бюджет ${visualEffectCaps.totalHint}`,
-    },
-    {
-      label: 'Версия',
-      value: APP_VERSION,
-      hint: 'текущая сборка',
-    },
-  ]
 
   const handleMusicToggle = () => {
     if (settings.musicEnabled) markSilenceLover()
@@ -298,24 +278,11 @@ export function SettingsScreen() {
 
             <div className="settings-info-box">
               <div className="settings-info-box__title">Текущий лимит эффектов</div>
-              <div className="settings-info-box__grid">
-                <div>
-                  <span>Эмодзи и шишки</span>
-                  <strong>до {visualEffectCaps.particleCap}</strong>
-                </div>
-                <div>
-                  <span>Всплывающие числа</span>
-                  <strong>до {visualEffectCaps.burstCap}</strong>
-                </div>
-                <div>
-                  <span>Доп. спрайты шишек</span>
-                  <strong>до {visualEffectCaps.coneCap}</strong>
-                </div>
-                <div>
-                  <span>Общий бюджет</span>
-                  <strong>{visualEffectCaps.totalHint}</strong>
-                </div>
-              </div>
+              <section className="stats-bar stats-bar--shop settings-info-box__grid">
+                {effectSummary.map((item) => (
+                  <StatCard key={item.label} {...item} formatValue={false} />
+                ))}
+              </section>
             </div>
           </article>
 
@@ -385,16 +352,11 @@ export function SettingsScreen() {
               <span className="settings-chip">v{APP_VERSION}</span>
             </div>
 
-            <div className="settings-about-grid">
-              <div className="settings-about-item">
-                <span>Версия</span>
-                <strong>{APP_VERSION}</strong>
-              </div>
-              <div className="settings-about-item">
-                <span>Репозиторий</span>
-                <strong>GitHub</strong>
-              </div>
-            </div>
+            <section className="stats-bar stats-bar--shop settings-about-grid">
+              {aboutSummary.map((item) => (
+                <StatCard key={item.label} {...item} formatValue={false} />
+              ))}
+            </section>
 
             <div className="settings-links-grid">
               <LinkTile title="Репозиторий" hint="Исходный код проекта на GitHub" href={REPOSITORY_URL} />
