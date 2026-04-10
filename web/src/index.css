@@ -2772,3 +2772,47 @@ body.body--rgb-festival::after {
     transform: translate3d(var(--rain-drift, 0vw), 118vh, 0) scale(var(--rain-scale, 1)) rotate(var(--rain-rotate, 0deg));
   }
 }
+
+
+.app-shell,
+.app-content,
+.app-main,
+.screen,
+.clicker-wrap,
+.clicker-layout,
+.clicker-layout__left,
+.clicker-layout__right,
+.clicker-panel,
+.bottom-nav {
+  position: relative;
+  z-index: 2;
+}
+
+.screen-fireworks,
+.emoji-rain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.emoji-rain {
+  z-index: 1;
+}
+
+.emoji-rain__item {
+  position: absolute;
+  top: -12vh;
+  display: block;
+  font-size: clamp(1.35rem, 2.3vw, 2.4rem);
+  line-height: 1;
+  filter: drop-shadow(0 0 10px rgba(255,255,255,0.22)) drop-shadow(0 0 20px rgba(255,190,92,0.18));
+  will-change: transform, opacity;
+  animation-name: megaEmojiRain;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+.screen-fireworks {
+  z-index: 1;
+}

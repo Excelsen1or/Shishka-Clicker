@@ -304,50 +304,6 @@ export function ClickerButton() {
 
         <ClickBurst bursts={bursts} />
 
-        <div className="screen-fireworks" aria-hidden="true">
-          {screenFireworks.map((firework) => (
-            <span
-              key={firework.id}
-              className="screen-firework"
-              style={{
-                left: `${firework.x}vw`,
-                '--dx': `${firework.dx}vw`,
-                '--dy': `${firework.dy}px`,
-                '--rot': `${firework.rotate}deg`,
-                '--scale': firework.scale,
-                animationDelay: `${firework.delay}ms`,
-              }}
-              onAnimationEnd={() => {
-                setScreenFireworks((current) => current.filter((entry) => entry.id !== firework.id))
-              }}
-            >
-              {firework.symbol}
-            </span>
-          ))}
-        </div>
-
-        <div className="emoji-rain" aria-hidden="true">
-          {fallingEmojis.map((emoji) => (
-            <span
-              key={emoji.id}
-              className="emoji-rain__item"
-              style={{
-                left: `${emoji.x}vw`,
-                '--rain-drift': `${emoji.drift}vw`,
-                '--rain-rotate': `${emoji.rotate}deg`,
-                '--rain-scale': emoji.scale,
-                animationDuration: `${emoji.duration}ms`,
-                animationDelay: `${emoji.delay}ms`,
-              }}
-              onAnimationEnd={() => {
-                setFallingEmojis((current) => current.filter((entry) => entry.id !== emoji.id))
-              }}
-            >
-              {emoji.symbol}
-            </span>
-          ))}
-        </div>
-
         <div className="clicker-btn__halo" />
         <div className="clicker-btn__ring clicker-btn__ring--outer" />
         <div className="clicker-btn__ring clicker-btn__ring--inner" />
@@ -364,6 +320,50 @@ export function ClickerButton() {
         <div className="clicker-btn__meta">
           Мега-клик: {formatNumber(state.megaClickChance)}% · эмодзи при мега: {formatNumber(state.emojiMegaChance)}% · макс. частиц: {particleLimitHint}
         </div>
+      </div>
+
+      <div className="screen-fireworks" aria-hidden="true">
+        {screenFireworks.map((firework) => (
+          <span
+            key={firework.id}
+            className="screen-firework"
+            style={{
+              left: `${firework.x}vw`,
+              '--dx': `${firework.dx}vw`,
+              '--dy': `${firework.dy}px`,
+              '--rot': `${firework.rotate}deg`,
+              '--scale': firework.scale,
+              animationDelay: `${firework.delay}ms`,
+            }}
+            onAnimationEnd={() => {
+              setScreenFireworks((current) => current.filter((entry) => entry.id !== firework.id))
+            }}
+          >
+            {firework.symbol}
+          </span>
+        ))}
+      </div>
+
+      <div className="emoji-rain" aria-hidden="true">
+        {fallingEmojis.map((emoji) => (
+          <span
+            key={emoji.id}
+            className="emoji-rain__item"
+            style={{
+              left: `${emoji.x}vw`,
+              '--rain-drift': `${emoji.drift}vw`,
+              '--rain-rotate': `${emoji.rotate}deg`,
+              '--rain-scale': emoji.scale,
+              animationDuration: `${emoji.duration}ms`,
+              animationDelay: `${emoji.delay}ms`,
+            }}
+            onAnimationEnd={() => {
+              setFallingEmojis((current) => current.filter((entry) => entry.id !== emoji.id))
+            }}
+          >
+            {emoji.symbol}
+          </span>
+        ))}
       </div>
     </div>
   )
