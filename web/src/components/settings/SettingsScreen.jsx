@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useGameContext } from '../../context/GameContext'
 import { useSettingsContext } from '../../context/SettingsContext'
 import {
@@ -7,7 +7,7 @@ import {
   normalizeImportedBundle,
 } from '../../lib/saveTransfer'
 
-const APP_VERSION = '1.5.46'
+const APP_VERSION = '1.5.45'
 const REPOSITORY_URL = 'https://github.com/AREKKUZZERA/Shishka-Clicker'
 const CHANGELOG_URL = 'https://github.com/AREKKUZZERA/Shishka-Clicker/releases'
 const PRIVACY_URL = 'https://arekkuzzera.github.io/privacy-policy-terms-of-service/privacy-policy.html'
@@ -76,7 +76,19 @@ export function SettingsScreen() {
     importSettings,
   } = useSettingsContext()
   const importInputRef = useRef(null)
+  const exportTextRef = useRef(null)
   const [transferStatus, setTransferStatus] = useState(null)
+  const [exportedSaveText, setExportedSaveText] = useState('')
+
+  const currentSaveText = useMemo(() => {
+    const bundle = createSaveBundle({
+      gameState: exportGameSave(),
+      settings: exportSettings(),
+      appVersion: APP_VERSION,
+    })
+
+    return JSON.stringify(bundle, null, 2)
+  }, [exportGameSave, exportSettings])
 
   const handleMusicToggle = () => {
     if (settings.musicEnabled) markSilenceLover()
@@ -88,14 +100,18 @@ export function SettingsScreen() {
     setVolume('musicVolume', value)
   }
 
+  const revealSaveText = (text) => {
+    setExportedSaveText(text)
+    window.setTimeout(() => {
+      exportTextRef.current?.focus()
+      exportTextRef.current?.select()
+    }, 0)
+  }
+
   const handleExportSave = () => {
     try {
-      const bundle = createSaveBundle({
-        gameState: exportGameSave(),
-        settings: exportSettings(),
-        appVersion: APP_VERSION,
-      })
-      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' })
+      const text = currentSaveText
+      const blob = new Blob([text], { type: 'application/json' })
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
@@ -104,7 +120,8 @@ export function SettingsScreen() {
       link.click()
       link.remove()
       window.URL.revokeObjectURL(url)
-      setTransferStatus({ type: 'success', text: 'Сохранение экспортировано в JSON-файл со всем прогрессом и настройками.' })
+      revealSaveText(text)
+      setTransferStatus({ type: 'success', text: 'Сохранение экспортировано в JSON-файл. Ниже также показан его текст, чтобы можно было вручную скопировать его даже внутри Discord.' })
     } catch (error) {
       console.error(error)
       setTransferStatus({ type: 'error', text: 'Не удалось экспортировать сохранение.' })
@@ -113,6 +130,29 @@ export function SettingsScreen() {
 
   const handleImportClick = () => {
     importInputRef.current?.click()
+  }
+
+  const handleRevealSaveText = () => {
+    try {
+      revealSaveText(currentSaveText)
+      setTransferStatus({ type: 'success', text: 'Текст текущего сейва подготовлен ниже. Его можно полностью скопировать вручную.' })
+    } catch (error) {
+      console.error(error)
+      setTransferStatus({ type: 'error', text: 'Не удалось подготовить текст сейва.' })
+    }
+  }
+
+  const handleCopySaveText = async () => {
+    try {
+      const textToCopy = exportedSaveText || currentSaveText
+      await navigator.clipboard.writeText(textToCopy)
+      revealSaveText(textToCopy)
+      setTransferStatus({ type: 'success', text: 'Текст сейва скопирован в буфер обмена.' })
+    } catch (error) {
+      console.error(error)
+      revealSaveText(exportedSaveText || currentSaveText)
+      setTransferStatus({ type: 'error', text: 'Не удалось автоматически скопировать текст. Ниже он уже открыт — можно выделить и скопировать вручную.' })
+    }
   }
 
   const handleImportSave = async (event) => {
@@ -259,6 +299,12 @@ export function SettingsScreen() {
             <button type="button" className="settings-ghost-btn" onClick={handleImportClick}>
               Импортировать сейв
             </button>
+            <button type="button" className="settings-ghost-btn" onClick={handleRevealSaveText}>
+              Показать текст сейва
+            </button>
+            <button type="button" className="settings-ghost-btn" onClick={handleCopySaveText}>
+              Скопировать текст сейва
+            </button>
           </div>
 
           <input
@@ -272,6 +318,23 @@ export function SettingsScreen() {
           {transferStatus ? (
             <div className={`settings-transfer-status settings-transfer-status--${transferStatus.type}`}>
               {transferStatus.text}
+            </div>
+          ) : null}
+
+          {exportedSaveText ? (
+            <div className="settings-save-text-box">
+              <div className="settings-save-text-box__head">
+                <div className="settings-card__label">Текст экспортированного сейва</div>
+                <div className="settings-card__hint">Можно скопировать вручную и отправить как обычный текст.</div>
+              </div>
+              <textarea
+                ref={exportTextRef}
+                className="settings-save-textarea"
+                value={exportedSaveText}
+                readOnly
+                spellCheck={false}
+                onFocus={(event) => event.target.select()}
+              />
             </div>
           ) : null}
         </article>
