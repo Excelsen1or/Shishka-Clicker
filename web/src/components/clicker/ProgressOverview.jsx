@@ -43,7 +43,7 @@ export function ProgressOverview() {
         label="Следующий ребёрс"
         value={prestige.isUnlocked ? `Цикл #${prestige.rebirthRule.cycle}` : 'Система ещё закрыта'}
         hint={prestige.isUnlocked
-          ? 'Чтобы переродиться, теперь нужно именно закрыть квоту текущего цикла, а не просто нажать кнопку.'
+          ? 'Чтобы переродиться нужно закрыть квоту текущего цикла.'
           : 'Сначала добей лайфтайм-порог и открой престиж.'}
         valueClassName="text-fuchsia"
         formatValue={false}
