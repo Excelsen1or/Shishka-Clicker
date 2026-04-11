@@ -178,7 +178,7 @@ export function ClickerButton() {
   const lastLabelIndexRef = useRef(0)
 
   const { state, mineShishki, markAutoClicker } = useGameContext()
-  const { visualEffectCaps, visualEffectsFactor, performanceProfile, visualEffectToggles } = useSettingsContext()
+  const { visualEffectCaps, visualEffectsFactor, visualEffectToggles } = useSettingsContext()
   const { activeTab } = useNav()
   const { bursts, addBurst, removeBurst } = useBursts()
   const { play } = useSound(shishkaSound, { volume: 0.42, randomPitch: [-3.9, 5.8] })
@@ -223,9 +223,8 @@ export function ClickerButton() {
     (visualEffectToggles.floatingNumbers && bursts.length > 0)
   const canSpawnShockwaves =
     visualEffectToggles.shockwaves &&
-    visualEffectsFactor > 0.2 &&
-    !performanceProfile.isLowPerformanceDevice
-  const heroImage = performanceProfile.isLowPerformanceDevice ? coneV2Image : discoImage
+    visualEffectsFactor > 0.2
+  const heroImage = discoImage
 
   useEffect(() => {
     return () => {

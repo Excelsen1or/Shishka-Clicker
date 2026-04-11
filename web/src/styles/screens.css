@@ -1255,54 +1255,6 @@
   box-shadow: inset 0 1px 0 rgb(var(--white-rgb) / 0.06);
 }
 
-:root[data-performance-profile='mobile'] .clicker-btn:hover,
-:root[data-performance-profile='low'] .clicker-btn:hover {
-  transform: none;
-  box-shadow: var(--shadow-lg);
-}
-
-:root[data-performance-profile='mobile'] .shop-card:hover,
-:root[data-performance-profile='mobile'] .shop-card:focus-within,
-:root[data-performance-profile='low'] .shop-card:hover,
-:root[data-performance-profile='low'] .shop-card:focus-within {
-  transform: none;
-  box-shadow: var(--shadow-md);
-}
-
-:root[data-performance-profile='mobile'] .shop-card:hover::before,
-:root[data-performance-profile='mobile'] .shop-card:focus-within::before,
-:root[data-performance-profile='mobile'] .shop-card:hover::after,
-:root[data-performance-profile='mobile'] .shop-card:focus-within::after,
-:root[data-performance-profile='mobile'] .shop-card:hover .shop-card__shine,
-:root[data-performance-profile='mobile'] .shop-card:focus-within .shop-card__shine,
-:root[data-performance-profile='mobile'] .shop-card:hover .shop-card__glow,
-:root[data-performance-profile='mobile'] .shop-card:focus-within .shop-card__glow,
-:root[data-performance-profile='low'] .shop-card:hover::before,
-:root[data-performance-profile='low'] .shop-card:focus-within::before,
-:root[data-performance-profile='low'] .shop-card:hover::after,
-:root[data-performance-profile='low'] .shop-card:focus-within::after,
-:root[data-performance-profile='low'] .shop-card:hover .shop-card__shine,
-:root[data-performance-profile='low'] .shop-card:focus-within .shop-card__shine,
-:root[data-performance-profile='low'] .shop-card:hover .shop-card__glow,
-:root[data-performance-profile='low'] .shop-card:focus-within .shop-card__glow {
-  opacity: 0;
-  transform: none;
-  filter: none;
-}
-
-:root[data-performance-profile='low'] .clicker-btn--charged,
-:root[data-performance-profile='low'] .shop-card--buyable-new,
-:root[data-performance-profile='low'] .shop-card--can-buy {
-  box-shadow: var(--shadow-md);
-}
-
-:root[data-performance-profile='low'] .clicker-btn__hero-shell::before,
-:root[data-performance-profile='low'] .shop-card--buyable-new,
-:root[data-performance-profile='low'] .shop-card__new-badge--ready,
-:root[data-performance-profile='low'] .shop-card__btn[data-state='ready']:hover {
-  animation: none !important;
-}
-
 @media (max-width: 640px) {
   .shop-grid {
     grid-template-columns: 1fr;

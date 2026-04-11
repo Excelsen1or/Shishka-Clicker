@@ -18,15 +18,15 @@ const ShopScreen = lazy(() => import('../shop/ShopScreen').then((module) => ({ d
 const SettingsScreen = lazy(() => import('../settings/SettingsScreen').then((module) => ({ default: module.SettingsScreen })))
 const MetaScreen = lazy(() => import('../meta/MetaScreen').then((module) => ({ default: module.MetaScreen })))
 
-const AppBackground = memo(function AppBackground({ performanceProfile, visualEffectToggles }) {
+const AppBackground = memo(function AppBackground({ visualEffectToggles }) {
 	const showAmbientOrbs = visualEffectToggles.ambientEffects
 	const showNoiseOverlay = visualEffectToggles.noiseOverlay
 
 	return (
 		<>
 			{showAmbientOrbs && <div className="ambient ambient--a" />}
-			{showAmbientOrbs && !performanceProfile.isLowPerformanceDevice && <div className="ambient ambient--b" />}
-			{showAmbientOrbs && !performanceProfile.isMobileDevice && <div className="ambient ambient--c" />}
+			{showAmbientOrbs && <div className="ambient ambient--b" />}
+			{showAmbientOrbs && <div className="ambient ambient--c" />}
 			{showNoiseOverlay && <div className="noise-overlay" />}
 		</>
 	)
@@ -34,7 +34,7 @@ const AppBackground = memo(function AppBackground({ performanceProfile, visualEf
 
 export const AppWrapper = memo(function AppWrapper() {
 	const { activeTab } = useNav()
-	const { performanceProfile, visualEffectToggles } = useSettingsContext()
+	const { visualEffectToggles } = useSettingsContext()
 
 	const statsBarClassName = activeTab === 'subscriptions' || activeTab === 'upgrades' || activeTab === 'meta' || activeTab === 'settings'
 		? 'stats-bar--shop'
@@ -48,7 +48,7 @@ export const AppWrapper = memo(function AppWrapper() {
 
 	return (
 		<div className="app-shell">
-			<AppBackground performanceProfile={performanceProfile} visualEffectToggles={visualEffectToggles} />
+			<AppBackground visualEffectToggles={visualEffectToggles} />
 
 			<div className="app-content">
 				<Header />

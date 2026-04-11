@@ -237,30 +237,6 @@
   animation: spinRing 9s linear infinite reverse;
 }
 
-:root[data-performance-profile='mobile'] .app-header,
-:root[data-performance-profile='mobile'] .stats-bar,
-:root[data-performance-profile='mobile'] .clicker-panel,
-:root[data-performance-profile='mobile'] .settings-card,
-:root[data-performance-profile='mobile'] .meta-card,
-:root[data-performance-profile='mobile'] .meta-hero__copy,
-:root[data-performance-profile='mobile'] .achievement-category,
-:root[data-performance-profile='low'] .app-header,
-:root[data-performance-profile='low'] .stats-bar,
-:root[data-performance-profile='low'] .clicker-panel,
-:root[data-performance-profile='low'] .settings-card,
-:root[data-performance-profile='low'] .meta-card,
-:root[data-performance-profile='low'] .meta-hero__copy,
-:root[data-performance-profile='low'] .achievement-category {
-  animation-duration: 0.26s;
-}
-
-:root[data-performance-profile='mobile'] .clicker-btn__aura,
-:root[data-performance-profile='mobile'] .clicker-btn__hero,
-:root[data-performance-profile='mobile'] .clicker-btn__core-ring--outer,
-:root[data-performance-profile='mobile'] .clicker-btn__core-ring--inner {
-  animation-duration: 4.6s;
-}
-
 :root[data-fx-reveal='false'] .app-header,
 :root[data-fx-reveal='false'] .stats-bar,
 :root[data-fx-reveal='false'] .clicker-panel,
@@ -279,16 +255,6 @@
 :root[data-fx-click-animations='false'] .clicker-btn__core-ring--outer,
 :root[data-fx-click-animations='false'] .clicker-btn__core-ring--inner,
 :root[data-fx-click-animations='false'] .clicker-btn__content--shake {
-  animation: none !important;
-}
-
-:root[data-performance-profile='low'] .ambient,
-:root[data-performance-profile='low'] .clicker-btn__aura,
-:root[data-performance-profile='low'] .clicker-btn__hero,
-:root[data-performance-profile='low'] .clicker-btn__core-ring--outer,
-:root[data-performance-profile='low'] .clicker-btn__core-ring--inner,
-:root[data-performance-profile='low'] .achievement-toast,
-:root[data-performance-profile='low'] .achievement-toast::before {
   animation: none !important;
 }
 

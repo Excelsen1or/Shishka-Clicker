@@ -661,32 +661,12 @@
   }
 }
 
-:root[data-performance-profile='mobile'] .noise-overlay,
-:root[data-performance-profile='low'] .noise-overlay {
-  display: none;
-}
-
 :root[data-fx-noise='false'] .noise-overlay {
   display: none;
 }
 
 :root[data-fx-ambient='false'] .ambient {
   display: none;
-}
-
-:root[data-performance-profile='mobile'] .ambient {
-  filter: blur(44px);
-}
-
-:root[data-performance-profile='low'] .ambient {
-  filter: blur(34px);
-  opacity: 0.64;
-}
-
-:root[data-performance-profile='low'] .screen-bg,
-:root[data-performance-profile='low'] .bottom-nav__track,
-:root[data-performance-profile='low'] .app-header {
-  box-shadow: var(--shadow-md);
 }
 
 /* ── Dev Console ── */
