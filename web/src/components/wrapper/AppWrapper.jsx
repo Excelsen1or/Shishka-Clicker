@@ -1,5 +1,6 @@
 import {BottomNav} from "../bottom/BottomNav.jsx"
 import {AchievementToast} from "../ui/AchievementToast.jsx"
+import {DevConsole} from "../ui/DevConsole.jsx"
 import {StatsBar} from "../stats/StatsBar.jsx"
 import {lazy, memo, Suspense, useEffect} from "react"
 import {Header} from "../header/Header.jsx"
@@ -28,7 +29,7 @@ const AppBackground = memo(function AppBackground() {
 
 export const AppWrapper = () => {
 	const { activeTab } = useNav()
-	const statsBarClassName = activeTab === 'subscriptions' || activeTab === 'upgrades'
+	const statsBarClassName = activeTab === 'subscriptions' || activeTab === 'upgrades' || activeTab === 'meta' || activeTab === 'settings'
 		? 'stats-bar--shop'
 		: ''
 
@@ -60,6 +61,7 @@ export const AppWrapper = () => {
 			</div>
 
 			<AchievementToast />
+			<DevConsole />
 			<BottomNav />
 		</div>
 	)

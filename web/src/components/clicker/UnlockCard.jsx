@@ -1,4 +1,4 @@
-import {formatNumber} from "../../lib/format.js"
+import {formatNumber, formatFullNumber} from "../../lib/format.js"
 import {StatCard} from "../stats/StatCard.jsx"
 import { ConeIcon } from '../ui/ConeIcon'
 import { KnowledgeIcon } from '../ui/GameIcon'
@@ -33,7 +33,7 @@ export const UnlockCard = ({ title, item, accentClass }) => {
       <div className="unlock-progress">
         <div className="unlock-progress__row">
           <span><ConeIcon /> Шишки</span>
-          <span>{formatNumber(item.unlockProgress.shishki)} / {formatNumber(item.unlockRule.shishki)}</span>
+          <span title={`${formatFullNumber(item.unlockProgress.shishki)} / ${formatFullNumber(item.unlockRule.shishki)}`}>{formatNumber(item.unlockProgress.shishki)} / {formatNumber(item.unlockRule.shishki)}</span>
         </div>
         <div className="unlock-progress__track">
           <div className="unlock-progress__fill" style={{ width: `${shishkiPct}%` }} />
@@ -41,7 +41,7 @@ export const UnlockCard = ({ title, item, accentClass }) => {
 
         <div className="unlock-progress__row">
           <span><KnowledgeIcon /> Знания</span>
-          <span>{formatNumber(item.unlockProgress.knowledge)} / {formatNumber(item.unlockRule.knowledge)}</span>
+          <span title={`${formatFullNumber(item.unlockProgress.knowledge)} / ${formatFullNumber(item.unlockRule.knowledge)}`}>{formatNumber(item.unlockProgress.knowledge)} / {formatNumber(item.unlockRule.knowledge)}</span>
         </div>
         <div className="unlock-progress__track">
           <div className="unlock-progress__fill unlock-progress__fill--alt" style={{ width: `${knowledgePct}%` }} />

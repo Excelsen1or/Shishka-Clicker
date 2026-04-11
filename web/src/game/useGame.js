@@ -446,6 +446,26 @@ export function useGame() {
     })
   }
 
+  function markAutoClicker() {
+    setState((current) => {
+      current = mergeState(current)
+      if (current.achievements?.autoclicker_reached) return current
+      const result = unlockAchievements({
+        ...current,
+        achievements: {
+          ...current.achievements,
+          autoclicker_reached: true,
+        },
+      })
+
+      if (result.unlockedNow.length) {
+        setAchievementQueue((queue) => [...queue, ...result.unlockedNow])
+      }
+
+      return result.state
+    })
+  }
+
   function prestigeReset() {
     setState((current) => {
       current = mergeState(current)
@@ -516,11 +536,28 @@ export function useGame() {
     buyPrestigeUpgrade,
     markShopItemSeen,
     markSilenceLover,
+    markAutoClicker,
     prestigeReset,
     resetGame,
     exportGameSave,
     importGameSave,
     achievementQueue,
     dismissAchievement: useCallback(() => setAchievementQueue((queue) => queue.slice(1)), []),
+    _devGiveResource: useCallback((key, amount) => {
+      const ALLOWED = ['shishki', 'money', 'knowledge', 'prestigeShards']
+      if (!ALLOWED.includes(key) || !Number.isFinite(amount)) return
+      setState((prev) => {
+        const safe = mergeState(prev)
+        return { ...safe, [key]: (safe[key] ?? 0) + amount }
+      })
+    }, []),
+    _devSetResource: useCallback((key, value) => {
+      const ALLOWED = ['shishki', 'money', 'knowledge', 'prestigeShards']
+      if (!ALLOWED.includes(key) || !Number.isFinite(value)) return
+      setState((prev) => {
+        const safe = mergeState(prev)
+        return { ...safe, [key]: value }
+      })
+    }, []),
   }
 }

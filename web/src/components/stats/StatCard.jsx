@@ -1,4 +1,4 @@
-import { formatNumber } from '../../lib/format'
+import { formatNumber, formatFullNumber } from '../../lib/format'
 import {ContributionBar} from "./ContributionBar.jsx"
 import {memo} from "react"
 
@@ -17,10 +17,11 @@ export const StatCard = memo(function StatCard({
 	hintClassName = '',
 	children,
 }) {
-  const items = compact ? (contributions?.items?.slice(0, 2) ?? []) : (contributions?.items ?? [])
+  const items = compact ? (contributions?.items?.slice(0, 3) ?? []) : (contributions?.items ?? [])
   const total = items.reduce((s, e) => s + e.value, 0) ?? 0
-  const topContributor = items[0] ?? null
+  const topContributors = compact ? items.slice(0, 3) : []
   const displayValue = formatValue ? formatNumber(value) : value
+  const fullValue = typeof value === 'number' ? formatFullNumber(value) : undefined
   const cardClassName = ['stat-card', compact ? 'stat-card--compact' : '', className].filter(Boolean).join(' ')
   const valueClasses = ['stat-card__value', valueClassName].filter(Boolean).join(' ')
   const hintClasses = ['stat-card__hint', hintClassName].filter(Boolean).join(' ')
@@ -34,16 +35,21 @@ export const StatCard = memo(function StatCard({
         </div>
       )}
 
-      <div className={valueClasses}>{displayValue}</div>
+      <div className={valueClasses} title={fullValue}>{displayValue}</div>
 
       {hint && <div className={hintClasses}>{hint}</div>}
 
       {children}
 
-      {compact && topContributor && (
-        <div className="stat-card__top-contrib" title={`#1 ${topContributor.title}: ${formatNumber(topContributor.value)}`}>
-          <span>топ вклад</span>
-          <b>{topContributor.title}</b>
+      {compact && topContributors.length > 0 && (
+        <div className="stat-card__top-contrib">
+          {topContributors.map((c, i) => (
+            <div key={c.id} className="stat-card__top-contrib-row" title={`#${i + 1} ${c.title}: ${formatNumber(c.value)}`}>
+              <span>#{i + 1}</span>
+              <b>{c.title}</b>
+              <span className="stat-card__top-contrib-val">{formatNumber(c.value)}</span>
+            </div>
+          ))}
         </div>
       )}
 

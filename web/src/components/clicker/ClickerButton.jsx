@@ -2,10 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useGameContext } from '../../context/GameContext'
 import { useSettingsContext } from '../../context/SettingsContext'
+import { useNav } from '../../context/NavContext'
 import { useBursts } from '../../hooks/useBursts'
 import { useSound } from '../../hooks/useSound'
 import { ClickBurst } from '../ui/ClickBurst'
-import { formatNumber } from '../../lib/format'
+import { formatNumber, formatFullNumber } from '../../lib/format'
 import discoImage from '../../assets/disco.gif'
 import coneImage from '../../assets/cone.png'
 import coneV2Image from '../../assets/conev2.png'
@@ -59,6 +60,38 @@ const IDLE_LABELS = [
 ]
 
 const IDLE_TIMEOUT = 4500
+
+const GREETING_LABELS = [
+  'Ты в эдите братан!',
+  'Да ну, неужели та самая легенда вернулась?',
+]
+
+const RETURN_LABELS = {
+  subscriptions: [
+    'Всё прокачал?',
+    'Подписки не забыл оплатить?',
+    'Когда на смену в озон?',
+    'На завод пойдешь?',
+  ],
+  upgrades: [
+    'Всё прокачал?',
+    'Подписки не забыл оплатить?',
+    'Когда на смену в озон?',
+    'На завод пойдешь?',
+  ],
+  meta: [
+    'Проверял достижения?',
+    'Ну, как там перерождения?',
+    'Сколько осколков ожидается?',
+    'Перерождение не ждёт',
+  ],
+  settings: [
+    'Всё настроил?',
+    'Звук зачем выключил?',
+    'Музыка не нужна.',
+    'И что ты там накрутил?',
+  ],
+}
 
 function getTierForTps(tps) {
   for (let i = TAP_SPEED_TIERS.length - 1; i >= 0; i--) {
@@ -127,7 +160,8 @@ export function ClickerButton() {
   const [coneSprites, setConeSprites] = useState([])
   const [visualState, setVisualState] = useState('idle')
   const [shockwaves, setShockwaves] = useState([])
-  const [clickerLabel, setClickerLabel] = useState(TAP_SPEED_TIERS[0].labels[0])
+  const [clickerLabel, setClickerLabel] = useState(() => pickRandom(GREETING_LABELS))
+  const [isLabelShaking, setIsLabelShaking] = useState(false)
 
   const visualTimeoutRef = useRef(null)
   const idleTimeoutRef = useRef(null)
@@ -135,10 +169,13 @@ export function ClickerButton() {
   const lastTierIndexRef = useRef(0)
   const lastLabelIndexRef = useRef(0)
 
-  const { state, mineShishki } = useGameContext()
+  const { state, mineShishki, markAutoClicker } = useGameContext()
   const { visualEffectCaps, visualEffectsFactor } = useSettingsContext()
+  const { activeTab } = useNav()
   const { bursts, addBurst, removeBurst } = useBursts()
-  const { play } = useSound(shishkaSound, { volume: 0.42 })
+  const { play } = useSound(shishkaSound, { volume: 0.42, randomPitch: [-3.9, 5.8] })
+
+  const prevTabRef = useRef(activeTab)
 
   const particleLimitHint = useMemo(
     () => Math.min(visualEffectCaps.particleCap, Math.ceil(state.clickPower * (1.05 + visualEffectsFactor * 0.45))),
@@ -147,10 +184,10 @@ export function ClickerButton() {
 
   const metricItems = useMemo(
     () => [
-      { label: 'за клик', value: <><span>+{formatNumber(state.clickPower)}</span> <ConeIcon /></> },
-      { label: 'мега-шанс', value: `${formatNumber(state.megaClickChance)}%` },
-      { label: 'эмодзи', value: `${formatNumber(state.emojiMegaChance)}%` },
-      { label: 'лимит частиц', value: formatNumber(particleLimitHint) },
+      { label: 'за клик', value: <><span>+{formatNumber(state.clickPower)}</span> <ConeIcon /></>, fullValue: formatFullNumber(state.clickPower) },
+      { label: 'мега-шанс', value: `${formatNumber(state.megaClickChance)}%`, fullValue: formatFullNumber(state.megaClickChance) },
+      { label: 'эмодзи', value: `${formatNumber(state.emojiMegaChance)}%`, fullValue: formatFullNumber(state.emojiMegaChance) },
+      { label: 'лимит частиц', value: formatNumber(particleLimitHint), fullValue: formatFullNumber(particleLimitHint) },
     ],
     [particleLimitHint, state.clickPower, state.emojiMegaChance, state.megaClickChance],
   )
@@ -167,6 +204,18 @@ export function ClickerButton() {
       if (idleTimeoutRef.current) window.clearTimeout(idleTimeoutRef.current)
     }
   }, [])
+
+  useEffect(() => {
+    const prev = prevTabRef.current
+    prevTabRef.current = activeTab
+
+    if (activeTab === 'clicker' && prev !== 'clicker') {
+      const pool = RETURN_LABELS[prev]
+      if (pool) {
+        setClickerLabel(pickRandom(pool))
+      }
+    }
+  }, [activeTab])
 
   function armVisualState(nextState) {
     setVisualState('idle')
@@ -217,6 +266,7 @@ export function ClickerButton() {
       const label = pickRandom(IDLE_LABELS)
       setClickerLabel(label)
       lastTierIndexRef.current = -1
+      setIsLabelShaking(false)
     }, IDLE_TIMEOUT)
   }
 
@@ -229,6 +279,12 @@ export function ClickerButton() {
 
     const elapsed = (now - tapTimestampsRef.current[0]) / 1000
     const tps = elapsed > 0 ? (tapTimestampsRef.current.length - 1) / elapsed : 0
+
+    setIsLabelShaking(tps >= 7)
+
+    if (tps >= 11) {
+      markAutoClicker()
+    }
 
     const tier = getTierForTps(tps)
     const tierIndex = TAP_SPEED_TIERS.indexOf(tier)
@@ -405,13 +461,13 @@ export function ClickerButton() {
           </div>
         </div>
 
-        <div className="clicker-btn__content">
+        <div className={`clicker-btn__content${isLabelShaking ? ' clicker-btn__content--shake' : ''}`}>
           <span className="clicker-btn__label">{clickerLabel}</span>
         </div>
 
         <div className="clicker-btn__metrics">
           {metricItems.map((item) => (
-            <span key={item.label} className="clicker-btn__metric">
+            <span key={item.label} className="clicker-btn__metric" title={item.fullValue}>
               <b>{item.value}</b>
               <small>{item.label}</small>
             </span>

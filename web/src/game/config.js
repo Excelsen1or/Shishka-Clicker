@@ -1013,6 +1013,15 @@ const secretAchievements = [
     tier: 25,
     secret: true,
   },
+  {
+    id: 'autoclicker_suspect',
+    title: '🤖 Автокликер',
+    description: 'Достигни скорости 11+ кликов в секунду. Ты точно человек?',
+    check: (state) => Boolean(state.achievements?.autoclicker_reached),
+    category: 'Секреты',
+    tier: 26,
+    secret: true,
+  },
 ]
 
 const subscriptionUnlockAchievements = SUBSCRIPTIONS.map((item, index) => ({

@@ -111,7 +111,7 @@
 .achievement-toast {
   position: fixed;
   right: 20px;
-  bottom: calc(var(--nav-height) + 1rem + env(safe-area-inset-bottom, 0px));
+  top: 1rem;
   z-index: 130;
   width: min(420px, calc(100vw - 32px));
   display: grid;
@@ -123,7 +123,13 @@
   background: linear-gradient(135deg, rgb(var(--surface-strong-rgb) / 0.96), rgb(var(--surface-2-rgb) / 0.96));
   box-shadow: 0 22px 80px rgb(0 0 0 / 0.42), inset 0 1px 0 rgb(var(--white-rgb) / 0.08);
   overflow: hidden;
-  animation: toastIn 0.28s ease-out, toastGlow 1.8s ease-in-out infinite alternate;
+  animation:
+    toastSlideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    toastPulse 2.4s ease-in-out 0.6s infinite;
+}
+
+.achievement-toast--leaving {
+  animation: toastSlideOut 0.45s cubic-bezier(0.55, 0, 1, 0.45) forwards;
 }
 
 .achievement-toast::before {
@@ -560,23 +566,49 @@
   }
 }
 
-@keyframes toastIn {
-  from {
+@keyframes toastSlideIn {
+  0% {
     opacity: 0;
-    transform: translate3d(0, 18px, 0) scale(0.96);
+    transform: translate3d(120px, -40px, 0) scale(0.85) rotate(3deg);
+    filter: blur(4px);
   }
-  to {
+  60% {
     opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+    filter: blur(0);
   }
 }
 
-@keyframes toastGlow {
-  from {
-    box-shadow: 0 22px 80px rgb(0 0 0 / 0.42), inset 0 1px 0 rgb(var(--white-rgb) / 0.08);
+@keyframes toastSlideOut {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
   }
-  to {
-    box-shadow: 0 26px 90px rgb(var(--accent-primary-rgb) / 0.12), 0 22px 80px rgb(0 0 0 / 0.42), inset 0 1px 0 rgb(var(--white-rgb) / 0.08);
+  100% {
+    opacity: 0;
+    transform: translate3d(100px, -30px, 0) scale(0.9) rotate(2deg);
+    filter: blur(3px);
+  }
+}
+
+@keyframes toastPulse {
+  0%, 100% {
+    box-shadow:
+      0 22px 80px rgb(0 0 0 / 0.42),
+      inset 0 1px 0 rgb(var(--white-rgb) / 0.08),
+      0 0 0 0 rgb(var(--accent-primary-rgb) / 0);
+  }
+  50% {
+    box-shadow:
+      0 22px 80px rgb(0 0 0 / 0.42),
+      inset 0 1px 0 rgb(var(--white-rgb) / 0.08),
+      0 0 20px 2px rgb(var(--accent-primary-rgb) / 0.18),
+      0 0 40px 4px rgb(var(--accent-primary-rgb) / 0.08);
   }
 }
 
