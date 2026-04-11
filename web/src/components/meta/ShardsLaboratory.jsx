@@ -9,7 +9,7 @@ export const ShardsLaboratory = ({
 	prestigeLabSummary
 }) => {
 	return (
-		<article className="meta-card prestige-lab">
+		<article className="meta-card">
 			<div className="meta-card__kicker">Лаборатория осколков</div>
 
 			<section className="stats-bar stats-bar--shop prestige-lab__summary">

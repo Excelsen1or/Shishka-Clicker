@@ -337,6 +337,8 @@ export function useGame() {
         manualClicks: current.manualClicks + 1,
         megaClicks: current.megaClicks + (isMega ? 1 : 0),
         emojiBursts: current.emojiBursts + (isEmojiBurst ? 1 : 0),
+        megaClickStreak: isMega ? (current.megaClickStreak ?? 0) + 1 : 0,
+        emojiBurstStreak: isEmojiBurst ? (current.emojiBurstStreak ?? 0) + 1 : 0,
         totalShishkiEarned: current.totalShishkiEarned + clickValue,
         lifetimeShishkiEarned: current.lifetimeShishkiEarned + clickValue,
       })
@@ -348,10 +350,14 @@ export function useGame() {
       return result.state
     })
 
+    const particleCount = Math.round(
+      clickValue * (isEmojiBurst ? 1.35 : isMega ? 1.1 : 1),
+    )
+
     return {
       amount: clickValue,
-      particleCount: Math.max(6, Math.min(isEmojiBurst ? 52 : 28, Math.ceil((rates.clickPower * (isMega ? 3.1 : 1.2)) / 1.35))),
-      symbols: isEmojiBurst ? emojiExplosionPool : isMega ? [emoji, '⚡', '🌰', '✨'] : [emoji, '🌰'],
+      particleCount: Math.max(isEmojiBurst ? 6 : isMega ? 3 : 1, Math.min(isEmojiBurst ? 68 : isMega ? 32 : 24, particleCount)),
+      symbols: isEmojiBurst ? emojiExplosionPool : isMega ? ['⚡', '⚡️', '⚡', '✨'] : [emoji, '🌰'],
       isMega,
       isEmojiExplosion: isEmojiBurst,
     }

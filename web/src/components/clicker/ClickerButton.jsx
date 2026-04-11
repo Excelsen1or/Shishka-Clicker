@@ -1,9 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  useCallback,
+  forwardRef,
+  memo,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { createPortal } from 'react-dom'
 import { useGameContext } from '../../context/GameContext'
 import { useSettingsContext } from '../../context/SettingsContext'
 import { useNav } from '../../context/NavContext'
-import { useBursts } from '../../hooks/useBursts'
 import { useSound } from '../../hooks/useSound'
 import { ClickBurst } from '../ui/ClickBurst'
 import { formatNumber, formatFullNumber, isNumberAbbreviated } from '../../lib/format'
@@ -35,12 +43,117 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
+function appendWithCapInPlace(current, incoming, cap) {
+  if (cap <= 0) {
+    current.length = 0
+    return current
+  }
+
+  if (!incoming.length) return current
+
+  current.push(...incoming)
+
+  if (current.length > cap) {
+    current.splice(0, current.length - cap)
+  }
+
+  return current
+}
+
+function pruneExpiredInPlace(current, now) {
+  if (!current.length) return current
+
+  let writeIndex = 0
+
+  for (let readIndex = 0; readIndex < current.length; readIndex += 1) {
+    if (current[readIndex].expiresAt > now) {
+      current[writeIndex] = current[readIndex]
+      writeIndex += 1
+    }
+  }
+
+  current.length = writeIndex
+  return current
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value))
+}
+
+function easeOutCubic(value) {
+  return 1 - ((1 - value) ** 3)
+}
+
+function easeOutQuad(value) {
+  return 1 - ((1 - value) ** 2)
+}
+
+function loadImage(src) {
+  const image = new Image()
+  image.src = src
+  return image
+}
+
+function getTextSprite(cache, symbol, fontSize, fillStyle, fontWeight) {
+  const key = `${symbol}::${fontSize}::${fillStyle}::${fontWeight}`
+  const cached = cache.get(key)
+  if (cached) return cached
+
+  const canvas = document.createElement('canvas')
+  const size = Math.ceil(fontSize * 2.6)
+  const center = size / 2
+  canvas.width = size
+  canvas.height = size
+
+  const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    const fallback = { canvas, size }
+    cache.set(key, fallback)
+    return fallback
+  }
+
+  ctx.font = `${fontWeight} ${fontSize}px "Unbounded", "Apple Color Emoji", "Segoe UI Emoji", sans-serif`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillStyle = fillStyle
+  ctx.fillText(String(symbol), center, center)
+
+  const sprite = { canvas, size }
+  cache.set(key, sprite)
+  return sprite
+}
+
 const TAP_SPEED_WINDOW = 2000
+const IDLE_TIMEOUT = 4500
+const CLEANUP_INTERVAL_MS = 120
+const CLEANUP_BUFFER_MS = 120
+const MAX_CANVAS_DPR = 1.5
+
+const VISUAL_DURATIONS = {
+  tap: 240,
+  mega: 680,
+  prism: 1300,
+}
+
+const EFFECT_LIFETIMES = {
+  burst: {
+    normal: 840,
+    mega: 1220,
+    emoji: 1460,
+  },
+  particle: {
+    normal: 920,
+    mega: 1120,
+    emoji: 1860,
+  },
+  cone: 920,
+  shockwave: 860,
+}
 
 const TAP_SPEED_TIERS = [
   {
     minTps: 0,
-    labels: ['Че так медленно', 'Давай, тапай побыстрее', "Расход: 150 шишечек", "Хомяк отдыхает"],
+    labels: ['Че так медленно', 'Давай, тапай побыстрее', 'Расход: 150 шишечек', 'Хомяк отдыхает'],
   },
   {
     minTps: 2,
@@ -48,13 +161,18 @@ const TAP_SPEED_TIERS = [
   },
   {
     minTps: 4,
-    labels: ['ЖМИИИИ!!!!', 'Тапай, пока шишка горячая', 'Тапай, тапай этого хомячка', 'Ахахах - Лисимп',
-      "Пишу Default Squad", "Среднестатистический"
+    labels: [
+      'ЖМИИИИ!!!!',
+      'Тапай, пока шишка горячая',
+      'Тапай, тапай этого хомячка',
+      'Ахахахах - Лисимп',
+      'Пишу Default Squad',
+      'Среднестатистический',
     ],
   },
   {
     minTps: 7,
-    labels: ['ЕБАНУТЫЙ РАЗГОН НАХУЙ', 'ЕБАТЬ ТЫ ЖМЯКАЕШЬ', 'ЧУВААААК', 'МАШИНА КЛИКОВ!!!'],
+    labels: ['ЕБАНУТЫЙ РАЗГОН НАХУЙ', 'ЕБАТЬ ТЫ ЖМЯКАЕШЬ', 'ЧУВАААААК', 'МАШИНА КЛИКОВ!!!'],
   },
   {
     minTps: 11,
@@ -70,8 +188,6 @@ const IDLE_LABELS = [
   'Шишки сами себя не натапают',
   'Эй, ты тут?',
 ]
-
-const IDLE_TIMEOUT = 4500
 
 const GREETING_LABELS = [
   'Ты в эдите братан!',
@@ -112,41 +228,46 @@ function getTierForTps(tps) {
   return TAP_SPEED_TIERS[0]
 }
 
-function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosion, particleCap) {
-  const now = Date.now()
-  const maxParticles = isEmojiExplosion ? Math.min(particleCap, 12) : Math.min(particleCap, 16)
+function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosion, particleCap, now) {
+  const maxParticles = isEmojiExplosion || isMega ? Math.min(Math.max(0, particleCap), 5) : Math.max(0, particleCap)
   const total = Math.max(1, Math.min(maxParticles, amount))
   const pool = Array.isArray(symbols) ? symbols : [symbols]
+  const lifetime = EFFECT_LIFETIMES.particle[isEmojiExplosion ? 'emoji' : isMega ? 'mega' : 'normal']
+  const angleJitter = (Math.PI * 2) / Math.max(total, 1)
 
   return Array.from({ length: total }, (_, index) => {
-    const angle = getRandomAngle()
-    const spawnOffset = getRandomOffset(isEmojiExplosion ? 42 : isMega ? 26 : 18)
+    const angle = isEmojiExplosion
+      ? ((Math.PI * 2 * index) / total) + ((Math.random() - 0.5) * angleJitter * 0.9)
+      : getRandomAngle()
+    const spawnOffset = getRandomOffset(isEmojiExplosion ? 18 : isMega ? 20 : 18)
     const distance = isEmojiExplosion
-      ? 220 + Math.random() * 300
-      : (22 + Math.random() * (isMega ? 180 : 92))
+      ? 180 + Math.random() * 180
+      : 22 + Math.random() * (isMega ? 180 : 92)
 
     return {
-      id: `${now}-${index}-${Math.random().toString(36).slice(2)}`,
       x: localX + spawnOffset.x,
       y: localY + spawnOffset.y,
       dx: Math.cos(angle) * distance,
       dy: Math.sin(angle) * distance,
       rotate: Math.round((Math.random() - 0.5) * (isEmojiExplosion ? 1080 : isMega ? 720 : 540)),
       scale: isEmojiExplosion
-        ? 0.78 + Math.random() * 1.34
+        ? 0.9 + Math.random() * 0.2
         : isMega
-          ? 0.84 + Math.random() * 0.94
-          : 0.7 + Math.random() * 0.72,
+          ? 0.9 + Math.random() * 0.2
+          : 0.9 + Math.random() * 0.58,
       symbol: pickRandom(pool),
       isMega,
       isEmojiExplosion,
+      createdAt: now,
+      lifetime,
+      expiresAt: now + lifetime + CLEANUP_BUFFER_MS,
     }
   })
 }
 
-function createConeSprites(localX, localY, amount, isMega, coneCap) {
-  const now = Date.now()
+function createConeSprites(localX, localY, amount, isMega, coneCap, now) {
   const total = Math.min(coneCap, isMega ? amount + 3 : amount + 1)
+  const lifetime = EFFECT_LIFETIMES.cone
 
   return Array.from({ length: total }, (_, index) => {
     const angle = getRandomAngle()
@@ -154,38 +275,391 @@ function createConeSprites(localX, localY, amount, isMega, coneCap) {
     const distance = 56 + Math.random() * (isMega ? 165 : 84)
 
     return {
-      id: `cone-${now}-${index}-${Math.random().toString(36).slice(2)}`,
       x: localX + spawnOffset.x,
       y: localY + spawnOffset.y,
       dx: Math.cos(angle) * distance,
       dy: Math.sin(angle) * distance,
       rotateStart: Math.round(Math.random() * 360),
       rotateEnd: Math.round((Math.random() - 0.5) * (isMega ? 1440 : 1080)),
-      scale: isMega
-        ? 0.96 + Math.random() * 0.32
-        : 0.92 + Math.random() * 0.18,
+      scale: isMega ? 0.96 + Math.random() * 0.32 : 0.92 + Math.random() * 0.18,
       isMega,
+      createdAt: now,
+      lifetime,
+      expiresAt: now + lifetime + CLEANUP_BUFFER_MS,
     }
   })
 }
 
-function appendWithCap(current, incoming, cap) {
-  if (cap <= 0 || incoming.length === 0) return cap <= 0 ? [] : current
-  const next = [...current, ...incoming]
-  return next.length > cap ? next.slice(-cap) : next
+function createShockwaves(result, point, now) {
+  const waveCount = result.isEmojiExplosion ? 2 : 1
+  const lifetime = EFFECT_LIFETIMES.shockwave
+
+  return Array.from({ length: waveCount }, (_, index) => ({
+    delay: index * 160,
+    x: point.x,
+    y: point.y,
+    color: result.isEmojiExplosion
+      ? ['rgba(168,85,247,0.72)', 'rgba(34,211,238,0.72)', 'rgba(255,166,0,0.72)'][index]
+      : index === 0
+        ? 'rgba(250,204,21,0.72)'
+        : 'rgba(34,211,238,0.62)',
+    createdAt: now + index * 160,
+    lifetime,
+    expiresAt: now + index * 160 + lifetime + CLEANUP_BUFFER_MS,
+  }))
 }
 
-const VISUAL_DURATIONS = {
-  tap: 240,
-  mega: 680,
-  prism: 1300,
-}
+const ClickerEffectsOverlay = memo(forwardRef(function ClickerEffectsOverlay(_, ref) {
+  const [bursts, setBursts] = useState([])
+  const [isVisible, setIsVisible] = useState(false)
+  const {
+    visualEffectCaps,
+    visualEffectScaling,
+    visualEffectToggles,
+    visualEffectsFactor,
+  } = useSettingsContext()
+
+  const canvasRef = useRef(null)
+  const ctxRef = useRef(null)
+  const rafRef = useRef(0)
+  const sizeRef = useRef({ width: 0, height: 0, dpr: 1 })
+  const imagesRef = useRef({
+    cone: null,
+    altCone: null,
+  })
+  const textSpriteCacheRef = useRef(new Map())
+  const effectsRef = useRef({
+    particles: [],
+    coneSprites: [],
+    shockwaves: [],
+  })
+  const burstsRef = useRef([])
+  const visibilityRef = useRef(false)
+  const configRef = useRef({
+    visualEffectCaps,
+    visualEffectScaling,
+    visualEffectToggles,
+    visualEffectsFactor,
+  })
+
+  useEffect(() => {
+    configRef.current = {
+      visualEffectCaps,
+      visualEffectScaling,
+      visualEffectToggles,
+      visualEffectsFactor,
+    }
+  }, [visualEffectCaps, visualEffectScaling, visualEffectToggles, visualEffectsFactor])
+
+  useEffect(() => {
+    burstsRef.current = bursts
+  }, [bursts])
+
+  useEffect(() => {
+    visibilityRef.current = isVisible
+  }, [isVisible])
+
+  useEffect(() => {
+    imagesRef.current.cone = loadImage(coneImage)
+    imagesRef.current.altCone = loadImage(coneV2Image)
+  }, [])
+
+  useEffect(() => {
+    if (!isVisible) return undefined
+
+    const resizeCanvas = () => {
+      const canvas = canvasRef.current
+      if (!canvas) return
+
+      const dpr = Math.min(window.devicePixelRatio || 1, MAX_CANVAS_DPR)
+      const width = window.innerWidth
+      const height = window.innerHeight
+
+      sizeRef.current = { width, height, dpr }
+      canvas.width = Math.round(width * dpr)
+      canvas.height = Math.round(height * dpr)
+      canvas.style.width = `${width}px`
+      canvas.style.height = `${height}px`
+
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      ctx.imageSmoothingEnabled = true
+      ctxRef.current = ctx
+    }
+
+    resizeCanvas()
+    window.addEventListener('resize', resizeCanvas)
+
+    return () => {
+      ctxRef.current = null
+      window.removeEventListener('resize', resizeCanvas)
+    }
+  }, [isVisible])
+
+  useEffect(() => {
+    if (!bursts.length) return undefined
+
+    const intervalId = window.setInterval(() => {
+      const now = Date.now()
+      setBursts((current) => {
+        const next = current.filter((entry) => entry.expiresAt > now)
+        const hasCanvasEffects =
+          effectsRef.current.particles.length > 0 ||
+          effectsRef.current.coneSprites.length > 0 ||
+          effectsRef.current.shockwaves.length > 0
+
+        if (!next.length && !hasCanvasEffects && visibilityRef.current) {
+          setIsVisible(false)
+        }
+
+        return next
+      })
+    }, CLEANUP_INTERVAL_MS)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [bursts.length])
+
+  const scheduleDraw = useCallback(() => {
+    if (rafRef.current) return
+
+    const drawFrame = (time) => {
+      rafRef.current = 0
+      const canvas = canvasRef.current
+      const ctx = ctxRef.current
+
+      if (!canvas || !ctx) return
+
+      const now = performance.timeOrigin + time
+      const { width, height } = sizeRef.current
+      ctx.clearRect(0, 0, width, height)
+
+      const activeEffects = effectsRef.current
+      pruneExpiredInPlace(activeEffects.particles, now)
+      pruneExpiredInPlace(activeEffects.coneSprites, now)
+      pruneExpiredInPlace(activeEffects.shockwaves, now)
+
+      for (const wave of activeEffects.shockwaves) {
+        if (now < wave.createdAt) continue
+
+        const progress = clamp((now - wave.createdAt) / wave.lifetime, 0, 1)
+        const eased = easeOutCubic(progress)
+        const radius = 54 + 74 * eased
+        const alpha = 0.8 * (1 - progress)
+
+        ctx.save()
+        ctx.globalAlpha = alpha
+        ctx.lineWidth = 2 + (1 - progress) * 1.4
+        ctx.strokeStyle = wave.color
+        ctx.beginPath()
+        ctx.arc(wave.x, wave.y, radius, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.restore()
+      }
+
+      for (const particle of activeEffects.particles) {
+        const progress = clamp((now - particle.createdAt) / particle.lifetime, 0, 1)
+        const move = easeOutCubic(progress)
+        const alpha = particle.isEmojiExplosion
+          ? (progress < 0.1
+              ? progress / 0.1
+              : progress > 0.48
+                ? 1 - easeOutQuad((progress - 0.48) / 0.52)
+                : 1)
+          : particle.isMega
+            ? (progress < 0.12
+                ? progress / 0.12
+                : progress > 0.52
+                  ? 1 - easeOutQuad((progress - 0.52) / 0.48)
+                  : 1)
+          : progress < 0.12
+            ? progress / 0.12
+            : progress > 0.72
+              ? 1 - ((progress - 0.72) / 0.28)
+              : 1
+        const x = particle.x + particle.dx * move
+        const y = particle.y + particle.dy * move
+        const rotation = (particle.rotate * move * Math.PI) / 180
+        const scale = particle.scale * (particle.isEmojiExplosion ? 1 + 0.12 * (1 - progress) : 0.9 + 0.18 * (1 - progress))
+        const fontSize = particle.isEmojiExplosion
+          ? 30
+          : particle.isMega
+            ? 25
+            : 20
+
+        ctx.save()
+        ctx.translate(x, y)
+        ctx.rotate(rotation)
+        ctx.scale(scale, scale)
+        ctx.globalAlpha = clamp(alpha, 0, 1)
+
+        if (particle.symbol === '🌰' && imagesRef.current.altCone?.complete) {
+          ctx.drawImage(imagesRef.current.altCone, -10, -10, 20, 20)
+        } else {
+          const fillStyle = particle.isMega ? 'rgba(255,255,255,0.96)' : '#ffc85c'
+          const fontWeight = particle.isEmojiExplosion || particle.isMega ? 900 : 800
+          const sprite = getTextSprite(textSpriteCacheRef.current, particle.symbol, fontSize, fillStyle, fontWeight)
+          ctx.drawImage(sprite.canvas, -sprite.size / 2, -sprite.size / 2, sprite.size, sprite.size)
+        }
+
+        ctx.restore()
+      }
+
+      for (const sprite of activeEffects.coneSprites) {
+        const progress = clamp((now - sprite.createdAt) / sprite.lifetime, 0, 1)
+        const move = easeOutCubic(progress)
+        const x = sprite.x + sprite.dx * move
+        const y = sprite.y + sprite.dy * move
+        const rotation = ((sprite.rotateStart + (sprite.rotateEnd - sprite.rotateStart) * move) * Math.PI) / 180
+        const scale = sprite.scale * (1 - progress * 0.12)
+        const alpha = progress < 0.12 ? progress / 0.12 : 1 - progress
+        const baseSize = sprite.isMega ? 24 : 18
+
+        if (!imagesRef.current.cone?.complete) continue
+
+        ctx.save()
+        ctx.translate(x, y)
+        ctx.rotate(rotation)
+        ctx.scale(scale, scale)
+        ctx.globalAlpha = clamp(alpha, 0, 1)
+        ctx.drawImage(imagesRef.current.cone, -baseSize / 2, -baseSize / 2, baseSize, baseSize)
+        ctx.restore()
+      }
+
+      const hasCanvasEffects =
+        activeEffects.particles.length > 0 ||
+        activeEffects.coneSprites.length > 0 ||
+        activeEffects.shockwaves.length > 0
+
+      if (hasCanvasEffects) {
+        rafRef.current = window.requestAnimationFrame(drawFrame)
+      } else if (!burstsRef.current.length && visibilityRef.current) {
+        setIsVisible(false)
+      }
+    }
+
+    rafRef.current = window.requestAnimationFrame(drawFrame)
+  }, [])
+
+  useEffect(() => {
+    if (!isVisible) return
+
+    const hasCanvasEffects =
+      effectsRef.current.particles.length > 0 ||
+      effectsRef.current.coneSprites.length > 0 ||
+      effectsRef.current.shockwaves.length > 0
+
+    if (hasCanvasEffects) {
+      scheduleDraw()
+    }
+  }, [isVisible, scheduleDraw])
+
+  useImperativeHandle(ref, () => ({
+    spawn({ result, particlePoint, burstPoint, shockwavePoint }) {
+      const now = Date.now()
+      const {
+        visualEffectCaps: caps,
+        visualEffectScaling: scaling,
+        visualEffectToggles: toggles,
+        visualEffectsFactor: factor,
+      } = configRef.current
+
+      if (!visibilityRef.current) {
+        setIsVisible(true)
+      }
+
+      if (toggles.floatingNumbers) {
+        const burstType = result.isEmojiExplosion ? 'emoji' : result.isMega ? 'mega' : 'normal'
+        const burstValue = result.isEmojiExplosion
+          ? `💥 ЭМОДЗИ +${formatNumber(result.amount)}`
+          : result.isMega
+            ? `⚡ МЕГА +${formatNumber(result.amount)}`
+            : `+${formatNumber(result.amount)}`
+        const burstCap = Math.round(caps.burstCap * scaling.burstSpawnScale)
+        const burstLifetime = EFFECT_LIFETIMES.burst[burstType]
+
+        if (burstCap > 0) {
+          setBursts((current) => [
+            ...(burstCap > 1 ? current.slice(-(burstCap - 1)) : []),
+            {
+              id: `burst-${now}-${Math.random().toString(36).slice(2)}`,
+              x: burstPoint.x,
+              y: burstPoint.y,
+              value: burstValue,
+              type: burstType,
+              expiresAt: now + burstLifetime + CLEANUP_BUFFER_MS,
+            },
+          ])
+        }
+      }
+
+      if (toggles.particles) {
+        const spawnedParticles = createParticles(
+          particlePoint.x,
+          particlePoint.y,
+          Math.round(result.particleCount * scaling.particleSpawnScale),
+          result.symbols,
+          result.isMega,
+          result.isEmojiExplosion,
+          caps.particleCap,
+          now,
+        )
+
+        if (spawnedParticles.length) {
+          appendWithCapInPlace(effectsRef.current.particles, spawnedParticles, caps.particleCap)
+        }
+      }
+
+      if (toggles.coneSprites) {
+        const coneBurstCount = Math.max(
+          0,
+          Math.round((result.isEmojiExplosion ? 2 : result.isMega ? 1 : 0.5) * scaling.coneSpawnScale),
+        )
+        const cones = createConeSprites(
+          particlePoint.x,
+          particlePoint.y,
+          coneBurstCount,
+          result.isMega,
+          caps.coneCap,
+          now,
+        )
+
+        if (cones.length) {
+          appendWithCapInPlace(effectsRef.current.coneSprites, cones, caps.coneCap)
+        }
+      }
+
+      if (result.isMega && toggles.shockwaves && factor > 0.2) {
+        const waves = createShockwaves(result, shockwavePoint, now)
+        appendWithCapInPlace(effectsRef.current.shockwaves, waves, 8)
+      }
+
+      const hasCanvasEffects =
+        effectsRef.current.particles.length > 0 ||
+        effectsRef.current.coneSprites.length > 0 ||
+        effectsRef.current.shockwaves.length > 0
+
+      if (hasCanvasEffects) {
+        scheduleDraw()
+      }
+    },
+  }))
+
+  if (!isVisible) return null
+
+  return createPortal(
+    <>
+      <canvas ref={canvasRef} className="clicker-particles clicker-effects-canvas" aria-hidden="true" />
+      <ClickBurst bursts={bursts} />
+    </>,
+    document.body,
+  )
+}))
 
 export function ClickerButton() {
-  const [particles, setParticles] = useState([])
-  const [coneSprites, setConeSprites] = useState([])
   const [visualState, setVisualState] = useState('idle')
-  const [shockwaves, setShockwaves] = useState([])
   const [clickerLabel, setClickerLabel] = useState(() => pickRandom(GREETING_LABELS))
   const [isLabelShaking, setIsLabelShaking] = useState(false)
 
@@ -194,54 +668,39 @@ export function ClickerButton() {
   const tapTimestampsRef = useRef([])
   const lastTierIndexRef = useRef(0)
   const lastLabelIndexRef = useRef(0)
+  const effectsOverlayRef = useRef(null)
 
   const { state, mineShishki, markAutoClicker } = useGameContext()
-  const { visualEffectCaps, visualEffectsFactor, visualEffectScaling, visualEffectToggles } = useSettingsContext()
+  const { visualEffectToggles } = useSettingsContext()
   const { activeTab } = useNav()
-  const { bursts, addBurst, removeBurst } = useBursts()
   const { play } = useSound(shishkaSound, { volume: 0.42, randomPitch: [-3.9, 5.8] })
 
   const prevTabRef = useRef(activeTab)
 
-  const removeParticle = useCallback((id) => {
-    setParticles((current) => current.filter((entry) => entry.id !== id))
-  }, [])
-
-  const removeConeSprite = useCallback((id) => {
-    setConeSprites((current) => current.filter((entry) => entry.id !== id))
-  }, [])
-
-  const removeShockwave = useCallback((id) => {
-    setShockwaves((current) => current.filter((entry) => entry.id !== id))
-  }, [])
-
-  const particleLimitHint = useMemo(
-    () => Math.min(visualEffectCaps.particleCap, Math.ceil(state.clickPower * (1.05 + visualEffectsFactor * 0.45))),
-    [state.clickPower, visualEffectCaps.particleCap, visualEffectsFactor],
-  )
-
   const metricItems = useMemo(
     () => [
-      { label: 'за клик', value: <><span>+{formatNumber(state.clickPower)}</span> <ConeIcon /></>, fullValue: formatFullNumber(state.clickPower) },
-      { label: 'мега-шанс', value: `${formatNumber(state.megaClickChance)}%`, fullValue: formatFullNumber(state.megaClickChance) },
-      { label: 'эмодзи', value: `${formatNumber(state.emojiMegaChance)}%`, fullValue: formatFullNumber(state.emojiMegaChance) },
-      { label: 'лимит частиц', value: formatNumber(particleLimitHint), fullValue: formatFullNumber(particleLimitHint) },
+      {
+        label: 'за клик',
+        value: <><span>+{formatNumber(state.clickPower)}</span> <ConeIcon /></>,
+        fullValue: formatFullNumber(state.clickPower),
+      },
+      {
+        label: 'мега-шанс',
+        value: `${formatNumber(state.megaClickChance)}%`,
+        fullValue: formatFullNumber(state.megaClickChance),
+        streak: state.megaClickStreak ?? 0,
+      },
+      {
+        label: 'эмодзи',
+        value: `${formatNumber(state.emojiMegaChance)}%`,
+        fullValue: formatFullNumber(state.emojiMegaChance),
+        streak: state.emojiBurstStreak ?? 0,
+      },
     ],
-    [particleLimitHint, state.clickPower, state.emojiMegaChance, state.megaClickChance],
+    [state.clickPower, state.emojiBurstStreak, state.emojiMegaChance, state.megaClickChance, state.megaClickStreak],
   )
 
-  const isCharged =
-    (visualEffectToggles.clickAnimations && visualState !== 'idle') ||
-    particles.length > 0 ||
-    coneSprites.length > 0 ||
-    shockwaves.length > 0
-  const shouldRenderParticleLayer =
-    (visualEffectToggles.particles && visualEffectCaps.particleCap > 0) ||
-    (visualEffectToggles.coneSprites && visualEffectCaps.coneCap > 0) ||
-    (visualEffectToggles.floatingNumbers && bursts.length > 0)
-  const canSpawnShockwaves =
-    visualEffectToggles.shockwaves &&
-    visualEffectsFactor > 0.2
+  const isCharged = visualEffectToggles.clickAnimations && visualState !== 'idle'
   const heroImage = discoImage
 
   useEffect(() => {
@@ -295,8 +754,8 @@ export function ClickerButton() {
     const hasPointerCoords = Number.isFinite(event.clientX) && Number.isFinite(event.clientY)
 
     return {
-      x: hasPointerCoords ? event.clientX - rect.left : rect.width / 2,
-      y: hasPointerCoords ? event.clientY - rect.top : rect.height / 2,
+      x: hasPointerCoords ? event.clientX : rect.left + rect.width / 2,
+      y: hasPointerCoords ? event.clientY : rect.top + rect.height / 2,
     }
   }
 
@@ -309,8 +768,7 @@ export function ClickerButton() {
   function scheduleIdleLabel() {
     if (idleTimeoutRef.current) window.clearTimeout(idleTimeoutRef.current)
     idleTimeoutRef.current = window.setTimeout(() => {
-      const label = pickRandom(IDLE_LABELS)
-      setClickerLabel(label)
+      setClickerLabel(pickRandom(IDLE_LABELS))
       lastTierIndexRef.current = -1
       setIsLabelShaking(false)
     }, IDLE_TIMEOUT)
@@ -319,7 +777,7 @@ export function ClickerButton() {
   function rotateClickerLabel() {
     const now = Date.now()
     tapTimestampsRef.current.push(now)
-    tapTimestampsRef.current = tapTimestampsRef.current.filter((t) => now - t <= TAP_SPEED_WINDOW)
+    tapTimestampsRef.current = tapTimestampsRef.current.filter((timestamp) => now - timestamp <= TAP_SPEED_WINDOW)
 
     scheduleIdleLabel()
 
@@ -341,7 +799,10 @@ export function ClickerButton() {
       const nextIndex = getRandomInt(0, tier.labels.length - 1)
       lastLabelIndexRef.current = nextIndex
       setClickerLabel(tier.labels[nextIndex])
-    } else if (tapTimestampsRef.current.length % 3 === 0) {
+      return
+    }
+
+    if (tapTimestampsRef.current.length % 3 === 0) {
       let nextIndex = getRandomInt(0, tier.labels.length - 1)
       if (tier.labels.length > 1) {
         while (nextIndex === lastLabelIndexRef.current) {
@@ -363,119 +824,20 @@ export function ClickerButton() {
 
     const result = mineShishki()
     const nextVisualState = result.isEmojiExplosion ? 'prism' : result.isMega ? 'mega' : 'tap'
-    const formattedAmount = formatNumber(result.amount)
 
     if (visualEffectToggles.clickAnimations) {
       armVisualState(nextVisualState)
     }
+
     rotateClickerLabel()
 
-    const { x, y } = getRandomBurstPoint(event.currentTarget)
-    const { x: burstX, y: burstY } = getRandomBurstPoint(event.currentTarget)
-    const burstType = result.isEmojiExplosion ? 'emoji' : result.isMega ? 'mega' : 'normal'
-    const burstValue = result.isEmojiExplosion
-      ? `💥 ЭМОДЗИ +${formattedAmount}`
-      : result.isMega
-        ? `⚡ МЕГА +${formattedAmount}`
-        : `+${formattedAmount}`
-
-    if (visualEffectToggles.floatingNumbers) {
-      addBurst(burstX, burstY, burstValue, burstType)
-    }
-
-    const spawnedParticles = visualEffectToggles.particles ? createParticles(
-      x,
-      y,
-      Math.round(result.particleCount * visualEffectScaling.particleSpawnScale),
-      result.symbols,
-      result.isMega,
-      result.isEmojiExplosion,
-      visualEffectCaps.particleCap,
-    ) : []
-
-    if (spawnedParticles.length) {
-      setParticles((current) => appendWithCap(current, spawnedParticles, visualEffectCaps.particleCap))
-    }
-
-    const coneBurstCount = Math.max(
-      0,
-      Math.round((result.isEmojiExplosion ? 2 : result.isMega ? 1 : 0.5) * visualEffectScaling.coneSpawnScale),
-    )
-    const cones = visualEffectToggles.coneSprites
-      ? createConeSprites(x, y, coneBurstCount, result.isMega, visualEffectCaps.coneCap)
-      : []
-    if (cones.length) {
-      setConeSprites((current) => appendWithCap(current, cones, visualEffectCaps.coneCap))
-    }
-
-    if (result.isMega && canSpawnShockwaves) {
-      const now = Date.now()
-      const waveCount = result.isEmojiExplosion ? 2 : 1
-      const shockwavePoint = getShockwavePoint(event)
-      const waves = Array.from({ length: waveCount }, (_, index) => ({
-        id: `sw-${now}-${index}`,
-        delay: index * 160,
-        x: shockwavePoint.x,
-        y: shockwavePoint.y,
-        color: result.isEmojiExplosion
-          ? ['rgba(168,85,247,0.72)', 'rgba(34,211,238,0.72)', 'rgba(255,166,0,0.72)'][index]
-          : index === 0
-            ? 'rgba(250,204,21,0.72)'
-            : 'rgba(34,211,238,0.62)',
-      }))
-
-      setShockwaves((current) => [...current.slice(-6), ...waves])
-    }
-
+    effectsOverlayRef.current?.spawn({
+      result,
+      particlePoint: getRandomBurstPoint(event.currentTarget),
+      burstPoint: getRandomBurstPoint(event.currentTarget),
+      shockwavePoint: getShockwavePoint(event),
+    })
   }
-
-  const overlayEffects = shouldRenderParticleLayer ? (
-    <>
-      <div className="clicker-particles" aria-hidden="true">
-        {particles.map((particle) => (
-          <span
-            key={particle.id}
-            className={`clicker-particle ${particle.isMega ? 'clicker-particle--mega' : ''} ${particle.isEmojiExplosion ? 'clicker-particle--emoji-explosion' : ''}`}
-            style={{
-              left: `${particle.x}px`,
-              top: `${particle.y}px`,
-              '--dx': `${particle.dx}px`,
-              '--dy': `${particle.dy}px`,
-              '--rot': `${particle.rotate}deg`,
-              '--scale': particle.scale,
-            }}
-            onAnimationEnd={() => removeParticle(particle.id)}
-          >
-            {particle.symbol === '🌰'
-              ? <img src={coneV2Image} alt="" className="cone-icon" />
-              : particle.symbol}
-          </span>
-        ))}
-
-        {coneSprites.map((sprite) => (
-          <img
-            key={sprite.id}
-            src={coneImage}
-            alt=""
-            className={`cone-sprite ${sprite.isMega ? 'cone-sprite--mega' : ''}`}
-            draggable={false}
-            style={{
-              left: `${sprite.x}px`,
-              top: `${sprite.y}px`,
-              '--dx': `${sprite.dx}px`,
-              '--dy': `${sprite.dy}px`,
-              '--rot-start': `${sprite.rotateStart}deg`,
-              '--rot-end': `${sprite.rotateEnd}deg`,
-              '--cone-scale': sprite.scale,
-            }}
-            onAnimationEnd={() => removeConeSprite(sprite.id)}
-          />
-        ))}
-      </div>
-
-      <ClickBurst bursts={bursts} onBurstEnd={removeBurst} />
-    </>
-  ) : null
 
   return (
     <div className="clicker-wrap">
@@ -488,15 +850,6 @@ export function ClickerButton() {
         onKeyUp={blockKeyboardActivation}
         aria-label="Добыть шишки"
       >
-        {visualEffectToggles.shockwaves && shockwaves.map((wave) => (
-          <span
-            key={wave.id}
-            className="shockwave-ring"
-            style={{ left: `${wave.x}px`, top: `${wave.y}px`, '--sw-color': wave.color, animationDelay: `${wave.delay}ms` }}
-            onAnimationEnd={() => removeShockwave(wave.id)}
-          />
-        ))}
-
         {visualEffectToggles.clickAnimations && <span className="clicker-btn__aura" />}
 
         <div className="clicker-btn__core">
@@ -518,7 +871,12 @@ export function ClickerButton() {
 
         <div className="clicker-btn__metrics">
           {metricItems.map((item) => (
-            <span key={item.label} className="clicker-btn__metric" {...(item.fullValue && isNumberAbbreviated(String(item.value)) ? { 'data-tip': item.fullValue } : {})}>
+            <span
+              key={item.label}
+              className="clicker-btn__metric"
+              {...(item.fullValue && isNumberAbbreviated(String(item.value)) ? { 'data-tip': item.fullValue } : {})}
+            >
+              {item.streak > 0 && <span className="clicker-btn__metric-streak">x{formatNumber(item.streak)}</span>}
               <b>{item.value}</b>
               <small>{item.label}</small>
             </span>
@@ -526,8 +884,7 @@ export function ClickerButton() {
         </div>
       </button>
 
-      {overlayEffects ? createPortal(overlayEffects, document.body) : null}
-
+      <ClickerEffectsOverlay ref={effectsOverlayRef} />
     </div>
   )
 }

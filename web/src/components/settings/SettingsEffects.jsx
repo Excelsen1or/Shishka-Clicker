@@ -39,7 +39,7 @@ export const SettingsEffects = ({
       />
 
       <div className="settings-info-box">
-        <div className="settings-info-box__title">Текущий лимит эффектов</div>
+        <div className="settings-card__label">Текущий лимит эффектов</div>
         <div className="settings-info-box__grid">
           <div>
             <span>Эмодзи и шишки</span>

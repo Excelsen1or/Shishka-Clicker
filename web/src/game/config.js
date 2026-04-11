@@ -17,6 +17,8 @@ export const BALANCE = {
     rebirths: 0,
     megaClicks: 0,
     emojiBursts: 0,
+    megaClickStreak: 0,
+    emojiBurstStreak: 0,
     achievements: {},
     seenShopItems: {},
     seenBuyableShopItems: {},

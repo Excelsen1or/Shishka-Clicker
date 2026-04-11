@@ -6,15 +6,11 @@ import {
   createSaveBundle,
   normalizeImportedBundle,
 } from '../../lib/saveTransfer'
-import {
-  APP_VERSION
-} from '../../config/appMeta'
-import {SettingsSaveCard} from "./SettingsSaveCard.jsx"
-import {SettingsAudio} from "./SettingsAudio.jsx"
-import {SettingsEffects} from "./SettingsEffects.jsx"
-import {SettingsAbout} from "./SettingsAbout.jsx"
-import { ConeIcon } from '../ui/ConeIcon'
-
+import { APP_VERSION } from '../../config/appMeta'
+import { SettingsSaveCard } from './SettingsSaveCard.jsx'
+import { SettingsAudio } from './SettingsAudio.jsx'
+import { SettingsEffects } from './SettingsEffects.jsx'
+import { SettingsAbout } from './SettingsAbout.jsx'
 
 export function SettingsScreen() {
   const { resetGame, markSilenceLover, exportGameSave, importGameSave } = useGameContext()
@@ -31,18 +27,6 @@ export function SettingsScreen() {
   const exportTextRef = useRef(null)
   const [transferStatus, setTransferStatus] = useState(null)
   const [exportedSaveText, setExportedSaveText] = useState('')
-
-  const effectSummary = [
-    { icon: '✨', label: 'Эмодзи и шишки', value: `до ${visualEffectCaps.particleCap}`, hint: 'частицы на экране' },
-    { icon: '🔢', label: 'Числа', value: `до ${visualEffectCaps.burstCap}`, hint: 'всплывающих значений' },
-    { icon: <ConeIcon />, label: 'Спрайты', value: `до ${visualEffectCaps.coneCap}`, hint: 'дополнительных шишек' },
-    { icon: '📦', label: 'Бюджет', value: visualEffectCaps.totalHint, hint: 'общий лимит эффектов' },
-  ]
-
-  const aboutSummary = [
-    { icon: '🧩', label: 'Версия', value: APP_VERSION, hint: 'текущая сборка' },
-    { icon: '🧑‍💻', label: 'Репозиторий', value: 'GitHub', hint: 'ссылка в блоке ниже' },
-  ]
 
   const currentSaveText = useMemo(() => {
     const bundle = createSaveBundle({
@@ -85,7 +69,10 @@ export function SettingsScreen() {
       link.remove()
       window.URL.revokeObjectURL(url)
       revealSaveText(text)
-      setTransferStatus({ type: 'success', text: 'Сохранение экспортировано в JSON-файл. Ниже также показан его текст, чтобы можно было вручную скопировать его даже внутри Discord.' })
+      setTransferStatus({
+        type: 'success',
+        text: 'Сохранение экспортировано в JSON-файл. Ниже также показан его текст, чтобы можно было вручную скопировать его даже внутри Discord.',
+      })
     } catch (error) {
       console.error(error)
       setTransferStatus({ type: 'error', text: 'Не удалось экспортировать сохранение.' })
@@ -99,7 +86,10 @@ export function SettingsScreen() {
   const handleRevealSaveText = () => {
     try {
       revealSaveText(currentSaveText)
-      setTransferStatus({ type: 'success', text: 'Текст текущего сейва подготовлен ниже. Его можно полностью скопировать вручную.' })
+      setTransferStatus({
+        type: 'success',
+        text: 'Текст текущего сейва подготовлен ниже. Его можно полностью скопировать вручную.',
+      })
     } catch (error) {
       console.error(error)
       setTransferStatus({ type: 'error', text: 'Не удалось подготовить текст сейва.' })
@@ -115,7 +105,10 @@ export function SettingsScreen() {
     } catch (error) {
       console.error(error)
       revealSaveText(exportedSaveText || currentSaveText)
-      setTransferStatus({ type: 'error', text: 'Не удалось автоматически скопировать текст. Ниже он уже открыт — можно выделить и скопировать вручную.' })
+      setTransferStatus({
+        type: 'error',
+        text: 'Не удалось автоматически скопировать текст. Ниже он уже открыт — можно выделить и скопировать вручную.',
+      })
     }
   }
 
@@ -189,9 +182,7 @@ export function SettingsScreen() {
           />
         </div>
 
-        <SettingsAbout
-          resetGame={resetGame}
-        />
+        <SettingsAbout resetGame={resetGame} />
       </div>
     </section>
   )

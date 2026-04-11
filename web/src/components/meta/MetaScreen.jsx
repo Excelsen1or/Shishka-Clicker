@@ -13,7 +13,7 @@ import { KnowledgeIcon, MoneyIcon, PrizeIcon } from '../ui/GameIcon'
 
 
 export function MetaScreen() {
-  const { state, economy, achievements, prestige, prestigeReset, buyPrestigeUpgrade, resetGame } = useGameContext()
+  const { state, economy, achievements, prestige, prestigeReset, buyPrestigeUpgrade } = useGameContext()
   const unlockedCount = achievements.filter((entry) => entry.unlocked).length
 
   const grouped = useMemo(() => {
@@ -75,7 +75,7 @@ export function MetaScreen() {
 
       <div className="meta-dashboard">
         <div className="meta-dashboard__main">
-          <article className="meta-card prestige-card">
+          <article className="meta-card">
             <div className="meta-card__kicker">Престиж</div>
             <section className="stats-bar stats-bar--shop meta-stats">
               {prestigeStats.map((item) => (

@@ -155,11 +155,6 @@
   transition: border-color 0.8s ease;
 }
 
-.screen-bg__hidden {
-  display: none;
-  content-visibility: hidden;
-}
-
 .screen {
   overflow: hidden;
   padding: clamp(1rem, 2vw, 1.5rem);
@@ -187,7 +182,6 @@
 .meta-card__kicker,
 .settings-card__label,
 .achievement-category__kicker,
-.meta-hero__eyebrow,
 .prestige-lab-card__kicker,
 .meta-section-head__kicker,
 .shop-card__effect-label,
@@ -205,14 +199,12 @@
 
 .screen__kicker,
 .meta-card__kicker,
-.meta-hero__eyebrow,
 .meta-section-head__kicker,
 .prestige-lab-card__kicker {
   color: var(--accent-primary-strong);
 }
 
-.screen__title,
-.meta-hero__title {
+.screen__title {
   color: var(--text-strong);
   font-family: var(--font-display);
   font-size: clamp(1.3rem, 3vw, 2rem);
@@ -223,10 +215,8 @@
 }
 
 .screen__desc,
-.meta-card__desc,
 .meta-card__hint,
 .settings-card__hint,
-.meta-hero__desc,
 .achievement-card__desc,
 .prestige-step__text,
 .prestige-lab-card__desc,
@@ -242,9 +232,7 @@
 .clicker-screen,
 .settings-screen,
 .meta-screen,
-.shop-screen--orange,
-.shop-screen--fuchsia,
-.shop-screen--cyan {
+.shop-screen--orange {
   --screen-accent-rgb: var(--accent-primary-rgb);
   --btn-accent-rgb: var(--accent-primary-rgb);
 }
@@ -259,7 +247,6 @@
   .prestige-lab-card,
   .settings-info-box,
   .settings-save-text-box,
-  .meta-hero__copy,
   .achievement-category
 ) {
   position: relative;

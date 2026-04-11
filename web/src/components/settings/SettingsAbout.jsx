@@ -14,11 +14,11 @@ export const SettingsAbout = ({
 				</div>
 
 				<div className="settings-about-grid">
-					<div className="settings-about-item">
+					<div>
 						<span>Версия</span>
 						<strong>{APP_VERSION}</strong>
 					</div>
-					<div className="settings-about-item">
+					<div>
 						<span>Репозиторий</span>
 						<strong>GitHub</strong>
 					</div>

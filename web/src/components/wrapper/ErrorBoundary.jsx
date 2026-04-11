@@ -39,7 +39,7 @@ export class ErrorBoundary extends Component {
 								{String(this.state.error?.stack || this.state.error?.message || this.state.error)}
 							</pre>
 						) : null}
-						<button type="button" className="btn" onClick={this.handleReload}>
+						<button type="button" className="settings-ghost-btn" onClick={this.handleReload}>
 							Перезагрузить
 						</button>
 					</div>

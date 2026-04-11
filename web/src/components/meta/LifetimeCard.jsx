@@ -5,7 +5,7 @@ export const LifetimeCard = ({
 	lifetimeStats
 }) => {
 	return (
-		<article className="meta-card meta-card--stats">
+		<article className="meta-card">
 			<div className="meta-card__kicker">Глобальный прогресс</div>
 			<section className="stats-bar stats-bar--shop meta-lifetime-grid">
 			  {lifetimeStats.map((item) => (

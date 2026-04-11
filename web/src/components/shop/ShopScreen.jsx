@@ -167,7 +167,7 @@ export function ShopScreen({ type }) {
   }, [items, markShopItemSeen])
 
   return (
-    <section className={`screen shop-screen shop-screen--${meta.accent}`}>
+    <section className={`screen shop-screen--${meta.accent}`}>
       <div className="screen__header">
         <span className="screen__kicker">{meta.kicker}</span>
         <h2 className="screen__title">{meta.title}</h2>

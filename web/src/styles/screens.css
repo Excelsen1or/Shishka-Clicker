@@ -194,29 +194,12 @@
   }
 }
 
-.clicker-btn__eyebrow {
-  color: var(--text-faint);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
 .clicker-btn__label {
   color: var(--text-strong);
   font-family: var(--font-display);
   font-size: clamp(1.1rem, 2vw, 1.45rem);
   font-weight: 700;
   line-height: 1.12;
-}
-
-.clicker-btn__sub {
-  color: var(--text-muted);
-  font-size: 0.84rem;
-  max-width: 28ch;
-  margin-inline: auto;
-  text-wrap: balance;
 }
 
 .clicker-btn__metrics {
@@ -226,6 +209,7 @@
 }
 
 .clicker-btn__metric {
+  position: relative;
   display: grid;
   gap: 0.18rem;
   padding: 0.72rem 0.55rem;
@@ -233,6 +217,24 @@
   border: 1px solid rgb(var(--white-rgb) / 0.06);
   background: rgb(var(--white-rgb) / 0.04);
   text-align: center;
+}
+
+.clicker-btn__metric-streak {
+  position: absolute;
+  top: 0.34rem;
+  right: 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4rem;
+  padding: 0.08rem 0.32rem;
+  border-radius: 999px;
+  background: rgb(var(--accent-primary-rgb) / 0.14);
+  color: var(--accent-primary-strong);
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.04em;
 }
 
 .clicker-btn__metric b {
@@ -263,26 +265,6 @@
   background: transparent;
   box-shadow: none;
   overflow: visible;
-}
-
-.clicker-panel__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.7rem;
-}
-
-.clicker-panel__header::after {
-  content: '5 live';
-  padding: 0.22rem 0.5rem;
-  border-radius: var(--radius-pill);
-  background: rgb(var(--accent-emerald-rgb) / 0.12);
-  color: var(--accent-emerald);
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .clicker-stats-stack {
@@ -373,7 +355,6 @@
 .clicker-below,
 .progress-overview,
 .unlock-grid,
-.meta-hero__stats,
 .meta-lifetime-grid,
 .prestige-forecast-grid,
 .prestige-lab__summary,
@@ -391,8 +372,7 @@
 .meta-lifetime-grid,
 .prestige-lab__summary,
 .settings-info-box__grid,
-.settings-about-grid,
-.stats-bar--static {
+.settings-about-grid {
   grid-auto-flow: row !important;
   grid-template-columns: repeat(auto-fit, minmax(9.2rem, 1fr)) !important;
   grid-auto-columns: auto !important;
@@ -407,8 +387,7 @@
   .meta-lifetime-grid,
   .prestige-lab__summary,
   .settings-info-box__grid,
-  .settings-about-grid,
-  .stats-bar--static
+  .settings-about-grid
 ) .stat-card {
   min-width: 0;
   min-height: 100%;
@@ -423,8 +402,7 @@
   .meta-lifetime-grid,
   .prestige-lab__summary,
   .settings-info-box__grid,
-  .settings-about-grid,
-  .stats-bar--static
+  .settings-about-grid
 ) .stat-card__head {
   gap: 0.38rem;
 }
@@ -435,8 +413,7 @@
   .meta-lifetime-grid,
   .prestige-lab__summary,
   .settings-info-box__grid,
-  .settings-about-grid,
-  .stats-bar--static
+  .settings-about-grid
 ) .stat-card__icon {
   font-size: 0.98rem;
 }
@@ -447,8 +424,7 @@
   .meta-lifetime-grid,
   .prestige-lab__summary,
   .settings-info-box__grid,
-  .settings-about-grid,
-  .stats-bar--static
+  .settings-about-grid
 ) .stat-card__label {
   font-size: 0.62rem;
   letter-spacing: 0.1em;
@@ -463,8 +439,7 @@
   .meta-lifetime-grid,
   .prestige-lab__summary,
   .settings-info-box__grid,
-  .settings-about-grid,
-  .stats-bar--static
+  .settings-about-grid
 ) .stat-card__value {
   font-size: clamp(0.92rem, 2.8vw, 1.18rem);
 }
@@ -475,8 +450,7 @@
   .meta-lifetime-grid,
   .prestige-lab__summary,
   .settings-info-box__grid,
-  .settings-about-grid,
-  .stats-bar--static
+  .settings-about-grid
 ) .stat-card__hint {
   min-height: 1lh;
   font-size: 0.66rem;
@@ -942,24 +916,8 @@
   animation: shopBadgeReadyPulse 1.8s ease-in-out infinite;
 }
 
-.shop-card__currency-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  min-height: 1.65rem;
-  padding: 0.24rem 0.55rem;
-  border-radius: var(--radius-pill);
-  border: 1px solid rgb(var(--card-tone-rgb) / 0.16);
-  background: rgb(var(--card-tone-rgb) / 0.1);
-  color: var(--text-base);
-  font-size: 0.69rem;
-  line-height: 1;
-  white-space: nowrap;
-}
-
 .shop-card__meta,
 .settings-card__head,
-.meta-card__head,
 .achievement-category__head,
 .prestige-lab-card__head,
 .meta-section-head {
@@ -987,7 +945,6 @@
 
 .shop-card__title,
 .settings-card__title,
-.meta-card__title,
 .achievement-category__title,
 .achievement-card__title,
 .prestige-step__title,
@@ -1145,7 +1102,6 @@
   font-weight: 700;
 }
 
-.shop-card__price-cur,
 .shop-card__lock-progress,
 .settings-link-tile__title,
 .achievement-card__status,
@@ -1296,23 +1252,10 @@
   gap: var(--meta-gap);
 }
 
-.meta-hero,
 .settings-layout,
 .meta-dashboard {
   display: grid;
   gap: 1rem;
-}
-
-.meta-hero__copy {
-  padding: 1.1rem;
-  display: grid;
-  gap: 0.55rem;
-}
-
-@media (min-width: 900px) {
-  .meta-hero {
-    grid-template-columns: minmax(0, 1.05fr) minmax(17rem, 0.95fr);
-  }
 }
 
 @media (min-width: 1080px) {
