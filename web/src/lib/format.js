@@ -7,7 +7,7 @@ export function formatNumber(number) {
   let k = 1000
   let i = 0
 
-  while (number > k) {
+  while (number >= k) {
     number /= k
     i++
   }
