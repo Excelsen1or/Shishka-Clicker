@@ -1,6 +1,7 @@
+import { memo } from 'react'
 import { APP_VERSION, CHANGELOG_URL } from '../../config/appMeta.js'
 
-export function Header() {
+export const Header = memo(function Header() {
   return (
     <header className="app-header">
       <div className="app-header__glow" />
@@ -18,4 +19,4 @@ export function Header() {
       </div>
     </header>
   )
-}
+})

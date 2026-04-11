@@ -48,6 +48,7 @@
     transform var(--duration-fast) var(--ease-standard),
     border-color var(--duration-fast) ease,
     box-shadow var(--duration-fast) ease;
+  contain: layout paint;
 }
 
 .clicker-btn:hover {
@@ -73,8 +74,8 @@
 .clicker-btn--charged {
   box-shadow:
     0 0 0 1px rgb(var(--btn-accent-rgb) / 0.2),
-    0 0 32px rgb(var(--btn-accent-rgb) / 0.14),
-    0 30px 70px rgb(var(--btn-accent-rgb) / 0.2),
+    0 0 24px rgb(var(--btn-accent-rgb) / 0.1),
+    0 22px 54px rgb(var(--btn-accent-rgb) / 0.14),
     var(--shadow-lg);
 }
 
@@ -261,6 +262,7 @@
   border: 0;
   background: transparent;
   box-shadow: none;
+  overflow: visible;
 }
 
 .clicker-panel__header {
@@ -685,6 +687,7 @@
   grid-template-rows: auto 1fr auto;
   gap: 0.75rem;
   isolation: isolate;
+  contain: layout style paint;
   transform: translateZ(0);
   transition:
     transform 320ms var(--ease-standard),
@@ -797,7 +800,7 @@
     0 0 0 1px rgb(var(--accent-emerald-rgb) / 0.16),
     0 20px 38px rgb(var(--accent-emerald-rgb) / 0.1),
     var(--shadow-md);
-  animation: shopCardReadyPulse 2.4s ease-in-out infinite;
+  animation: shopCardReadyPulse 3.2s ease-in-out infinite;
 }
 
 .shop-card--can-buy {
@@ -1252,6 +1255,54 @@
   box-shadow: inset 0 1px 0 rgb(var(--white-rgb) / 0.06);
 }
 
+:root[data-performance-profile='mobile'] .clicker-btn:hover,
+:root[data-performance-profile='low'] .clicker-btn:hover {
+  transform: none;
+  box-shadow: var(--shadow-lg);
+}
+
+:root[data-performance-profile='mobile'] .shop-card:hover,
+:root[data-performance-profile='mobile'] .shop-card:focus-within,
+:root[data-performance-profile='low'] .shop-card:hover,
+:root[data-performance-profile='low'] .shop-card:focus-within {
+  transform: none;
+  box-shadow: var(--shadow-md);
+}
+
+:root[data-performance-profile='mobile'] .shop-card:hover::before,
+:root[data-performance-profile='mobile'] .shop-card:focus-within::before,
+:root[data-performance-profile='mobile'] .shop-card:hover::after,
+:root[data-performance-profile='mobile'] .shop-card:focus-within::after,
+:root[data-performance-profile='mobile'] .shop-card:hover .shop-card__shine,
+:root[data-performance-profile='mobile'] .shop-card:focus-within .shop-card__shine,
+:root[data-performance-profile='mobile'] .shop-card:hover .shop-card__glow,
+:root[data-performance-profile='mobile'] .shop-card:focus-within .shop-card__glow,
+:root[data-performance-profile='low'] .shop-card:hover::before,
+:root[data-performance-profile='low'] .shop-card:focus-within::before,
+:root[data-performance-profile='low'] .shop-card:hover::after,
+:root[data-performance-profile='low'] .shop-card:focus-within::after,
+:root[data-performance-profile='low'] .shop-card:hover .shop-card__shine,
+:root[data-performance-profile='low'] .shop-card:focus-within .shop-card__shine,
+:root[data-performance-profile='low'] .shop-card:hover .shop-card__glow,
+:root[data-performance-profile='low'] .shop-card:focus-within .shop-card__glow {
+  opacity: 0;
+  transform: none;
+  filter: none;
+}
+
+:root[data-performance-profile='low'] .clicker-btn--charged,
+:root[data-performance-profile='low'] .shop-card--buyable-new,
+:root[data-performance-profile='low'] .shop-card--can-buy {
+  box-shadow: var(--shadow-md);
+}
+
+:root[data-performance-profile='low'] .clicker-btn__hero-shell::before,
+:root[data-performance-profile='low'] .shop-card--buyable-new,
+:root[data-performance-profile='low'] .shop-card__new-badge--ready,
+:root[data-performance-profile='low'] .shop-card__btn[data-state='ready']:hover {
+  animation: none !important;
+}
+
 @media (max-width: 640px) {
   .shop-grid {
     grid-template-columns: 1fr;
@@ -1280,6 +1331,21 @@
 
   .shop-card__chips::-webkit-scrollbar {
     display: none;
+  }
+
+  .clicker-btn {
+    box-shadow: var(--shadow-md);
+  }
+
+  .clicker-btn:hover {
+    transform: none;
+    box-shadow: var(--shadow-md);
+  }
+
+  .clicker-btn--charged {
+    box-shadow:
+      0 0 0 1px rgb(var(--btn-accent-rgb) / 0.18),
+      var(--shadow-md);
   }
 }
 

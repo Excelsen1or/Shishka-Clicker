@@ -13,18 +13,25 @@ export function TooltipManager() {
       setPosition({ x: e.clientX, y: e.clientY })
     }
 
+    function getTipFromTarget(target) {
+      if (!(target instanceof Element)) return null
+      const tipNode = target.closest('[data-tip]')
+      return tipNode?.getAttribute('data-tip') || null
+    }
+
     function handleMouseEnter(e) {
-      if (e.target.dataset.tip) {
+      const tip = getTipFromTarget(e.target)
+      if (tip) {
         clearTimeout(timeoutRef.current)
         timeoutRef.current = setTimeout(() => {
-          setTooltip(e.target.dataset.tip)
+          setTooltip(tip)
           setPosition({ x: e.clientX, y: e.clientY })
         }, 150)
       }
     }
 
     function handleMouseLeave(e) {
-      if (e.target.dataset.tip) {
+      if (getTipFromTarget(e.target)) {
         clearTimeout(timeoutRef.current)
         setTooltip(null)
       }

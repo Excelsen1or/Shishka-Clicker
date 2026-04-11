@@ -1,3 +1,4 @@
+import { memo, useMemo } from 'react'
 import { useGameContext } from '../../context/GameContext'
 import { StatCard } from './StatCard'
 import { formatNumber } from '../../lib/format'
@@ -44,9 +45,9 @@ export function buildStats(state, contributions) {
   ]
 }
 
-export function StatsBar({ className = '' }) {
+export const StatsBar = memo(function StatsBar({ className = '' }) {
   const { state, contributions } = useGameContext()
-  const stats = buildStats(state, contributions)
+  const stats = useMemo(() => buildStats(state, contributions), [state, contributions])
 
   return (
     <section className={`stats-bar ${className}`.trim()}>
@@ -55,4 +56,4 @@ export function StatsBar({ className = '' }) {
       ))}
     </section>
   )
-}
+})

@@ -41,6 +41,8 @@
   opacity: 1;
   z-index: -2;
   transition: background 0.8s ease;
+  contain: strict;
+  will-change: transform;
 }
 
 .ambient--a {
@@ -155,12 +157,15 @@
 
 .screen-bg__hidden {
   display: none;
+  content-visibility: hidden;
 }
 
 .screen {
   overflow: hidden;
   padding: clamp(1rem, 2vw, 1.5rem);
   --screen-accent-rgb: var(--accent-primary-rgb);
+  content-visibility: auto;
+  contain-intrinsic-size: 720px;
 }
 
 .screen__glow {
@@ -351,6 +356,7 @@
   padding: 1rem;
   display: grid;
   gap: 0.75rem;
+  contain: layout style paint;
   animation: revealUp 0.55s var(--ease-standard) both;
 }
 
@@ -548,6 +554,7 @@
   border: 1px solid var(--border-strong);
   background: rgb(var(--surface-strong-rgb) / 0.82);
   box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(10px);
 }
 
 .bottom-nav__btn {
@@ -626,6 +633,15 @@
 }
 
 @media (max-width: 640px) {
+  .ambient {
+    filter: blur(42px);
+    opacity: 0.78;
+  }
+
+  .noise-overlay {
+    opacity: 0.02;
+  }
+
   .app-header__inner {
     align-items: stretch;
     flex-direction: column;
@@ -635,9 +651,34 @@
     width: 100%;
   }
 
+  .bottom-nav__track {
+    box-shadow: var(--shadow-md);
+    backdrop-filter: none;
+  }
+
   .bottom-nav__label {
     font-size: 0.68rem;
   }
+}
+
+:root[data-performance-profile='mobile'] .noise-overlay,
+:root[data-performance-profile='low'] .noise-overlay {
+  display: none;
+}
+
+:root[data-performance-profile='mobile'] .ambient {
+  filter: blur(44px);
+}
+
+:root[data-performance-profile='low'] .ambient {
+  filter: blur(34px);
+  opacity: 0.64;
+}
+
+:root[data-performance-profile='low'] .screen-bg,
+:root[data-performance-profile='low'] .bottom-nav__track,
+:root[data-performance-profile='low'] .app-header {
+  box-shadow: var(--shadow-md);
 }
 
 /* ── Dev Console ── */

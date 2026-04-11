@@ -113,16 +113,17 @@
   right: 20px;
   top: 1rem;
   z-index: 130;
-  width: min(420px, calc(100vw - 32px));
+  width: min(336px, calc(100vw - 32px));
   display: grid;
-  grid-template-columns: 72px 1fr;
-  gap: 14px;
-  padding: 16px 18px;
+  grid-template-columns: 58px 1fr;
+  gap: 11px;
+  padding: 13px 14px;
   border-radius: calc(var(--radius-lg) + 0.1rem);
   border: 1px solid rgb(var(--accent-primary-rgb) / 0.24);
   background: linear-gradient(135deg, rgb(var(--surface-strong-rgb) / 0.96), rgb(var(--surface-2-rgb) / 0.96));
   box-shadow: 0 22px 80px rgb(0 0 0 / 0.42), inset 0 1px 0 rgb(var(--white-rgb) / 0.08);
   overflow: hidden;
+  contain: layout paint;
   animation:
     toastSlideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
     toastPulse 2.4s ease-in-out 0.6s infinite;
@@ -147,9 +148,9 @@
 
 .achievement-toast__steam {
   position: absolute;
-  top: 8px;
-  right: 14px;
-  font-size: 10px;
+  top: 7px;
+  right: 11px;
+  font-size: 8px;
   letter-spacing: 0.24em;
   color: rgb(var(--white-rgb) / 0.42);
 }
@@ -159,10 +160,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 72px;
-  height: 72px;
-  border-radius: 16px;
-  font-size: 34px;
+  width: 58px;
+  height: 58px;
+  border-radius: 13px;
+  font-size: 27px;
   background: radial-gradient(circle at 30% 30%, rgb(var(--accent-primary-rgb) / 0.34), rgb(var(--accent-primary-rgb) / 0.1));
   box-shadow: inset 0 0 0 1px rgb(var(--white-rgb) / 0.08);
 }
@@ -171,29 +172,29 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .achievement-toast__label {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  margin-top: 6px;
+  margin-top: 5px;
   color: var(--accent-primary-strong);
-  font-size: 12px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
 
 .achievement-toast__title {
   color: var(--text-strong);
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 800;
 }
 
 .achievement-toast__desc {
   color: rgb(var(--white-rgb) / 0.76);
-  font-size: 13px;
+  font-size: 10px;
   line-height: 1.42;
 }
 
@@ -234,6 +235,40 @@
 
 .clicker-btn__core-ring--inner {
   animation: spinRing 9s linear infinite reverse;
+}
+
+:root[data-performance-profile='mobile'] .app-header,
+:root[data-performance-profile='mobile'] .stats-bar,
+:root[data-performance-profile='mobile'] .clicker-panel,
+:root[data-performance-profile='mobile'] .settings-card,
+:root[data-performance-profile='mobile'] .meta-card,
+:root[data-performance-profile='mobile'] .meta-hero__copy,
+:root[data-performance-profile='mobile'] .achievement-category,
+:root[data-performance-profile='low'] .app-header,
+:root[data-performance-profile='low'] .stats-bar,
+:root[data-performance-profile='low'] .clicker-panel,
+:root[data-performance-profile='low'] .settings-card,
+:root[data-performance-profile='low'] .meta-card,
+:root[data-performance-profile='low'] .meta-hero__copy,
+:root[data-performance-profile='low'] .achievement-category {
+  animation-duration: 0.26s;
+}
+
+:root[data-performance-profile='mobile'] .clicker-btn__aura,
+:root[data-performance-profile='mobile'] .clicker-btn__hero,
+:root[data-performance-profile='mobile'] .clicker-btn__core-ring--outer,
+:root[data-performance-profile='mobile'] .clicker-btn__core-ring--inner {
+  animation-duration: 4.6s;
+}
+
+:root[data-performance-profile='low'] .ambient,
+:root[data-performance-profile='low'] .clicker-btn__aura,
+:root[data-performance-profile='low'] .clicker-btn__hero,
+:root[data-performance-profile='low'] .clicker-btn__core-ring--outer,
+:root[data-performance-profile='low'] .clicker-btn__core-ring--inner,
+:root[data-performance-profile='low'] .achievement-toast,
+:root[data-performance-profile='low'] .achievement-toast::before {
+  animation: none !important;
 }
 
 .clicker-btn--tap {
@@ -570,16 +605,13 @@
   0% {
     opacity: 0;
     transform: translate3d(120px, -40px, 0) scale(0.85) rotate(3deg);
-    filter: blur(4px);
   }
   60% {
     opacity: 1;
-    filter: blur(0);
   }
   100% {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
-    filter: blur(0);
   }
 }
 
@@ -587,12 +619,10 @@
   0% {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
-    filter: blur(0);
   }
   100% {
     opacity: 0;
     transform: translate3d(100px, -30px, 0) scale(0.9) rotate(2deg);
-    filter: blur(3px);
   }
 }
 
@@ -648,19 +678,15 @@
 @keyframes clickerPrism {
   0% {
     transform: scale(1);
-    filter: saturate(1);
   }
   30% {
     transform: scale(0.97);
-    filter: saturate(1.18);
   }
   65% {
     transform: scale(1.03);
-    filter: saturate(1.28);
   }
   100% {
     transform: scale(1);
-    filter: saturate(1);
   }
 }
 
@@ -689,14 +715,34 @@
     right: 16px;
     left: 16px;
     width: auto;
-    grid-template-columns: 56px 1fr;
-    gap: 12px;
-    padding: 14px 15px;
+    grid-template-columns: 45px 1fr;
+    gap: 10px;
+    padding: 11px 12px;
+    animation: toastSlideIn 0.45s ease-out forwards;
   }
 
   .achievement-toast__icon {
-    width: 56px;
-    height: 56px;
-    font-size: 28px;
+    width: 45px;
+    height: 45px;
+    font-size: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .ambient {
+    animation: none !important;
+  }
+
+  .clicker-particles,
+  .bursts-layer {
+    display: none !important;
   }
 }

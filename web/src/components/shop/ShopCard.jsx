@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { formatNumber, formatFullNumber, isNumberAbbreviated } from '../../lib/format'
 import { useSound } from '../../hooks/useSound'
 import buySound from '../../assets/audio/ui/blip1.mp3'
@@ -91,7 +91,7 @@ function getCardClassName(item, isLocked, canBuy) {
   ].filter(Boolean).join(' ')
 }
 
-export function ShopCard({ item, canBuy, balance = 0, onBuy, onInspect, delay = 0 }) {
+export const ShopCard = memo(function ShopCard({ item, canBuy, balance = 0, onBuy, onInspect, delay = 0 }) {
   const isLocked = !item.unlocked
   const showDetails = !isLocked
   const currency = CURRENCY_META[item.currency] ?? { icon: '✨', label: 'ресурс' }
@@ -300,4 +300,4 @@ export function ShopCard({ item, canBuy, balance = 0, onBuy, onInspect, delay = 
       )}
     </article>
   )
-}
+})

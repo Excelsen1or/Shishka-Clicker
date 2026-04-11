@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useGameContext } from '../../context/GameContext'
 import { useSettingsContext } from '../../context/SettingsContext'
@@ -151,6 +151,12 @@ function createConeSprites(localX, localY, amount, isMega, coneCap) {
   })
 }
 
+function appendWithCap(current, incoming, cap) {
+  if (cap <= 0 || incoming.length === 0) return cap <= 0 ? [] : current
+  const next = [...current, ...incoming]
+  return next.length > cap ? next.slice(-cap) : next
+}
+
 const VISUAL_DURATIONS = {
   tap: 240,
   mega: 680,
@@ -172,12 +178,24 @@ export function ClickerButton() {
   const lastLabelIndexRef = useRef(0)
 
   const { state, mineShishki, markAutoClicker } = useGameContext()
-  const { visualEffectCaps, visualEffectsFactor } = useSettingsContext()
+  const { visualEffectCaps, visualEffectsFactor, performanceProfile } = useSettingsContext()
   const { activeTab } = useNav()
   const { bursts, addBurst, removeBurst } = useBursts()
   const { play } = useSound(shishkaSound, { volume: 0.42, randomPitch: [-3.9, 5.8] })
 
   const prevTabRef = useRef(activeTab)
+
+  const removeParticle = useCallback((id) => {
+    setParticles((current) => current.filter((entry) => entry.id !== id))
+  }, [])
+
+  const removeConeSprite = useCallback((id) => {
+    setConeSprites((current) => current.filter((entry) => entry.id !== id))
+  }, [])
+
+  const removeShockwave = useCallback((id) => {
+    setShockwaves((current) => current.filter((entry) => entry.id !== id))
+  }, [])
 
   const particleLimitHint = useMemo(
     () => Math.min(visualEffectCaps.particleCap, Math.ceil(state.clickPower * (1.05 + visualEffectsFactor * 0.45))),
@@ -199,6 +217,10 @@ export function ClickerButton() {
     particles.length > 0 ||
     coneSprites.length > 0 ||
     shockwaves.length > 0
+  const shouldRenderParticleLayer =
+    visualEffectCaps.particleCap > 0 || visualEffectCaps.coneCap > 0 || bursts.length > 0
+  const canSpawnShockwaves = visualEffectsFactor > 0.2 && !performanceProfile.isLowPerformanceDevice
+  const heroImage = performanceProfile.isLowPerformanceDevice ? coneV2Image : discoImage
 
   useEffect(() => {
     return () => {
@@ -346,18 +368,22 @@ export function ClickerButton() {
       visualEffectCaps.particleCap,
     )
 
-    setParticles((current) => [...current.slice(-visualEffectCaps.particleCap), ...spawnedParticles])
+    if (spawnedParticles.length) {
+      setParticles((current) => appendWithCap(current, spawnedParticles, visualEffectCaps.particleCap))
+    }
 
     const coneBurstCount = Math.max(
       0,
       Math.round((result.isEmojiExplosion ? 2 : result.isMega ? 1 : 0.5) * (0.45 + visualEffectsFactor * 0.2)),
     )
     const cones = createConeSprites(x, y, coneBurstCount, result.isMega, visualEffectCaps.coneCap)
-    setConeSprites((current) => [...current.slice(-visualEffectCaps.coneCap), ...cones])
+    if (cones.length) {
+      setConeSprites((current) => appendWithCap(current, cones, visualEffectCaps.coneCap))
+    }
 
-    if (result.isMega) {
+    if (result.isMega && canSpawnShockwaves) {
       const now = Date.now()
-      const waveCount = result.isEmojiExplosion ? 3 : 2
+      const waveCount = result.isEmojiExplosion ? 2 : 1
       const shockwavePoint = getShockwavePoint(event)
       const waves = Array.from({ length: waveCount }, (_, index) => ({
         id: `sw-${now}-${index}`,
@@ -376,7 +402,7 @@ export function ClickerButton() {
 
   }
 
-  const overlayEffects = (
+  const overlayEffects = shouldRenderParticleLayer ? (
     <>
       <div className="clicker-particles" aria-hidden="true">
         {particles.map((particle) => (
@@ -391,9 +417,7 @@ export function ClickerButton() {
               '--rot': `${particle.rotate}deg`,
               '--scale': particle.scale,
             }}
-            onAnimationEnd={() => {
-              setParticles((current) => current.filter((entry) => entry.id !== particle.id))
-            }}
+            onAnimationEnd={() => removeParticle(particle.id)}
           >
             {particle.symbol === '🌰'
               ? <img src={coneV2Image} alt="" className="cone-icon" />
@@ -417,16 +441,14 @@ export function ClickerButton() {
               '--rot-end': `${sprite.rotateEnd}deg`,
               '--cone-scale': sprite.scale,
             }}
-            onAnimationEnd={() => {
-              setConeSprites((current) => current.filter((entry) => entry.id !== sprite.id))
-            }}
+            onAnimationEnd={() => removeConeSprite(sprite.id)}
           />
         ))}
       </div>
 
       <ClickBurst bursts={bursts} onBurstEnd={removeBurst} />
     </>
-  )
+  ) : null
 
   return (
     <div className="clicker-wrap">
@@ -444,7 +466,7 @@ export function ClickerButton() {
             key={wave.id}
             className="shockwave-ring"
             style={{ left: `${wave.x}px`, top: `${wave.y}px`, '--sw-color': wave.color, animationDelay: `${wave.delay}ms` }}
-            onAnimationEnd={() => setShockwaves((current) => current.filter((entry) => entry.id !== wave.id))}
+            onAnimationEnd={() => removeShockwave(wave.id)}
           />
         ))}
 
@@ -455,7 +477,7 @@ export function ClickerButton() {
           <span className="clicker-btn__core-ring clicker-btn__core-ring--inner" />
           <div className="clicker-btn__hero-shell">
             <img
-              src={discoImage}
+              src={heroImage}
               alt="Шишка"
               className="clicker-btn__hero"
               draggable={false}
@@ -477,7 +499,7 @@ export function ClickerButton() {
         </div>
       </button>
 
-      {createPortal(overlayEffects, document.body)}
+      {overlayEffects ? createPortal(overlayEffects, document.body) : null}
 
     </div>
   )

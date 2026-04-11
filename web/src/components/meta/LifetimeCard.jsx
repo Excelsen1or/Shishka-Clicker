@@ -6,8 +6,7 @@ export const LifetimeCard = ({
 }) => {
 	return (
 		<article className="meta-card meta-card--stats">
-			<div className="meta-card__kicker">Лайфтайм</div>
-			<h3 className="meta-card__title">Глобальный прогресс</h3>
+			<div className="meta-card__kicker">Глобальный прогресс</div>
 			<section className="stats-bar stats-bar--shop meta-lifetime-grid">
 			  {lifetimeStats.map((item) => (
 					<StatCard key={item.label} {...item} formatValue={false} />

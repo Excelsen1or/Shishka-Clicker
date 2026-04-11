@@ -1,12 +1,13 @@
+import { memo, useMemo } from 'react'
 import { ClickerButton } from './ClickerButton'
 import { ProgressOverview } from './ProgressOverview'
 import { useGameContext } from '../../context/GameContext'
 import { buildStats } from '../stats/StatsBar'
 import { StatCard } from '../stats/StatCard'
 
-export function ClickerScreen() {
+export const ClickerScreen = memo(function ClickerScreen() {
   const { state, contributions } = useGameContext()
-  const stats = buildStats(state, contributions)
+  const stats = useMemo(() => buildStats(state, contributions), [state, contributions])
 
   return (
     <section className="screen clicker-screen">
@@ -30,4 +31,4 @@ export function ClickerScreen() {
       </div>
     </section>
   )
-}
+})

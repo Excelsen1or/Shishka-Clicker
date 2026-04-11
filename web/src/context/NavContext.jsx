@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useMemo, useState } from 'react'
 import { ConeIcon } from '../components/ui/ConeIcon'
 import { PrizeIcon } from '../components/ui/GameIcon'
 
@@ -41,8 +41,13 @@ export function NavProvider({ children }) {
   const [activeTab, setActiveTab] = useState('clicker')
   const currentTab = TABS.find((t) => t.id === activeTab) ?? TABS[0]
 
+  const value = useMemo(
+    () => ({ activeTab, setActiveTab, currentTab, tabs: TABS }),
+    [activeTab, currentTab],
+  )
+
   return (
-    <NavContext.Provider value={{ activeTab, setActiveTab, currentTab, tabs: TABS }}>
+    <NavContext.Provider value={value}>
       {children}
     </NavContext.Provider>
   )

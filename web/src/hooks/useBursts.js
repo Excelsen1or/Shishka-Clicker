@@ -10,8 +10,11 @@ export function useBursts() {
   }, [])
 
   function addBurst(x, y, value) {
+    const cap = Math.round(visualEffectCaps.burstCap * (0.4 + visualEffectsFactor * 0.35))
+    if (cap <= 0) return
+
     setBursts((current) => [
-      ...current.slice(-(Math.max(1, Math.round(visualEffectCaps.burstCap * (0.4 + visualEffectsFactor * 0.35))) - 1)),
+      ...(cap > 1 ? current.slice(-(cap - 1)) : []),
       {
         id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
         x,

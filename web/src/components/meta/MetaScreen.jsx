@@ -77,7 +77,6 @@ export function MetaScreen() {
         <div className="meta-dashboard__main">
           <article className="meta-card prestige-card">
             <div className="meta-card__kicker">Престиж</div>
-            <h3 className="meta-card__title">Система перерождения</h3>
             <section className="stats-bar stats-bar--shop meta-stats">
               {prestigeStats.map((item) => (
                 <StatCard key={item.label} {...item} formatValue={false} />
@@ -154,8 +153,7 @@ export function MetaScreen() {
 
       <div className="meta-section-head">
         <div>
-          <span className="meta-section-head__kicker">Коллекция прогресса</span>
-          <h3 className="meta-section-head__title">Достижения по категориям</h3>
+          <span className="meta-section-head__kicker">Достижения</span>
         </div>
         <div className="meta-section-head__meta">Открыто {unlockedCount} из {achievements.length}</div>
       </div>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { useGameContext } from '../../context/GameContext'
 import { useSound } from '../../hooks/useSound'
 import achievementSound from '../../assets/audio/ui/opoveshchenie.mp3'
@@ -7,7 +7,7 @@ import { PrizeIcon } from './GameIcon'
 const DISPLAY_DURATION = 3400
 const EXIT_DURATION = 500
 
-export function AchievementToast() {
+export const AchievementToast = memo(function AchievementToast() {
   const { achievementQueue, dismissAchievement } = useGameContext()
   const current = achievementQueue[0]
   const currentId = current?.id
@@ -50,4 +50,4 @@ export function AchievementToast() {
       </div>
     </div>
   )
-}
+})

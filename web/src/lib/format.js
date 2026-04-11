@@ -4,10 +4,12 @@ const fullFormatter = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 
 const NUMBER_SUFFIXES = ["", "K", "M", "B", "T", "QD", "QN", "SX", "SP"]
 
 export function formatNumber(number) {
+  if (number < 1000) return formatter.format(number)
+
   let k = 1000
   let i = 0
 
-  while (number > k) {
+  while (number >= k) {
     number /= k
     i++
   }

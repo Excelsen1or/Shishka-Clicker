@@ -24,7 +24,7 @@ export function normalizeSettings(settings) {
     masterVolume: clampPercent(input.masterVolume, DEFAULT_SETTINGS.masterVolume),
     effectsVolume: clampPercent(input.effectsVolume, DEFAULT_SETTINGS.effectsVolume),
     musicVolume: clampPercent(input.musicVolume, DEFAULT_SETTINGS.musicVolume),
-    visualEffectsDensity: clampPercent(input.visualEffectsDensity, DEFAULT_SETTINGS.visualEffectsDensity, 10, 100),
+    visualEffectsDensity: clampPercent(input.visualEffectsDensity, DEFAULT_SETTINGS.visualEffectsDensity, 20, 200),
   }
 }
 

@@ -189,56 +189,73 @@ export function useGame() {
   const safeState = useMemo(() => mergeState(state), [state])
   const derived = useMemo(() => deriveEconomy(safeState), [safeState])
   const saveTimeoutRef = useRef(null)
+  const saveIdleRef = useRef(null)
   const skipNextSaveRef = useRef(false)
   const [achievementQueue, setAchievementQueue] = useState([])
 
   useEffect(() => {
-    let mounted = true
+    const FOREGROUND_TICK_MS = 250
+    const BACKGROUND_TICK_MS = 1000
     let last = performance.now()
-    let accumulator = 0
-    let frame = 0
+    let timeoutId = null
 
-    const tick = (now) => {
-      if (!mounted) return
-      const elapsed = Math.min(2.5, (now - last) / 1000)
+    const step = () => {
+      const now = performance.now()
+      const seconds = Math.min(2.5, (now - last) / 1000)
       last = now
-      accumulator += elapsed
 
-      if (accumulator >= 0.25) {
-        const seconds = accumulator
-        accumulator = 0
-        setState((current) => {
-          const result = unlockAchievements(applyIncome(current, seconds))
-          if (result.unlockedNow.length) {
-            setAchievementQueue((queue) => [...queue, ...result.unlockedNow])
-          }
-          return result.state
-        })
-      }
+      setState((current) => {
+        const result = unlockAchievements(applyIncome(current, seconds))
+        if (result.unlockedNow.length) {
+          setAchievementQueue((queue) => [...queue, ...result.unlockedNow])
+        }
+        return result.state
+      })
 
-      frame = window.requestAnimationFrame(tick)
+      timeoutId = window.setTimeout(
+        step,
+        document.visibilityState === 'hidden' ? BACKGROUND_TICK_MS : FOREGROUND_TICK_MS,
+      )
     }
 
-    frame = window.requestAnimationFrame(tick)
+    timeoutId = window.setTimeout(step, FOREGROUND_TICK_MS)
+
     return () => {
-      mounted = false
-      window.cancelAnimationFrame(frame)
+      if (timeoutId) window.clearTimeout(timeoutId)
     }
   }, [])
 
   useEffect(() => {
     window.clearTimeout(saveTimeoutRef.current)
+    if (saveIdleRef.current && typeof window.cancelIdleCallback === 'function') {
+      window.cancelIdleCallback(saveIdleRef.current)
+    }
 
     if (skipNextSaveRef.current) {
       skipNextSaveRef.current = false
-      return () => window.clearTimeout(saveTimeoutRef.current)
+      return () => {
+        window.clearTimeout(saveTimeoutRef.current)
+        if (saveIdleRef.current && typeof window.cancelIdleCallback === 'function') {
+          window.cancelIdleCallback(saveIdleRef.current)
+        }
+      }
     }
 
     saveTimeoutRef.current = window.setTimeout(() => {
-      saveGame(state)
-    }, 180)
+      if (typeof window.requestIdleCallback === 'function') {
+        saveIdleRef.current = window.requestIdleCallback(() => saveGame(state), { timeout: 800 })
+        return
+      }
 
-    return () => window.clearTimeout(saveTimeoutRef.current)
+      saveGame(state)
+    }, 320)
+
+    return () => {
+      window.clearTimeout(saveTimeoutRef.current)
+      if (saveIdleRef.current && typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(saveIdleRef.current)
+      }
+    }
   }, [state])
 
   const achievements = useMemo(() => deriveAchievements(safeState), [safeState])
@@ -263,7 +280,7 @@ export function useGame() {
     return { subscriptions, upgrades, prestigeUpgrades }
   }, [derived, safeState])
 
-  function mineShishki() {
+  const mineShishki = useCallback(function mineShishki() {
     const snapshot = mergeState(state)
     const megaClickChance = getMegaClickChance(snapshot)
     const isMega = Math.random() < megaClickChance
@@ -305,9 +322,9 @@ export function useGame() {
       isMega,
       isEmojiExplosion: isEmojiBurst,
     }
-  }
+  }, [])
 
-  function buySubscription(id) {
+  const buySubscription = useCallback(function buySubscription(id) {
     setState((current) => {
       current = mergeState(current)
       const item = SUBSCRIPTIONS.find((entry) => entry.id === id)
@@ -343,9 +360,9 @@ export function useGame() {
 
       return result.state
     })
-  }
+  }, [])
 
-  function buyUpgrade(id) {
+  const buyUpgrade = useCallback(function buyUpgrade(id) {
     setState((current) => {
       current = mergeState(current)
       const item = UPGRADES.find((entry) => entry.id === id)
@@ -382,9 +399,9 @@ export function useGame() {
 
       return result.state
     })
-  }
+  }, [])
 
-  function buyPrestigeUpgrade(id) {
+  const buyPrestigeUpgrade = useCallback(function buyPrestigeUpgrade(id) {
     setState((current) => {
       current = mergeState(current)
       const item = PRESTIGE_UPGRADES.find((entry) => entry.id === id)
@@ -403,9 +420,9 @@ export function useGame() {
         },
       }
     })
-  }
+  }, [])
 
-  function markShopItemSeen(id) {
+  const markShopItemSeen = useCallback(function markShopItemSeen(id) {
     setState((current) => {
       current = mergeState(current)
       if (!id) return current
@@ -425,9 +442,9 @@ export function useGame() {
         },
       }
     })
-  }
+  }, [])
 
-  function markSilenceLover() {
+  const markSilenceLover = useCallback(function markSilenceLover() {
     setState((current) => {
       current = mergeState(current)
       const result = unlockAchievements({
@@ -444,9 +461,9 @@ export function useGame() {
 
       return result.state
     })
-  }
+  }, [])
 
-  function markAutoClicker() {
+  const markAutoClicker = useCallback(function markAutoClicker() {
     setState((current) => {
       current = mergeState(current)
       if (current.achievements?.autoclicker_reached) return current
@@ -464,9 +481,9 @@ export function useGame() {
 
       return result.state
     })
-  }
+  }, [])
 
-  function prestigeReset() {
+  const prestigeReset = useCallback(function prestigeReset() {
     setState((current) => {
       current = mergeState(current)
       const preview = getPrestigePreview(current)
@@ -494,10 +511,13 @@ export function useGame() {
 
       return result.state
     })
-  }
+  }, [])
 
-  function resetGame() {
+  const resetGame = useCallback(function resetGame() {
     window.clearTimeout(saveTimeoutRef.current)
+    if (saveIdleRef.current && typeof window.cancelIdleCallback === 'function') {
+      window.cancelIdleCallback(saveIdleRef.current)
+    }
     skipNextSaveRef.current = true
     clearGame()
     setAchievementQueue([])
@@ -506,22 +526,43 @@ export function useGame() {
       seenShopItems: buildSeenShopItems(STARTING_STATE),
       seenBuyableShopItems: buildSeenBuyableShopItems(STARTING_STATE),
     }))
-  }
+  }, [])
 
-  function exportGameSave() {
-    return JSON.parse(JSON.stringify(safeState))
-  }
+  const exportGameSave = useCallback(function exportGameSave() {
+    return JSON.parse(JSON.stringify(state))
+  }, [state])
 
-  function importGameSave(saveData) {
+  const importGameSave = useCallback(function importGameSave(saveData) {
     const nextState = mergeState(saveData)
     window.clearTimeout(saveTimeoutRef.current)
+    if (saveIdleRef.current && typeof window.cancelIdleCallback === 'function') {
+      window.cancelIdleCallback(saveIdleRef.current)
+    }
     skipNextSaveRef.current = true
     saveGame(nextState)
     setAchievementQueue([])
     setState(nextState)
-  }
+  }, [])
 
-  return {
+  const dismissAchievement = useCallback(() => setAchievementQueue((queue) => queue.slice(1)), [])
+  const _devGiveResource = useCallback((key, amount) => {
+    const ALLOWED = ['shishki', 'money', 'knowledge', 'prestigeShards']
+    if (!ALLOWED.includes(key) || !Number.isFinite(amount)) return
+    setState((prev) => {
+      const safe = mergeState(prev)
+      return { ...safe, [key]: (safe[key] ?? 0) + amount }
+    })
+  }, [])
+  const _devSetResource = useCallback((key, value) => {
+    const ALLOWED = ['shishki', 'money', 'knowledge', 'prestigeShards']
+    if (!ALLOWED.includes(key) || !Number.isFinite(value)) return
+    setState((prev) => {
+      const safe = mergeState(prev)
+      return { ...safe, [key]: value }
+    })
+  }, [])
+
+  return useMemo(() => ({
     state: {
       ...safeState,
       ...derived,
@@ -542,22 +583,14 @@ export function useGame() {
     exportGameSave,
     importGameSave,
     achievementQueue,
-    dismissAchievement: useCallback(() => setAchievementQueue((queue) => queue.slice(1)), []),
-    _devGiveResource: useCallback((key, amount) => {
-      const ALLOWED = ['shishki', 'money', 'knowledge', 'prestigeShards']
-      if (!ALLOWED.includes(key) || !Number.isFinite(amount)) return
-      setState((prev) => {
-        const safe = mergeState(prev)
-        return { ...safe, [key]: (safe[key] ?? 0) + amount }
-      })
-    }, []),
-    _devSetResource: useCallback((key, value) => {
-      const ALLOWED = ['shishki', 'money', 'knowledge', 'prestigeShards']
-      if (!ALLOWED.includes(key) || !Number.isFinite(value)) return
-      setState((prev) => {
-        const safe = mergeState(prev)
-        return { ...safe, [key]: value }
-      })
-    }, []),
-  }
+    dismissAchievement,
+    _devGiveResource,
+    _devSetResource,
+  }), [
+    safeState, derived, economy, achievements, prestige, contributions,
+    mineShishki, buySubscription, buyUpgrade, buyPrestigeUpgrade,
+    markShopItemSeen, markSilenceLover, markAutoClicker,
+    prestigeReset, resetGame, exportGameSave, importGameSave,
+    achievementQueue, dismissAchievement, _devGiveResource, _devSetResource
+  ])
 }

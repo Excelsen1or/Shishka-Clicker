@@ -1,4 +1,6 @@
-export function ClickBurst({ bursts, onBurstEnd }) {
+import { memo } from 'react'
+
+export const ClickBurst = memo(function ClickBurst({ bursts, onBurstEnd }) {
   if (!bursts.length) return null
 
   return (
@@ -15,4 +17,4 @@ export function ClickBurst({ bursts, onBurstEnd }) {
       ))}
     </div>
   )
-}
+})

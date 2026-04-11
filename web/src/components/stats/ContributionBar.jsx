@@ -1,7 +1,8 @@
+import { memo } from 'react'
 import {formatNumber, formatFullNumber, isNumberAbbreviated} from "../../lib/format.js"
 
 
-export const ContributionBar = ({ entry, total, index }) => {
+export const ContributionBar = memo(({ entry, total, index }) => {
 	const share = total > 0 ? Math.max(6, Math.round((entry.value / total) * 100)) : 0
 
 	return (
@@ -16,4 +17,4 @@ export const ContributionBar = ({ entry, total, index }) => {
 			</div>
 		</div>
 	)
-}
+})

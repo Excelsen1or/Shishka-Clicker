@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import { useGameContext } from '../../context/GameContext'
 import { formatNumber, formatFullNumber, isNumberAbbreviated } from '../../lib/format'
 import {StatCard} from "../stats/StatCard.jsx"
@@ -7,12 +7,12 @@ import { ConeIcon } from '../ui/ConeIcon'
 import { MoneyIcon, KnowledgeIcon, PrizeIcon } from '../ui/GameIcon'
 
 
-export function ProgressOverview() {
+export const ProgressOverview = memo(function ProgressOverview() {
   const { economy, state, prestige, achievements } = useGameContext()
 
   const nextSub = useMemo(() => economy.subscriptions.find((i) => !i.unlocked), [economy.subscriptions])
   const nextUpgrade = useMemo(() => economy.upgrades.find((i) => !i.unlocked), [economy.upgrades])
-  const unlockedAchievements = achievements.filter((entry) => entry.unlocked).length
+  const unlockedAchievements = useMemo(() => achievements.filter((entry) => entry.unlocked).length, [achievements])
   const metaSummary = [
     { icon: <PrizeIcon />, label: 'Достижения', value: `${unlockedAchievements}/${achievements.length}`, hint: 'открыто сейчас', },
     { icon: '♻️', label: 'Ребёрсы', value: formatNumber(state.rebirths), hint: 'завершённых циклов', },
@@ -79,4 +79,4 @@ export function ProgressOverview() {
       )}
     </div>
   )
-}
+})

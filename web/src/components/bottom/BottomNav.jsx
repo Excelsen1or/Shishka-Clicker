@@ -1,3 +1,4 @@
+import { memo, useCallback, useMemo } from 'react'
 import { useNav } from '../../context/NavContext.jsx'
 import { useGameContext } from '../../context/GameContext.jsx'
 import { useSound } from '../../hooks/useSound.js'
@@ -7,12 +8,12 @@ function getButtonClassName(isActive) {
   return `bottom-nav__btn ${isActive ? 'bottom-nav__btn--active' : ''}`
 }
 
-export function BottomNav() {
+export const BottomNav = memo(function BottomNav() {
   const { activeTab, setActiveTab, tabs } = useNav()
   const { economy } = useGameContext()
   const { play } = useSound(switchSound, { volume: 0.1 })
 
-  const tabAlerts = {
+  const tabAlerts = useMemo(() => ({
     subscriptions: (() => {
       const items = economy.subscriptions ?? []
       const readyCount = items.filter((item) => item.isBuyableNew).length
@@ -31,14 +32,12 @@ export function BottomNav() {
         hasReady: readyCount > 0,
       }
     })(),
-  }
+  }), [economy.subscriptions, economy.upgrades])
 
-  const handleTabChange = (tabId) => {
-    if (tabId === activeTab) return
-
+  const handleTabChange = useCallback((tabId) => {
     play()
     setActiveTab(tabId)
-  }
+  }, [play, setActiveTab])
 
   return (
     <nav className="bottom-nav" aria-label="Разделы игры">
@@ -72,4 +71,4 @@ export function BottomNav() {
       </div>
     </nav>
   )
-}
+})
