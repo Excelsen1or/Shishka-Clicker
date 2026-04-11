@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useGameContext } from '../../context/GameContext'
 import { formatNumber } from '../../lib/format'
+import wrongImg from '../../assets/wrong.png'
 
 const SECRET = 'sv.cheats true'
 
@@ -19,7 +20,9 @@ export function DevConsole() {
   const [cheatsEnabled, setCheatsEnabled] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [log, setLog] = useState([])
+  const [showWrongOverlay, setShowWrongOverlay] = useState(false)
   const inputRef = useRef(null)
+  const overlayTimerRef = useRef(null)
 
   const pushLog = useCallback((text, type = 'info') => {
     setLog((prev) => [...prev.slice(-49), { text, type, ts: Date.now() }])
@@ -42,6 +45,10 @@ export function DevConsole() {
     }
   }, [consoleOpen])
 
+  useEffect(() => {
+    return () => clearTimeout(overlayTimerRef.current)
+  }, [])
+
   function handleSubmit(e) {
     e.preventDefault()
     const cmd = inputValue.trim()
@@ -55,7 +62,10 @@ export function DevConsole() {
         pushLog('Читы активированы. Админ-панель открыта.', 'success')
       } else {
         pushLog(`> ${cmd}`, 'cmd')
-        pushLog('Неизвестная команда. Доступ запрещён.', 'error')
+        pushLog('Не угадал, такого нет.', 'error')
+        setShowWrongOverlay(true)
+        clearTimeout(overlayTimerRef.current)
+        overlayTimerRef.current = setTimeout(() => setShowWrongOverlay(false), 1600)
       }
       return
     }
@@ -100,6 +110,9 @@ export function DevConsole() {
     }
 
     pushLog('Неизвестная команда. Введите help.', 'error')
+    setShowWrongOverlay(true)
+    clearTimeout(overlayTimerRef.current)
+    overlayTimerRef.current = setTimeout(() => setShowWrongOverlay(false), 1600)
   }
 
   function giveResource(key, amount) {
@@ -136,6 +149,12 @@ export function DevConsole() {
             </div>
           ))}
         </div>
+
+        {showWrongOverlay && (
+          <div className="dev-console__wrong-overlay">
+            <img src={wrongImg} alt="wrong" />
+          </div>
+        )}
 
         <form className="dev-console__input-row" onSubmit={handleSubmit}>
           <span className="dev-console__prompt">&gt;</span>

@@ -3,6 +3,22 @@ import { DEFAULT_SETTINGS, loadSettings, normalizeSettings, saveSettings } from 
 
 const SettingsContext = createContext(null)
 
+function computeSafeMode() {
+  if (typeof window === 'undefined') return false
+
+  const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+  const slowDisplayUpdates = window.matchMedia?.('(update: slow)').matches ?? false
+  const coarsePointer = window.matchMedia?.('(pointer: coarse)').matches ?? false
+  const connectionSaveData = navigator.connection?.saveData === true
+  const deviceMemory = navigator.deviceMemory
+  const hardwareConcurrency = navigator.hardwareConcurrency
+  const constrainedHardware =
+    (typeof deviceMemory === 'number' && deviceMemory <= 4) ||
+    (typeof hardwareConcurrency === 'number' && hardwareConcurrency <= 4)
+
+  return prefersReducedMotion || slowDisplayUpdates || connectionSaveData || (coarsePointer && constrainedHardware)
+}
+
 export function SettingsProvider({ children }) {
   const [settings, setSettings] = useState(() => normalizeSettings(loadSettings()))
 
@@ -39,6 +55,7 @@ export function SettingsProvider({ children }) {
     root.dataset.fxConeSprites = String(visualEffectToggles.coneSprites)
     root.dataset.fxShockwaves = String(visualEffectToggles.shockwaves)
     root.dataset.fxAchievementToasts = String(visualEffectToggles.achievementToasts)
+    root.dataset.fxSafeMode = String(computeSafeMode())
   }, [settings])
 
   const patchSettings = useCallback(function patchSettings(patch) {
@@ -68,9 +85,9 @@ export function SettingsProvider({ children }) {
   const value = useMemo(() => {
     const densityFactor = Math.max(0, settings.visualEffectsDensity / 100)
     const densityScale = Math.min(2, Math.max(0.2, densityFactor))
-    const particleCap = Math.max(0, Math.round(4 + densityScale * 18))
+    const particleCap = Math.max(0, Math.round(10 + densityScale * 28))
     const burstCap = Math.max(0, Math.round(1 + densityScale * 5))
-    const coneCap = Math.max(0, Math.round(densityScale * 4))
+    const coneCap = 10
     const particleSpawnScale = 0.3 + densityScale * 0.55
     const burstSpawnScale = 0.4 + densityScale * 0.35
     const coneSpawnScale = 0.25 + densityScale * 0.55

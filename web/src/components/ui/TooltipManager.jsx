@@ -6,11 +6,13 @@ export function TooltipManager() {
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const tooltipRef = useRef(null)
   const timeoutRef = useRef(null)
+  const positionRef = useRef({ x: 0, y: 0 })
 
   useEffect(() => {
     function handleMouseMove(e) {
+      positionRef.current = { x: e.clientX, y: e.clientY }
       if (!tooltip) return
-      setPosition({ x: e.clientX, y: e.clientY })
+      setPosition(positionRef.current)
     }
 
     function getTipFromTarget(target) {
@@ -22,10 +24,11 @@ export function TooltipManager() {
     function handleMouseEnter(e) {
       const tip = getTipFromTarget(e.target)
       if (tip) {
+        positionRef.current = { x: e.clientX, y: e.clientY }
         clearTimeout(timeoutRef.current)
         timeoutRef.current = setTimeout(() => {
           setTooltip(tip)
-          setPosition({ x: e.clientX, y: e.clientY })
+          setPosition(positionRef.current)
         }, 150)
       }
     }
