@@ -7,11 +7,8 @@
 .clicker-sidebar {
   order: -1;
   display: grid;
-  gap: 0.7rem;
-  padding: 0.85rem;
-  border-radius: var(--radius-lg);
-  border: 1px solid rgb(var(--white-rgb) / 0.06);
-  background: linear-gradient(180deg, rgb(var(--white-rgb) / 0.03), transparent);
+  gap: 0.35rem;
+  padding: 0.35rem;
 }
 
 .clicker-wrap {
@@ -288,8 +285,8 @@
 
 .clicker-stats-stack {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(6.9rem, 1fr));
-  gap: 0.46rem;
+  grid-template-columns: repeat(5, minmax(5.5rem, 1fr));
+  gap: 0.35rem;
 }
 
 .clicker-stats-stack .stat-card {
@@ -297,8 +294,8 @@
 }
 
 .clicker-stats-stack .stat-card--compact {
-  padding: 0.48rem 0.52rem;
-  gap: 0.26rem;
+  padding: 0.4rem 0.42rem;
+  gap: 0.2rem;
   border-color: rgb(var(--white-rgb) / 0.05);
   background:
     linear-gradient(180deg, rgb(var(--white-rgb) / 0.05), rgb(var(--white-rgb) / 0.025)),
@@ -1698,24 +1695,6 @@
 }
 
 @media (max-width: 720px) {
-  .clicker-stats-stack {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.42rem;
-  }
-
-  .clicker-stats-stack .stat-card--compact {
-    padding: 0.44rem 0.48rem;
-  }
-
-  .clicker-stats-stack .stat-card__value {
-    font-size: clamp(0.88rem, 3.4vw, 1rem);
-  }
-
-  .clicker-stats-stack .stat-card__hint,
-  .clicker-stats-stack .stat-card__top-contrib b {
-    font-size: 0.62rem;
-  }
-
   .clicker-btn__metrics {
     grid-template-columns: 1fr;
   }
@@ -1737,12 +1716,8 @@
 }
 
 @media (min-width: 640px) {
-  .clicker-stats-stack {
+  .clicker-btn__metrics {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .clicker-stats-stack .stat-card--compact {
-    padding: 0.46rem 0.5rem;
   }
 
   .clicker-btn__metrics {

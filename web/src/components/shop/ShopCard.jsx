@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { formatNumber, formatFullNumber } from '../../lib/format'
+import { formatNumber, formatFullNumber, isNumberAbbreviated } from '../../lib/format'
 import { useSound } from '../../hooks/useSound'
 import buySound from '../../assets/audio/ui/blip1.mp3'
 import denySound from '../../assets/audio/ui/wpn_denyselect.mp3'
@@ -268,12 +268,12 @@ export function ShopCard({ item, canBuy, balance = 0, onBuy, onInspect, delay = 
             <div className="shop-card__price-box">
               <div className="shop-card__price-label">Цена уровня</div>
               <div className="shop-card__price">
-                <span className="shop-card__price-num" title={formatFullNumber(item.cost)}>{formatNumber(item.cost)}</span>
+                <span className="shop-card__price-num" {...(isNumberAbbreviated(formatNumber(item.cost)) ? { 'data-tip': formatFullNumber(item.cost) } : {})}>{formatNumber(item.cost)}</span>
                 <span className="shop-card__price-icon">{currency.icon}</span>
               </div>
               {!canBuy && (
                 <div className="shop-card__shortage">
-                  Нужно ещё <strong title={formatFullNumber(missingAmount)}>{formatNumber(missingAmount)}</strong>
+                  Нужно ещё <strong {...(isNumberAbbreviated(formatNumber(missingAmount)) ? { 'data-tip': formatFullNumber(missingAmount) } : {})}>{formatNumber(missingAmount)}</strong>
                 </div>
               )}
             </div>

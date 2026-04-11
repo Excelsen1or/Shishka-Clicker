@@ -6,7 +6,7 @@ import { useNav } from '../../context/NavContext'
 import { useBursts } from '../../hooks/useBursts'
 import { useSound } from '../../hooks/useSound'
 import { ClickBurst } from '../ui/ClickBurst'
-import { formatNumber, formatFullNumber } from '../../lib/format'
+import { formatNumber, formatFullNumber, isNumberAbbreviated } from '../../lib/format'
 import discoImage from '../../assets/disco.gif'
 import coneImage from '../../assets/cone.png'
 import coneV2Image from '../../assets/conev2.png'
@@ -469,7 +469,7 @@ export function ClickerButton() {
 
         <div className="clicker-btn__metrics">
           {metricItems.map((item) => (
-            <span key={item.label} className="clicker-btn__metric" title={item.fullValue}>
+            <span key={item.label} className="clicker-btn__metric" {...(item.fullValue && isNumberAbbreviated(String(item.value)) ? { 'data-tip': item.fullValue } : {})}>
               <b>{item.value}</b>
               <small>{item.label}</small>
             </span>

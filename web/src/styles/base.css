@@ -220,3 +220,44 @@ input[type='range'] {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Custom Tooltip ──────────────────────────── */
+[data-tip] {
+  cursor: help;
+}
+
+.tooltip-cursor {
+  animation: tooltipFadeIn 0.12s ease-out;
+}
+
+.tooltip-cursor__content {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgb(var(--accent-cyan-rgb) / 0.35);
+  background: linear-gradient(135deg,
+    rgb(var(--surface-strong-rgb) / 0.99),
+    rgb(var(--surface-1-rgb) / 0.97)
+  );
+  color: var(--text-strong);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  box-shadow:
+    0 0 24px rgb(var(--accent-cyan-rgb) / 0.15),
+    0 8px 24px rgb(0 0 0 / 0.4),
+    0 0 0 1px rgb(var(--accent-cyan-rgb) / 0.2);
+  backdrop-filter: blur(8px);
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

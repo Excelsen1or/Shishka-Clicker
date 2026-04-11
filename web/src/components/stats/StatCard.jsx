@@ -1,4 +1,4 @@
-import { formatNumber, formatFullNumber } from '../../lib/format'
+import { formatNumber, formatFullNumber, isNumberAbbreviated } from '../../lib/format'
 import {ContributionBar} from "./ContributionBar.jsx"
 import {memo} from "react"
 
@@ -35,7 +35,7 @@ export const StatCard = memo(function StatCard({
         </div>
       )}
 
-      <div className={valueClasses} title={fullValue}>{displayValue}</div>
+      <div className={valueClasses} {...(fullValue && isNumberAbbreviated(displayValue) ? { 'data-tip': fullValue } : {})}>{displayValue}</div>
 
       {hint && <div className={hintClasses}>{hint}</div>}
 
@@ -44,10 +44,10 @@ export const StatCard = memo(function StatCard({
       {compact && topContributors.length > 0 && (
         <div className="stat-card__top-contrib">
           {topContributors.map((c, i) => (
-            <div key={c.id} className="stat-card__top-contrib-row" title={`#${i + 1} ${c.title}: ${formatNumber(c.value)}`}>
+            <div key={c.id} className="stat-card__top-contrib-row" {...(isNumberAbbreviated(formatNumber(c.value)) ? { 'data-tip': `#${i + 1} ${c.title}: ${formatFullNumber(c.value)}` } : {})}>
               <span>#{i + 1}</span>
               <b>{c.title}</b>
-              <span className="stat-card__top-contrib-val">{formatNumber(c.value)}</span>
+              <span className="stat-card__top-contrib-val" {...(isNumberAbbreviated(formatNumber(c.value)) ? { 'data-tip': formatFullNumber(c.value) } : {})}>{formatNumber(c.value)}</span>
             </div>
           ))}
         </div>

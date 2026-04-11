@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useGameContext } from '../../context/GameContext'
-import { formatNumber, formatFullNumber } from '../../lib/format'
+import { formatNumber, formatFullNumber, isNumberAbbreviated } from '../../lib/format'
 import {StatCard} from "../stats/StatCard.jsx"
 import {UnlockCard} from "./UnlockCard.jsx"
 import { ConeIcon } from '../ui/ConeIcon'
@@ -54,7 +54,7 @@ export function ProgressOverview() {
           <div className="unlock-progress">
             <div className="unlock-progress__row">
               <span><ConeIcon /> Шишки цикла</span>
-              <span title={`${formatFullNumber(prestige.cycleProgress.shishki)} / ${formatFullNumber(prestige.rebirthRule.shishki)}`}>{formatNumber(prestige.cycleProgress.shishki)} / {formatNumber(prestige.rebirthRule.shishki)}</span>
+              <span {...(isNumberAbbreviated(formatNumber(prestige.cycleProgress.shishki)) || isNumberAbbreviated(formatNumber(prestige.rebirthRule.shishki)) ? { 'data-tip': `${formatFullNumber(prestige.cycleProgress.shishki)} / ${formatFullNumber(prestige.rebirthRule.shishki)}` } : {})}>{formatNumber(prestige.cycleProgress.shishki)} / {formatNumber(prestige.rebirthRule.shishki)}</span>
             </div>
             <div className="unlock-progress__track">
               <div className="unlock-progress__fill" style={{ width: `${Math.min(100, prestige.cycleRatios.shishki * 100)}%` }} />
@@ -62,7 +62,7 @@ export function ProgressOverview() {
 
             <div className="unlock-progress__row">
               <span><KnowledgeIcon /> Знания цикла</span>
-              <span title={`${formatFullNumber(prestige.cycleProgress.knowledge)} / ${formatFullNumber(prestige.rebirthRule.knowledge)}`}>{formatNumber(prestige.cycleProgress.knowledge)} / {formatNumber(prestige.rebirthRule.knowledge)}</span>
+              <span {...(isNumberAbbreviated(formatNumber(prestige.cycleProgress.knowledge)) || isNumberAbbreviated(formatNumber(prestige.rebirthRule.knowledge)) ? { 'data-tip': `${formatFullNumber(prestige.cycleProgress.knowledge)} / ${formatFullNumber(prestige.rebirthRule.knowledge)}` } : {})}>{formatNumber(prestige.cycleProgress.knowledge)} / {formatNumber(prestige.rebirthRule.knowledge)}</span>
             </div>
             <div className="unlock-progress__track">
               <div className="unlock-progress__fill unlock-progress__fill--alt" style={{ width: `${Math.min(100, prestige.cycleRatios.knowledge * 100)}%` }} />
