@@ -261,6 +261,27 @@
   animation-duration: 4.6s;
 }
 
+:root[data-fx-reveal='false'] .app-header,
+:root[data-fx-reveal='false'] .stats-bar,
+:root[data-fx-reveal='false'] .clicker-panel,
+:root[data-fx-reveal='false'] .settings-card,
+:root[data-fx-reveal='false'] .meta-card,
+:root[data-fx-reveal='false'] .meta-hero__copy,
+:root[data-fx-reveal='false'] .achievement-category,
+:root[data-fx-reveal='false'] .stat-card,
+:root[data-fx-reveal='false'] .shop-card {
+  animation: none !important;
+}
+
+:root[data-fx-click-animations='false'] .clicker-btn,
+:root[data-fx-click-animations='false'] .clicker-btn__aura,
+:root[data-fx-click-animations='false'] .clicker-btn__hero,
+:root[data-fx-click-animations='false'] .clicker-btn__core-ring--outer,
+:root[data-fx-click-animations='false'] .clicker-btn__core-ring--inner,
+:root[data-fx-click-animations='false'] .clicker-btn__content--shake {
+  animation: none !important;
+}
+
 :root[data-performance-profile='low'] .ambient,
 :root[data-performance-profile='low'] .clicker-btn__aura,
 :root[data-performance-profile='low'] .clicker-btn__hero,

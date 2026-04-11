@@ -60,6 +60,18 @@ export function SettingsProvider({ children }) {
       (settings.visualEffectsDensity / 100) * performanceProfile.effectsBudgetMultiplier,
     )
     const root = document.documentElement
+    const prefersReducedMotion = performanceProfile.prefersReducedMotion
+    const visualEffectToggles = {
+      ambientEffects: settings.showAmbientEffects && !prefersReducedMotion,
+      noiseOverlay: settings.showNoiseOverlay && !prefersReducedMotion,
+      revealAnimations: settings.showRevealAnimations && !prefersReducedMotion,
+      clickAnimations: settings.showClickAnimations && !prefersReducedMotion,
+      particles: settings.showParticles && !prefersReducedMotion,
+      floatingNumbers: settings.showFloatingNumbers && !prefersReducedMotion,
+      coneSprites: settings.showConeSprites && !prefersReducedMotion,
+      shockwaves: settings.showShockwaves && !prefersReducedMotion,
+      achievementToasts: settings.showAchievementToasts,
+    }
 
     root.style.setProperty('--fx-density', densityFactor.toFixed(2))
     root.style.setProperty('--fx-grid-opacity', String((0.06 + densityFactor * 0.08).toFixed(3)))
@@ -70,7 +82,16 @@ export function SettingsProvider({ children }) {
       : performanceProfile.isMobileDevice
         ? 'mobile'
         : 'default'
-  }, [performanceProfile, settings.visualEffectsDensity])
+    root.dataset.fxAmbient = String(visualEffectToggles.ambientEffects)
+    root.dataset.fxNoise = String(visualEffectToggles.noiseOverlay)
+    root.dataset.fxReveal = String(visualEffectToggles.revealAnimations)
+    root.dataset.fxClickAnimations = String(visualEffectToggles.clickAnimations)
+    root.dataset.fxParticles = String(visualEffectToggles.particles)
+    root.dataset.fxNumbers = String(visualEffectToggles.floatingNumbers)
+    root.dataset.fxConeSprites = String(visualEffectToggles.coneSprites)
+    root.dataset.fxShockwaves = String(visualEffectToggles.shockwaves)
+    root.dataset.fxAchievementToasts = String(visualEffectToggles.achievementToasts)
+  }, [performanceProfile, settings])
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
@@ -125,6 +146,17 @@ export function SettingsProvider({ children }) {
     const coneCap = Math.max(0, Math.round(densityFactor * 4))
     const rainCap = Math.max(0, Math.round(densityFactor * 6))
     const fireworkCap = Math.max(0, Math.round(densityFactor * 8))
+    const visualEffectToggles = {
+      ambientEffects: settings.showAmbientEffects && !performanceProfile.prefersReducedMotion,
+      noiseOverlay: settings.showNoiseOverlay && !performanceProfile.prefersReducedMotion,
+      revealAnimations: settings.showRevealAnimations && !performanceProfile.prefersReducedMotion,
+      clickAnimations: settings.showClickAnimations && !performanceProfile.prefersReducedMotion,
+      particles: settings.showParticles && !performanceProfile.prefersReducedMotion,
+      floatingNumbers: settings.showFloatingNumbers && !performanceProfile.prefersReducedMotion,
+      coneSprites: settings.showConeSprites && !performanceProfile.prefersReducedMotion,
+      shockwaves: settings.showShockwaves && !performanceProfile.prefersReducedMotion,
+      achievementToasts: settings.showAchievementToasts,
+    }
 
     return {
       settings,
@@ -141,13 +173,19 @@ export function SettingsProvider({ children }) {
       visualEffectsFactor: densityFactor,
       requestedVisualEffectsFactor: settings.visualEffectsDensity / 100,
       visualEffectCaps: {
-        particleCap,
-        burstCap,
-        coneCap,
+        particleCap: visualEffectToggles.particles ? particleCap : 0,
+        burstCap: visualEffectToggles.floatingNumbers ? burstCap : 0,
+        coneCap: visualEffectToggles.coneSprites ? coneCap : 0,
         rainCap,
         fireworkCap,
-        totalHint: particleCap + burstCap + coneCap + rainCap + fireworkCap,
+        totalHint:
+          (visualEffectToggles.particles ? particleCap : 0) +
+          (visualEffectToggles.floatingNumbers ? burstCap : 0) +
+          (visualEffectToggles.coneSprites ? coneCap : 0) +
+          rainCap +
+          fireworkCap,
       },
+      visualEffectToggles,
       performanceProfile,
     }
   }, [

@@ -173,6 +173,7 @@ export function SettingsScreen() {
             settings={settings}
             setVolume={setVolume}
             visualEffectCaps={visualEffectCaps}
+            toggle={toggle}
           />
 
           <SettingsSaveCard

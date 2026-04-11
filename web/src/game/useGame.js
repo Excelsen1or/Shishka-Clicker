@@ -322,7 +322,7 @@ export function useGame() {
       isMega,
       isEmojiExplosion: isEmojiBurst,
     }
-  }, [])
+  }, [state])
 
   const buySubscription = useCallback(function buySubscription(id) {
     setState((current) => {

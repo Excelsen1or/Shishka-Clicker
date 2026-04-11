@@ -666,6 +666,14 @@
   display: none;
 }
 
+:root[data-fx-noise='false'] .noise-overlay {
+  display: none;
+}
+
+:root[data-fx-ambient='false'] .ambient {
+  display: none;
+}
+
 :root[data-performance-profile='mobile'] .ambient {
   filter: blur(44px);
 }

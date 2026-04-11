@@ -7,6 +7,15 @@ export const DEFAULT_SETTINGS = {
   effectsVolume: 80,
   musicVolume: 35,
   visualEffectsDensity: 45,
+  showAmbientEffects: true,
+  showNoiseOverlay: true,
+  showRevealAnimations: true,
+  showClickAnimations: true,
+  showParticles: true,
+  showFloatingNumbers: true,
+  showConeSprites: true,
+  showShockwaves: true,
+  showAchievementToasts: true,
 }
 
 function clampPercent(value, fallback, min = 0, max = 100) {
@@ -25,6 +34,15 @@ export function normalizeSettings(settings) {
     effectsVolume: clampPercent(input.effectsVolume, DEFAULT_SETTINGS.effectsVolume),
     musicVolume: clampPercent(input.musicVolume, DEFAULT_SETTINGS.musicVolume),
     visualEffectsDensity: clampPercent(input.visualEffectsDensity, DEFAULT_SETTINGS.visualEffectsDensity, 20, 200),
+    showAmbientEffects: input.showAmbientEffects ?? DEFAULT_SETTINGS.showAmbientEffects,
+    showNoiseOverlay: input.showNoiseOverlay ?? DEFAULT_SETTINGS.showNoiseOverlay,
+    showRevealAnimations: input.showRevealAnimations ?? DEFAULT_SETTINGS.showRevealAnimations,
+    showClickAnimations: input.showClickAnimations ?? DEFAULT_SETTINGS.showClickAnimations,
+    showParticles: input.showParticles ?? DEFAULT_SETTINGS.showParticles,
+    showFloatingNumbers: input.showFloatingNumbers ?? DEFAULT_SETTINGS.showFloatingNumbers,
+    showConeSprites: input.showConeSprites ?? DEFAULT_SETTINGS.showConeSprites,
+    showShockwaves: input.showShockwaves ?? DEFAULT_SETTINGS.showShockwaves,
+    showAchievementToasts: input.showAchievementToasts ?? DEFAULT_SETTINGS.showAchievementToasts,
   }
 }
 

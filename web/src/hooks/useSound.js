@@ -13,8 +13,6 @@ function getAudioContext() {
 export function useSound(src, { volume = 1, randomPitch } = {}) {
   const rawRef = useRef(null)
   const bufferRef = useRef(null)
-  const pitchRef = useRef(randomPitch)
-  pitchRef.current = randomPitch
   const { effectVolumeFactor } = useSettingsContext()
 
   useEffect(() => {
@@ -49,7 +47,7 @@ export function useSound(src, { volume = 1, randomPitch } = {}) {
     const baseVol = Math.max(0, Math.min(1, volume * effectVolumeFactor))
     const gain = ctx.createGain()
 
-    const pitch = pitchRef.current
+    const pitch = randomPitch
     if (pitch) {
       const [semitoneDown, semitoneUp] = pitch
       const semitones = semitoneDown + Math.random() * (semitoneUp - semitoneDown)
@@ -62,7 +60,7 @@ export function useSound(src, { volume = 1, randomPitch } = {}) {
     source.connect(gain)
     gain.connect(ctx.destination)
     source.start(0)
-  }, [effectVolumeFactor, volume])
+  }, [effectVolumeFactor, randomPitch, volume])
 
   return { play }
 }

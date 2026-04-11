@@ -178,7 +178,7 @@ export function ClickerButton() {
   const lastLabelIndexRef = useRef(0)
 
   const { state, mineShishki, markAutoClicker } = useGameContext()
-  const { visualEffectCaps, visualEffectsFactor, performanceProfile } = useSettingsContext()
+  const { visualEffectCaps, visualEffectsFactor, performanceProfile, visualEffectToggles } = useSettingsContext()
   const { activeTab } = useNav()
   const { bursts, addBurst, removeBurst } = useBursts()
   const { play } = useSound(shishkaSound, { volume: 0.42, randomPitch: [-3.9, 5.8] })
@@ -213,13 +213,18 @@ export function ClickerButton() {
   )
 
   const isCharged =
-    visualState !== 'idle' ||
+    (visualEffectToggles.clickAnimations && visualState !== 'idle') ||
     particles.length > 0 ||
     coneSprites.length > 0 ||
     shockwaves.length > 0
   const shouldRenderParticleLayer =
-    visualEffectCaps.particleCap > 0 || visualEffectCaps.coneCap > 0 || bursts.length > 0
-  const canSpawnShockwaves = visualEffectsFactor > 0.2 && !performanceProfile.isLowPerformanceDevice
+    (visualEffectToggles.particles && visualEffectCaps.particleCap > 0) ||
+    (visualEffectToggles.coneSprites && visualEffectCaps.coneCap > 0) ||
+    (visualEffectToggles.floatingNumbers && bursts.length > 0)
+  const canSpawnShockwaves =
+    visualEffectToggles.shockwaves &&
+    visualEffectsFactor > 0.2 &&
+    !performanceProfile.isLowPerformanceDevice
   const heroImage = performanceProfile.isLowPerformanceDevice ? coneV2Image : discoImage
 
   useEffect(() => {
@@ -343,7 +348,9 @@ export function ClickerButton() {
     const nextVisualState = result.isEmojiExplosion ? 'prism' : result.isMega ? 'mega' : 'tap'
     const formattedAmount = formatNumber(result.amount)
 
-    armVisualState(nextVisualState)
+    if (visualEffectToggles.clickAnimations) {
+      armVisualState(nextVisualState)
+    }
     rotateClickerLabel()
 
     const { x, y } = getRandomBurstPoint(event.currentTarget)
@@ -354,9 +361,11 @@ export function ClickerButton() {
         ? `⚡ МЕГА +${formattedAmount}`
         : `+${formattedAmount}`
 
-    addBurst(burstX, burstY, burstValue)
+    if (visualEffectToggles.floatingNumbers) {
+      addBurst(burstX, burstY, burstValue)
+    }
 
-    const spawnedParticles = createParticles(
+    const spawnedParticles = visualEffectToggles.particles ? createParticles(
       x,
       y,
       Math.round(
@@ -366,7 +375,7 @@ export function ClickerButton() {
       result.isMega,
       result.isEmojiExplosion,
       visualEffectCaps.particleCap,
-    )
+    ) : []
 
     if (spawnedParticles.length) {
       setParticles((current) => appendWithCap(current, spawnedParticles, visualEffectCaps.particleCap))
@@ -376,7 +385,9 @@ export function ClickerButton() {
       0,
       Math.round((result.isEmojiExplosion ? 2 : result.isMega ? 1 : 0.5) * (0.45 + visualEffectsFactor * 0.2)),
     )
-    const cones = createConeSprites(x, y, coneBurstCount, result.isMega, visualEffectCaps.coneCap)
+    const cones = visualEffectToggles.coneSprites
+      ? createConeSprites(x, y, coneBurstCount, result.isMega, visualEffectCaps.coneCap)
+      : []
     if (cones.length) {
       setConeSprites((current) => appendWithCap(current, cones, visualEffectCaps.coneCap))
     }
@@ -461,7 +472,7 @@ export function ClickerButton() {
         onKeyUp={blockKeyboardActivation}
         aria-label="Добыть шишки"
       >
-        {shockwaves.map((wave) => (
+        {visualEffectToggles.shockwaves && shockwaves.map((wave) => (
           <span
             key={wave.id}
             className="shockwave-ring"
@@ -470,11 +481,11 @@ export function ClickerButton() {
           />
         ))}
 
-        <span className="clicker-btn__aura" />
+        {visualEffectToggles.clickAnimations && <span className="clicker-btn__aura" />}
 
         <div className="clicker-btn__core">
-          <span className="clicker-btn__core-ring clicker-btn__core-ring--outer" />
-          <span className="clicker-btn__core-ring clicker-btn__core-ring--inner" />
+          {visualEffectToggles.clickAnimations && <span className="clicker-btn__core-ring clicker-btn__core-ring--outer" />}
+          {visualEffectToggles.clickAnimations && <span className="clicker-btn__core-ring clicker-btn__core-ring--inner" />}
           <div className="clicker-btn__hero-shell">
             <img
               src={heroImage}
