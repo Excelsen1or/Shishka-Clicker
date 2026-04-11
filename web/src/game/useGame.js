@@ -356,7 +356,7 @@ export function useGame() {
 
     return {
       amount: clickValue,
-      particleCount: Math.max(isEmojiBurst ? 6 : isMega ? 3 : 1, Math.min(isEmojiBurst ? 68 : isMega ? 32 : 24, particleCount)),
+      particleCount: Math.max(isEmojiBurst ? 6 : isMega ? 3 : 1, Math.min(isEmojiBurst ? 68 : isMega ? 32 : 10, particleCount)),
       symbols: isEmojiBurst ? emojiExplosionPool : isMega ? ['⚡', '⚡️', '⚡', '✨'] : [emoji, '🌰'],
       isMega,
       isEmojiExplosion: isEmojiBurst,
