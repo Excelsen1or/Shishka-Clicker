@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   STARTING_STATE,
   SUBSCRIPTIONS,
@@ -186,13 +186,16 @@ function unlockAchievements(current) {
 
 export function useGame() {
   const [state, setState] = useState(() => mergeState(loadGame()))
-  const safeState = useMemo(() => mergeState(state), [state])
+  const safeState = state
   const derived = useMemo(() => deriveEconomy(safeState), [safeState])
   const saveTimeoutRef = useRef(null)
   const saveIdleRef = useRef(null)
   const skipNextSaveRef = useRef(false)
   const [achievementQueue, setAchievementQueue] = useState([])
   const stateRef = useRef(state)
+  const interactionTimeoutRef = useRef(null)
+  const pendingPassiveSecondsRef = useRef(0)
+  const isInteractingRef = useRef(false)
 
   useEffect(() => {
     const FOREGROUND_TICK_MS = 250
@@ -204,13 +207,24 @@ export function useGame() {
       const now = performance.now()
       const seconds = Math.min(2.5, (now - last) / 1000)
       last = now
+      pendingPassiveSecondsRef.current += seconds
 
-      setState((current) => {
-        const result = unlockAchievements(applyIncome(current, seconds))
-        if (result.unlockedNow.length) {
-          setAchievementQueue((queue) => [...queue, ...result.unlockedNow])
-        }
-        return result.state
+      if (document.visibilityState !== 'hidden' && isInteractingRef.current) {
+        timeoutId = window.setTimeout(step, FOREGROUND_TICK_MS)
+        return
+      }
+
+      const secondsToApply = pendingPassiveSecondsRef.current
+      pendingPassiveSecondsRef.current = 0
+
+      startTransition(() => {
+        setState((current) => {
+          const result = unlockAchievements(applyIncome(current, secondsToApply))
+          if (result.unlockedNow.length) {
+            setAchievementQueue((queue) => [...queue, ...result.unlockedNow])
+          }
+          return result.state
+        })
       })
 
       timeoutId = window.setTimeout(
@@ -223,6 +237,27 @@ export function useGame() {
 
     return () => {
       if (timeoutId) window.clearTimeout(timeoutId)
+    }
+  }, [])
+
+  useEffect(() => {
+    const markInteraction = () => {
+      isInteractingRef.current = true
+      window.clearTimeout(interactionTimeoutRef.current)
+      interactionTimeoutRef.current = window.setTimeout(() => {
+        isInteractingRef.current = false
+      }, 180)
+    }
+
+    window.addEventListener('scroll', markInteraction, { passive: true })
+    window.addEventListener('wheel', markInteraction, { passive: true })
+    window.addEventListener('touchmove', markInteraction, { passive: true })
+
+    return () => {
+      window.clearTimeout(interactionTimeoutRef.current)
+      window.removeEventListener('scroll', markInteraction)
+      window.removeEventListener('wheel', markInteraction)
+      window.removeEventListener('touchmove', markInteraction)
     }
   }, [])
 
