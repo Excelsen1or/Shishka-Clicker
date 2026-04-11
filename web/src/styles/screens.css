@@ -203,9 +203,11 @@
 }
 
 .clicker-btn__metrics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
   gap: 0.5rem;
+  justify-content: center;
+  align-items: stretch;
+  flex-wrap: wrap;
 }
 
 .clicker-btn__metric {
@@ -1627,7 +1629,8 @@
 
 @media (max-width: 720px) {
   .clicker-btn__metrics {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .settings-toggle {
@@ -1648,7 +1651,7 @@
 
 @media (min-width: 640px) {
   .clicker-btn__metrics {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    flex-wrap: nowrap;
   }
 }
 
