@@ -87,8 +87,8 @@
   --radius-pill: 999px;
 
   /* ── Layout ─────────────────────────────── */
-  --content-max: 82rem;
-  --nav-height: 6rem;
+  --content-max: 74rem;
+  --nav-height: 5.35rem;
 
   /* ── Motion ─────────────────────────────── */
   --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
@@ -110,6 +110,6 @@
 
 @media (max-width: 640px) {
   :root {
-    --nav-height: 6.75rem;
+    --nav-height: 5.95rem;
   }
 }

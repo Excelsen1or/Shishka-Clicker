@@ -278,11 +278,25 @@
   animation: none !important;
 }
 
+:root[data-fx-reveal='false'] .screen > * {
+  animation: none !important;
+}
+
 .screen-stage--animate {
   animation-duration: 280ms;
   animation-timing-function: cubic-bezier(0.18, 0.88, 0.2, 1);
   animation-fill-mode: both;
 }
+
+.screen > * {
+  animation: screenSectionCascade 320ms cubic-bezier(0.22, 0.88, 0.24, 1) both;
+}
+
+.screen > :nth-child(1) { animation-delay: 0ms; }
+.screen > :nth-child(2) { animation-delay: 40ms; }
+.screen > :nth-child(3) { animation-delay: 80ms; }
+.screen > :nth-child(4) { animation-delay: 120ms; }
+.screen > :nth-child(5) { animation-delay: 160ms; }
 
 .screen-stage--animate[data-direction='forward'] {
   animation-name: screenSlideInFromLeft;
@@ -290,20 +304,6 @@
 
 .screen-stage--animate[data-direction='backward'] {
   animation-name: screenSlideInFromRight;
-}
-
-.screen-stage--animate[data-direction='forward']::after {
-  background:
-    linear-gradient(90deg, rgb(var(--accent-primary-rgb) / 0.16), transparent 24%),
-    radial-gradient(circle at left center, rgb(var(--accent-primary-rgb) / 0.12), transparent 42%);
-  animation: screenEdgeGlowFromLeft 280ms cubic-bezier(0.18, 0.88, 0.2, 1) both;
-}
-
-.screen-stage--animate[data-direction='backward']::after {
-  background:
-    linear-gradient(270deg, rgb(var(--accent-primary-rgb) / 0.16), transparent 24%),
-    radial-gradient(circle at right center, rgb(var(--accent-primary-rgb) / 0.12), transparent 42%);
-  animation: screenEdgeGlowFromRight 280ms cubic-bezier(0.18, 0.88, 0.2, 1) both;
 }
 
 :root[data-fx-click-animations='false'] .clicker-btn,
@@ -351,51 +351,36 @@
   }
 }
 
-@keyframes screenSlideInFromRight {
+@keyframes screenSectionCascade {
   from {
     opacity: 0;
-    filter: blur(8px) saturate(0.92);
-    transform: translate3d(24px, 0, 0) scale(0.988);
+    transform: translate3d(0, 8px, 0);
   }
   to {
     opacity: 1;
-    filter: blur(0) saturate(1);
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes screenSlideInFromRight {
+  from {
+    opacity: 0;
+    transform: translate3d(18px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes screenSlideInFromLeft {
   from {
     opacity: 0;
-    filter: blur(8px) saturate(0.92);
-    transform: translate3d(-24px, 0, 0) scale(0.988);
-  }
-  to {
-    opacity: 1;
-    filter: blur(0) saturate(1);
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-
-@keyframes screenEdgeGlowFromLeft {
-  from {
-    opacity: 0.42;
     transform: translate3d(-18px, 0, 0);
   }
   to {
-    opacity: 0;
-    transform: translate3d(8px, 0, 0);
-  }
-}
-
-@keyframes screenEdgeGlowFromRight {
-  from {
-    opacity: 0.42;
-    transform: translate3d(18px, 0, 0);
-  }
-  to {
-    opacity: 0;
-    transform: translate3d(-8px, 0, 0);
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 

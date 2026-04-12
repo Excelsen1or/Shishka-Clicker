@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef } from 'react'
+import { isValidElement, memo, useEffect, useMemo, useRef } from 'react'
 import { formatNumber } from '../../lib/format'
 import { ContributionBar } from './ContributionBar.jsx'
 import { ConeIcon } from '../ui/ConeIcon'
@@ -58,32 +58,45 @@ export const StatCard = memo(function StatCard({
   children,
 }) {
   const prevValueRef = useRef(null)
+  const cardRef = useRef(null)
   const valueTrackRef = useRef(null)
   const valueAnimationTimerRef = useRef(null)
+  const isRenderablePrimitive = typeof value === 'string' || typeof value === 'number'
+  const displayValue = formatValue ? formatNumber(value) : value
+  const shouldAnimateValue = isRenderablePrimitive && !isValidElement(displayValue)
   const resolvedIcon = typeof icon === 'string'
     ? ICON_MAP[icon] ?? icon
     : icon ?? (iconKey ? ICON_MAP[iconKey] ?? iconKey : null)
   const items = compact ? (contributions?.items?.slice(0, 3) ?? []) : (contributions?.items ?? [])
   const total = items.reduce((sum, entry) => sum + entry.value, 0) ?? 0
   const topContributors = compact ? items.slice(0, 3) : []
-  const displayValue = formatValue ? formatNumber(value) : value
   const cardClassName = ['stat-card', compact ? 'stat-card--compact' : '', className].filter(Boolean).join(' ')
   const valueClasses = ['stat-card__value', valueClassName].filter(Boolean).join(' ')
   const hintClasses = ['stat-card__hint', hintClassName].filter(Boolean).join(' ')
   const animatedDigits = useMemo(
-    () => buildAnimatedDigits(displayValue, displayValue),
-    [displayValue],
+    () => (shouldAnimateValue ? buildAnimatedDigits(displayValue, displayValue) : []),
+    [displayValue, shouldAnimateValue],
   )
 
   useEffect(() => {
+    if (!shouldAnimateValue) {
+      prevValueRef.current = displayValue
+      return
+    }
+
     const previousValue = prevValueRef.current ?? displayValue
     const nextIndexes = getChangedDigitIndexes(previousValue, displayValue)
+    const cardNode = cardRef.current
+    const valueTrackNode = valueTrackRef.current
     const nodes = valueTrackRef.current?.querySelectorAll('.stat-card__digit')
 
     if (nodes?.length) {
       nodes.forEach((node) => node.classList.remove('stat-card__digit--changed'))
 
       if (nextIndexes.length) {
+        cardNode?.classList.remove('stat-card--updated')
+        valueTrackNode?.classList.remove('stat-card__value-track--changed')
+
         nextIndexes.forEach((index) => {
           const node = nodes[index]
           if (!node) return
@@ -91,15 +104,21 @@ export const StatCard = memo(function StatCard({
           node.classList.add('stat-card__digit--changed')
         })
 
+        void cardNode?.offsetWidth
+        cardNode?.classList.add('stat-card--updated')
+        valueTrackNode?.classList.add('stat-card__value-track--changed')
+
         window.clearTimeout(valueAnimationTimerRef.current)
         valueAnimationTimerRef.current = window.setTimeout(() => {
+          cardNode?.classList.remove('stat-card--updated')
+          valueTrackNode?.classList.remove('stat-card__value-track--changed')
           nodes.forEach((node) => node.classList.remove('stat-card__digit--changed'))
         }, 260)
       }
     }
 
     prevValueRef.current = displayValue
-  }, [displayValue])
+  }, [displayValue, shouldAnimateValue])
 
   useEffect(() => {
     return () => {
@@ -108,7 +127,7 @@ export const StatCard = memo(function StatCard({
   }, [])
 
   return (
-    <div className={cardClassName} style={{ animationDelay: `${delay * 60}ms` }}>
+    <div ref={cardRef} className={cardClassName} style={{ animationDelay: `${delay * 60}ms` }}>
       {(resolvedIcon || label) && (
         <div className="stat-card__head">
           {resolvedIcon ? <span className="stat-card__icon">{resolvedIcon}</span> : null}
@@ -120,16 +139,20 @@ export const StatCard = memo(function StatCard({
         className={valueClasses}
         
       >
-        <span ref={valueTrackRef} className="stat-card__value-track" aria-hidden="true">
-          {animatedDigits.map((entry) => (
-            <span
-              key={entry.key}
-              className="stat-card__digit"
-            >
-              {entry.char}
-            </span>
-          ))}
-        </span>
+        {shouldAnimateValue ? (
+          <span ref={valueTrackRef} className="stat-card__value-track" aria-hidden="true">
+            {animatedDigits.map((entry) => (
+              <span
+                key={entry.key}
+                className="stat-card__digit"
+              >
+                {entry.char}
+              </span>
+            ))}
+          </span>
+        ) : (
+          <span className="stat-card__value-node">{displayValue}</span>
+        )}
       </div>
 
       {hint && <div className={hintClasses}>{hint}</div>}
