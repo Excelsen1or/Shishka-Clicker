@@ -1,7 +1,9 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "vite",
-  "installCommand": "[ -d web ] && cd web; pnpm install --frozen-lockfile",
-  "buildCommand": "[ -d web ] && cd web; pnpm build",
-  "outputDirectory": "dist"
+  "buildCommand": "cd web && pnpm install && pnpm build",
+  "outputDirectory": "web/dist",
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 10
+    }
+  }
 }
