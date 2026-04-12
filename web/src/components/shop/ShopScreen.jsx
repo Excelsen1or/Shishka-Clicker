@@ -114,11 +114,11 @@ function renderCategorySections({ groupedItems, onBuy, onInspect, delayOffset = 
 }
 
 export const ShopScreen = observer(function ShopScreen({ type }) {
-  const { economy, buySubscription, buyUpgrade, markShopItemSeen, markShopItemsSeen } = useGameContext()
+  const { uiEconomy, buySubscription, buyUpgrade, markShopItemSeen, markShopItemsSeen } = useGameContext()
   const meta = SCREEN_META[type]
   const hasItemCategories = type === 'upgrades'
 
-  const items = type === 'subscriptions' ? economy.subscriptions : economy.upgrades
+  const items = type === 'subscriptions' ? uiEconomy.subscriptions : uiEconomy.upgrades
   const onBuy = type === 'subscriptions' ? buySubscription : buyUpgrade
   const unlockedItems = items.filter((item) => item.unlocked)
   const lockedItems = items.filter((item) => !item.unlocked)

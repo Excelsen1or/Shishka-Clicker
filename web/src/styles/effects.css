@@ -246,15 +246,15 @@
 }
 
 .ambient {
-  animation: ambientDrift 24s ease-in-out infinite;
+  animation: ambientDrift 36s ease-in-out infinite;
 }
 
 .ambient--b {
-  animation-delay: -8s;
+  animation-delay: -12s;
 }
 
 .ambient--c {
-  animation-delay: -15s;
+  animation-delay: -20s;
 }
 
 .app-header,
@@ -332,10 +332,10 @@
     transform: translate3d(0, 0, 0) scale(1);
   }
   33% {
-    transform: translate3d(2%, 4%, 0) scale(1.03);
+    transform: translate3d(1.5%, 2.5%, 0) scale(1.02);
   }
   66% {
-    transform: translate3d(-3%, -2%, 0) scale(0.96);
+    transform: translate3d(-2%, -1.5%, 0) scale(0.98);
   }
 }
 

@@ -37,11 +37,13 @@
   position: fixed;
   border-radius: 50%;
   pointer-events: none;
-  opacity: 1;
+  opacity: 0.82;
   z-index: -2;
   transition: background 0.8s ease;
-  contain: strict;
-  will-change: transform;
+  contain: paint;
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
 }
 
 :root[data-fx-safe-mode='true'] .ambient {
@@ -57,25 +59,25 @@
 .ambient--a {
   top: -8rem;
   left: -8rem;
-  width: 28rem;
-  height: 28rem;
-  background: radial-gradient(circle, rgb(var(--accent-primary-rgb) / 0.18), transparent 68%);
+  width: 24rem;
+  height: 24rem;
+  background: radial-gradient(circle, rgb(var(--accent-primary-rgb) / 0.16), transparent 66%);
 }
 
 .ambient--b {
   right: -10rem;
   top: 25%;
-  width: 31rem;
-  height: 31rem;
-  background: radial-gradient(circle, rgb(var(--accent-emerald-rgb) / 0.16), transparent 68%);
+  width: 26rem;
+  height: 26rem;
+  background: radial-gradient(circle, rgb(var(--accent-emerald-rgb) / 0.14), transparent 66%);
 }
 
 .ambient--c {
   left: 24%;
   bottom: -11rem;
-  width: 22rem;
-  height: 22rem;
-  background: radial-gradient(circle, rgb(var(--accent-fuchsia-rgb) / 0.11), transparent 70%);
+  width: 18rem;
+  height: 18rem;
+  background: radial-gradient(circle, rgb(var(--accent-fuchsia-rgb) / 0.09), transparent 68%);
 }
 
 
@@ -89,6 +91,13 @@
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.05' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 120px 120px;
   mix-blend-mode: soft-light;
+  contain: paint;
+}
+
+@media (max-width: 960px) {
+  .ambient--c {
+    display: none;
+  }
 }
 
 :root[data-fx-safe-mode='true'] .noise-overlay {

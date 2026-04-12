@@ -37,34 +37,6 @@ export const AppWrapper = memo(function AppWrapper() {
 		void setupDiscord()
 	}, [])
 
-	useEffect(() => {
-		if (typeof document === 'undefined') return undefined
-
-		const root = document.documentElement
-		let timeoutId = 0
-
-		const markScrolling = () => {
-			root.dataset.appScrolling = 'true'
-			window.clearTimeout(timeoutId)
-			timeoutId = window.setTimeout(() => {
-				root.dataset.appScrolling = 'false'
-			}, 180)
-		}
-
-		root.dataset.appScrolling = 'false'
-		window.addEventListener('scroll', markScrolling, { passive: true })
-		window.addEventListener('wheel', markScrolling, { passive: true })
-		window.addEventListener('touchmove', markScrolling, { passive: true })
-
-		return () => {
-			window.clearTimeout(timeoutId)
-			delete root.dataset.appScrolling
-			window.removeEventListener('scroll', markScrolling)
-			window.removeEventListener('wheel', markScrolling)
-			window.removeEventListener('touchmove', markScrolling)
-		}
-	}, [])
-
 	return (
 		<div className="app-shell">
 			<AppBackground visualEffectToggles={visualEffectToggles} />

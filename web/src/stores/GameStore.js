@@ -21,6 +21,10 @@ import { clearGame, loadGame, saveGame } from '../lib/storage'
 import { formatFullNumber, formatNumber, isNumberAbbreviated } from '../lib/format'
 
 const UI_SNAPSHOT_DELAY_MS = 120
+const PASSIVE_UI_SNAPSHOT_DELAY_MS = 480
+const ACTIVE_TICK_MS = 250
+const IDLE_TICK_MS = 1000
+const IDLE_THRESHOLD_MS = 1500
 
 function buildSeenShopItems(snapshot = STARTING_STATE) {
   const safeSnapshot = snapshot ?? STARTING_STATE
@@ -266,6 +270,7 @@ export default class GameStore {
   saveTimeoutId = null
   saveIdleId = null
   uiRefreshTimeoutId = null
+  uiRefreshDueAt = 0
   tickTimeoutId = null
   interactionTimeoutId = null
   pendingPassiveSeconds = 0
@@ -285,6 +290,7 @@ export default class GameStore {
         saveTimeoutId: false,
         saveIdleId: false,
         uiRefreshTimeoutId: false,
+        uiRefreshDueAt: false,
         tickTimeoutId: false,
         interactionTimeoutId: false,
         pendingPassiveSeconds: false,
@@ -509,18 +515,26 @@ export default class GameStore {
   }
 
   syncUiSnapshotNow() {
+    window.clearTimeout(this.uiRefreshTimeoutId)
     this.uiSnapshotState = this._state
     this.uiRefreshTimeoutId = null
+    this.uiRefreshDueAt = 0
   }
 
-  scheduleUiSnapshotSync() {
-    if (this.uiRefreshTimeoutId) return
+  scheduleUiSnapshotSync(delayMs = UI_SNAPSHOT_DELAY_MS) {
+    const now = Date.now()
+    const dueAt = now + delayMs
+
+    if (this.uiRefreshTimeoutId && this.uiRefreshDueAt <= dueAt) return
+
+    window.clearTimeout(this.uiRefreshTimeoutId)
+    this.uiRefreshDueAt = dueAt
 
     this.uiRefreshTimeoutId = window.setTimeout(() => {
       runInAction(() => {
         this.syncUiSnapshotNow()
       })
-    }, UI_SNAPSHOT_DELAY_MS)
+    }, delayMs)
   }
 
   pushUnlocked(unlockedNow) {
@@ -529,10 +543,17 @@ export default class GameStore {
     }
   }
 
-  commitState(nextState, unlockedNow = []) {
+  commitState(nextState, unlockedNow = [], options = {}) {
+    const { uiSync = 'default' } = options
     this._state = nextState
     this.pushUnlocked(unlockedNow)
-    this.scheduleUiSnapshotSync()
+
+    if (uiSync === 'immediate') {
+      this.syncUiSnapshotNow()
+    } else {
+      this.scheduleUiSnapshotSync(uiSync === 'passive' ? PASSIVE_UI_SNAPSHOT_DELAY_MS : UI_SNAPSHOT_DELAY_MS)
+    }
+
     this.scheduleSave()
   }
 
@@ -542,15 +563,12 @@ export default class GameStore {
     startTransition(() => {
       runInAction(() => {
         const result = unlockAchievements(applyIncome(this._state, seconds))
-        this.commitState(result.state, result.unlockedNow)
+        this.commitState(result.state, result.unlockedNow, { uiSync: 'passive' })
       })
     })
   }
 
   tickStep() {
-    const ACTIVE_TICK_MS = 250
-    const IDLE_TICK_MS = 1000
-    const IDLE_THRESHOLD_MS = 4000
     const now = performance.now()
     const seconds = Math.min(2.5, (now - this.lastTickAt) / 1000)
     this.lastTickAt = now
@@ -825,6 +843,7 @@ export default class GameStore {
       seenShopItems: buildSeenShopItems(STARTING_STATE),
       seenBuyableShopItems: buildSeenBuyableShopItems(STARTING_STATE),
     }
+    this.syncUiSnapshotNow()
   }
 
   exportGameSave() {
@@ -838,6 +857,7 @@ export default class GameStore {
     saveGame(nextState)
     this.achievementQueue = []
     this._state = nextState
+    this.syncUiSnapshotNow()
   }
 
   dismissAchievement() {
