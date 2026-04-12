@@ -1,19 +1,31 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-)
-
 export default async function handler(req, res) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({
-      ok: false,
-      error: 'method_not_allowed',
-    })
-  }
-
   try {
+    if (req.method !== 'GET') {
+      return res.status(405).json({
+        ok: false,
+        error: 'method_not_allowed',
+      })
+    }
+
+    const supabaseUrl = process.env.SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    if (!supabaseUrl) {
+      return res.status(500).json({
+        ok: false,
+        error: 'missing_SUPABASE_URL',
+      })
+    }
+
+    if (!serviceRoleKey) {
+      return res.status(500).json({
+        ok: false,
+        error: 'missing_SUPABASE_SERVICE_ROLE_KEY',
+      })
+    }
+
     const { playerId } = req.query
 
     if (!playerId) {
@@ -23,6 +35,8 @@ export default async function handler(req, res) {
       })
     }
 
+    const supabase = createClient(supabaseUrl, serviceRoleKey)
+
     const { data, error } = await supabase
       .from('player_saves')
       .select('save_data, updated_at, app_version')
@@ -30,10 +44,11 @@ export default async function handler(req, res) {
       .maybeSingle()
 
     if (error) {
-      console.error('LOAD_ERROR', error)
       return res.status(500).json({
         ok: false,
         error: error.message,
+        code: error.code ?? null,
+        details: error.details ?? null,
       })
     }
 
@@ -51,10 +66,9 @@ export default async function handler(req, res) {
       appVersion: data.app_version,
     })
   } catch (error) {
-    console.error('LOAD_FATAL', error)
     return res.status(500).json({
       ok: false,
-      error: 'internal_error',
+      error: error instanceof Error ? error.message : 'internal_error',
     })
   }
 }
