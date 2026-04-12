@@ -147,9 +147,6 @@ export const SettingsScreen = observer(function SettingsScreen() {
       <div className="screen__header">
         <span className="screen__kicker">Настройки</span>
         <h2 className="screen__title">Звук, эффекты и информация о приложении</h2>
-        <p className="screen__desc">
-          Раздел собран как аккуратный центр управления: частые действия слева, служебная информация и опасные действия справа.
-        </p>
       </div>
 
       <div className="settings-layout">

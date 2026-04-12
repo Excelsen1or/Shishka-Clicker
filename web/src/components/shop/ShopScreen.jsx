@@ -6,8 +6,8 @@ import { ShopCard } from './ShopCard'
 const SCREEN_META = {
   subscriptions: {
     kicker: 'Магазин',
-    title: 'AI-сервисы',
-    desc: 'Подписки ускоряют добычу денег и знаний. Новые сервисы открываются только после реального прогресса.',
+    title: 'Подписки',
+    desc: 'Подписки ускоряют добычу денег и знаний.',
     accent: 'orange',
     emptyText: 'Подписки загружаются…',
     categories: [
@@ -19,8 +19,8 @@ const SCREEN_META = {
   },
   upgrades: {
     kicker: 'Магазин',
-    title: 'Инвестиции и исследования',
-    desc: 'Улучшения влияют на клик, автоматизацию и позднюю игру. Теперь тут есть полноценная ветка апгрейдов за шишки, а не только за деньги и знания.',
+    title: 'Апгрейды',
+    desc: 'Апгрейды дают бонусы к добыче. Инвестиции открывают новые возможности для прогрессии.',
     accent: 'orange',
     emptyText: 'Апгрейды загружаются…',
     categories: [
@@ -147,11 +147,13 @@ export const ShopScreen = observer(function ShopScreen({ type }) {
 
       {unlockedItems.length > 0 && (
         <section className="shop-group shop-group--active">
-          <div className="shop-group__head">
-            <span className="shop-group__eyebrow">Доступно сейчас</span>
-            <h3 className="shop-group__title">Разблокированные</h3>
-            <p className="shop-group__desc">Это текущий рабочий пул покупок, которые уже участвуют в твоей прогрессии.</p>
-          </div>
+          {lockedItems.length > 0 && (
+            <div className="shop-group__head">
+              <span className="shop-group__eyebrow">Доступно сейчас</span>
+              <h3 className="shop-group__title">Разблокированные</h3>
+              <p className="shop-group__desc">Выбирай с умом, выстраивай свою стратегию и просчитывай следующий шаг.</p>
+            </div>
+          )}
 
           {hasItemCategories ? (
             <div className="shop-categories">
@@ -186,7 +188,7 @@ export const ShopScreen = observer(function ShopScreen({ type }) {
           <div className="shop-group__head">
             <span className="shop-group__eyebrow">Следующие цели</span>
             <h3 className="shop-group__title">Заблокированные</h3>
-            <p className="shop-group__desc">Эти карточки откроются по мере накопления шишек и знаний за всё время.</p>
+            <p className="shop-group__desc">Эти товары откроются по мере твоего прогресса.</p>
           </div>
 
           {hasItemCategories ? (

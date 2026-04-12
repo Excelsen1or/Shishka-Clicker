@@ -27,14 +27,14 @@ export const SettingsAudio = ({
 
 				<ToggleRow
 					label="Фоновая музыка"
-					hint="Выключение откроет секретное достижение для любителей тишины"
+					hint="Контроль над музыкой в игре. Если хочешь тишины, отключи её."
 					checked={settings.musicEnabled}
 					onChange={handleMusicToggle}
 				/>
 
 				<RangeRow
 					label="Общая громкость"
-					hint="Главный множитель для всех звуков"
+					hint="Контролирует общую громкость игры."
 					value={settings.masterVolume}
 					onChange={(value) => setVolume('masterVolume', value)}
 				/>

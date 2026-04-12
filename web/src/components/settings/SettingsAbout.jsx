@@ -13,17 +13,6 @@ export const SettingsAbout = ({
 					<span className="settings-chip">v{APP_VERSION}</span>
 				</div>
 
-				<div className="settings-about-grid">
-					<div>
-						<span>Версия</span>
-						<strong>{APP_VERSION}</strong>
-					</div>
-					<div>
-						<span>Репозиторий</span>
-						<strong>GitHub</strong>
-					</div>
-				</div>
-
 				<div className="settings-links-grid">
 					<LinkTile title="Репозиторий" hint="Исходный код проекта на GitHub" href={REPOSITORY_URL} />
 					<LinkTile title="Changelog" hint="Последние changelogs и обновления" href={CHANGELOG_URL} />
@@ -49,11 +38,11 @@ export const SettingsAbout = ({
 				</div>
 
 				<p className="settings-card__hint settings-card__hint--block">
-					Кнопка ниже очищает только игровое сохранение. Аудио и остальные локальные настройки останутся как есть.
+					Кнопка очищает игровое сохранение. Нажми её, проверь что будет.
 				</p>
 
 				<button type="button" className="reset-btn" onClick={resetGame}>
-					Сбросить весь прогресс
+					Проверить...
 				</button>
 			</article>
 		</aside>

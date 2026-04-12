@@ -16,11 +16,6 @@ export const SettingsSaveCard = ({
 				<span className="settings-chip">Backup</span>
 			</div>
 
-			<p className="settings-card__hint settings-card__hint--block">
-				Экспорт создаёт JSON-файл с полным прогрессом игрока, достижениями, престижем и локальными настройками.
-				Импорт заменяет текущий сейв данными из файла.
-			</p>
-
 			<div className="settings-transfer-actions">
 				<button type="button" className="settings-ghost-btn" onClick={handleExportSave}>
 					Экспортировать сейв
