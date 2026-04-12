@@ -1,15 +1,12 @@
-import { createContext, useContext } from 'react'
-import { useGame } from '../game/useGame'
-
-const GameContext = createContext(null)
+import { useStores } from '../stores/StoresProvider.jsx'
 
 export function GameProvider({ children }) {
-  const game = useGame()
-  return <GameContext.Provider value={game}>{children}</GameContext.Provider>
+  return children
 }
 
 export function useGameContext() {
-  const ctx = useContext(GameContext)
+  const stores = useStores()
+  const ctx = stores?.gameStore
   if (!ctx) throw new Error('useGameContext must be used within GameProvider')
   return ctx
 }

@@ -1,82 +1,149 @@
 import { memo, useMemo } from 'react'
+import { observer } from 'mobx-react-lite'
 import { useGameContext } from '../../context/GameContext'
-import { formatNumber, formatFullNumber, isNumberAbbreviated } from '../../lib/format'
-import {StatCard} from "../stats/StatCard.jsx"
-import {UnlockCard} from "./UnlockCard.jsx"
+import { StatCard } from '../stats/StatCard.jsx'
+import { UnlockCard } from './UnlockCard.jsx'
 import { ConeIcon } from '../ui/ConeIcon'
-import { MoneyIcon, KnowledgeIcon, PrizeIcon } from '../ui/GameIcon'
+import { MoneyIcon, KnowledgeIcon } from '../ui/GameIcon'
 
+const ProgressStatsSection = memo(function ProgressStatsSection({ items }) {
+  return (
+    <div className="progress-stats">
+      {items.map((item, index) => (
+        <StatCard key={item.label} {...item} delay={index} className="progress-stats__card" formatValue={false} />
+      ))}
+    </div>
+  )
+})
 
-export const ProgressOverview = memo(function ProgressOverview() {
-  const { economy, state, prestige, achievements } = useGameContext()
+const MetaSummarySection = memo(function MetaSummarySection({ items }) {
+  return (
+    <section className="stats-bar stats-bar--shop meta-lifetime-grid progress-overview__mini-grid">
+      {items.map((item) => (
+        <StatCard key={item.label} {...item} formatValue={false} />
+      ))}
+    </section>
+  )
+})
 
-  const nextSub = useMemo(() => economy.subscriptions.find((i) => !i.unlocked), [economy.subscriptions])
-  const nextUpgrade = useMemo(() => economy.upgrades.find((i) => !i.unlocked), [economy.upgrades])
-  const unlockedAchievements = useMemo(() => achievements.filter((entry) => entry.unlocked).length, [achievements])
-  const metaSummary = [
-    { icon: <PrizeIcon />, label: 'Достижения', value: `${unlockedAchievements}/${achievements.length}`, hint: 'открыто сейчас', },
-    { icon: '♻️', label: 'Ребёрсы', value: formatNumber(state.rebirths), hint: 'завершённых циклов', },
-    { icon: '💎', label: 'Осколки', value: prestige.isUnlocked ? `${formatNumber(state.prestigeShards)} 💎` : 'закрыто', hint: 'баланс престижа', },
-    { icon: '🔮', label: 'След. награда', value: prestige.isUnlocked ? `${formatNumber(prestige.projectedShards)} 💎` : 'закрыто', hint: 'если ребёрс сейчас', },
-  ]
-  const progressStats = [
-    { icon: <ConeIcon />, label: 'Всего шишек', value: state.lifetimeShishkiEarned },
-    { icon: <MoneyIcon />, label: 'Денег в цикле', value: state.totalMoneyEarned },
-    { icon: <KnowledgeIcon />, label: 'Знаний в цикле', value: state.totalKnowledgeEarned },
-    { icon: '⚡', label: 'Мега-кликов', value: state.megaClicks },
-  ]
+const PrestigeOverviewCard = memo(function PrestigeOverviewCard({
+  prestige,
+  prestigeLabel,
+  cycleShishkiText,
+  cycleShishkiGoalText,
+  cycleShishkiFull,
+  cycleShishkiAbbreviated,
+  cycleKnowledgeText,
+  cycleKnowledgeGoalText,
+  cycleKnowledgeFull,
+  cycleKnowledgeAbbreviated,
+}) {
+  return (
+    <StatCard
+      className="stat-card--shop-surface stat-card--unlock prestige-overview-card"
+      label="Следующий ребёрс"
+      value={prestigeLabel}
+      hint={prestige.isUnlocked
+        ? 'Чтобы переродиться нужно закрыть квоту текущего цикла.'
+        : 'Сначала добей лайфтайм-порог и открой престиж.'}
+      valueClassName="text-fuchsia"
+      formatValue={false}
+    >
+      {prestige.isUnlocked ? (
+        <div className="unlock-progress">
+          <div className="unlock-progress__row">
+            <span><ConeIcon /> Шишки цикла</span>
+            <span {...(cycleShishkiAbbreviated ? { 'data-tip': cycleShishkiFull } : {})}>
+              {cycleShishkiText} / {cycleShishkiGoalText}
+            </span>
+          </div>
+          <div className="unlock-progress__track">
+            <div className="unlock-progress__fill" style={{ width: `${Math.min(100, prestige.cycleRatios.shishki * 100)}%` }} />
+          </div>
+
+          <div className="unlock-progress__row">
+            <span><KnowledgeIcon /> Знания цикла</span>
+            <span {...(cycleKnowledgeAbbreviated ? { 'data-tip': cycleKnowledgeFull } : {})}>
+              {cycleKnowledgeText} / {cycleKnowledgeGoalText}
+            </span>
+          </div>
+          <div className="unlock-progress__track">
+            <div className="unlock-progress__fill unlock-progress__fill--alt" style={{ width: `${Math.min(100, prestige.cycleRatios.knowledge * 100)}%` }} />
+          </div>
+        </div>
+      ) : null}
+    </StatCard>
+  )
+})
+
+const UnlockPreviewSection = memo(function UnlockPreviewSection({ nextSub, nextUpgrade }) {
+  if (!nextSub && !nextUpgrade) return null
+
+  return (
+    <div className="unlock-grid">
+      {nextSub && <UnlockCard title="Следующая подписка" item={nextSub} accentClass="text-fuchsia" />}
+      {nextUpgrade && <UnlockCard title="Следующий апгрейд" item={nextUpgrade} accentClass="text-cyan" />}
+    </div>
+  )
+})
+
+export const ProgressOverview = observer(function ProgressOverview() {
+  const { progressOverviewData } = useGameContext()
+  const {
+    nextSub,
+    nextUpgrade,
+    unlockedAchievements,
+    achievementsTotal,
+    rebirthsText,
+    prestigeShardsText,
+    projectedShardsText,
+    lifetimeShishkiEarnedText,
+    totalMoneyEarnedText,
+    totalKnowledgeEarnedText,
+    megaClicksText,
+    prestigeLabel,
+    cycleShishkiText,
+    cycleShishkiGoalText,
+    cycleShishkiFull,
+    cycleShishkiAbbreviated,
+    cycleKnowledgeText,
+    cycleKnowledgeGoalText,
+    cycleKnowledgeFull,
+    cycleKnowledgeAbbreviated,
+    prestige,
+  } = progressOverviewData
+
+  const metaSummary = useMemo(() => ([
+    { iconKey: 'prize', label: 'Достижения', value: `${unlockedAchievements}/${achievementsTotal}`, hint: 'открыто сейчас' },
+    { iconKey: 'rebirth', label: 'Ребёрсы', value: rebirthsText, hint: 'завершённых циклов' },
+    { iconKey: 'shards', label: 'Осколки', value: prestige.isUnlocked ? `${prestigeShardsText} 💎` : 'закрыто', hint: 'баланс престижа' },
+    { iconKey: 'reward', label: 'След. награда', value: prestige.isUnlocked ? `${projectedShardsText} 💎` : 'закрыто', hint: 'если ребёрс сейчас' },
+  ]), [achievementsTotal, projectedShardsText, prestige.isUnlocked, prestigeShardsText, rebirthsText, unlockedAchievements])
+
+  const progressStats = useMemo(() => ([
+    { icon: <ConeIcon />, label: 'Всего шишек', value: lifetimeShishkiEarnedText },
+    { icon: <MoneyIcon />, label: 'Денег в цикле', value: totalMoneyEarnedText },
+    { icon: <KnowledgeIcon />, label: 'Знаний в цикле', value: totalKnowledgeEarnedText },
+    { iconKey: 'mega', label: 'Мега-кликов', value: megaClicksText },
+  ]), [lifetimeShishkiEarnedText, megaClicksText, totalKnowledgeEarnedText, totalMoneyEarnedText])
 
   return (
     <div className="progress-overview">
-      <div className="progress-stats">
-        {progressStats.map((item, index) => (
-          <StatCard key={item.label} {...item} delay={index} className="progress-stats__card" />
-        ))}
-      </div>
-
-      <section className="stats-bar stats-bar--shop meta-lifetime-grid progress-overview__mini-grid">
-        {metaSummary.map((item) => (
-          <StatCard key={item.label} {...item} formatValue={false} />
-        ))}
-      </section>
-
-      <StatCard
-        className="stat-card--shop-surface stat-card--unlock prestige-overview-card"
-        label="Следующий ребёрс"
-        value={prestige.isUnlocked ? `Цикл #${prestige.rebirthRule.cycle}` : 'Система ещё закрыта'}
-        hint={prestige.isUnlocked
-          ? 'Чтобы переродиться нужно закрыть квоту текущего цикла.'
-          : 'Сначала добей лайфтайм-порог и открой престиж.'}
-        valueClassName="text-fuchsia"
-        formatValue={false}
-      >
-        {prestige.isUnlocked ? (
-          <div className="unlock-progress">
-            <div className="unlock-progress__row">
-              <span><ConeIcon /> Шишки цикла</span>
-              <span {...(isNumberAbbreviated(formatNumber(prestige.cycleProgress.shishki)) || isNumberAbbreviated(formatNumber(prestige.rebirthRule.shishki)) ? { 'data-tip': `${formatFullNumber(prestige.cycleProgress.shishki)} / ${formatFullNumber(prestige.rebirthRule.shishki)}` } : {})}>{formatNumber(prestige.cycleProgress.shishki)} / {formatNumber(prestige.rebirthRule.shishki)}</span>
-            </div>
-            <div className="unlock-progress__track">
-              <div className="unlock-progress__fill" style={{ width: `${Math.min(100, prestige.cycleRatios.shishki * 100)}%` }} />
-            </div>
-
-            <div className="unlock-progress__row">
-              <span><KnowledgeIcon /> Знания цикла</span>
-              <span {...(isNumberAbbreviated(formatNumber(prestige.cycleProgress.knowledge)) || isNumberAbbreviated(formatNumber(prestige.rebirthRule.knowledge)) ? { 'data-tip': `${formatFullNumber(prestige.cycleProgress.knowledge)} / ${formatFullNumber(prestige.rebirthRule.knowledge)}` } : {})}>{formatNumber(prestige.cycleProgress.knowledge)} / {formatNumber(prestige.rebirthRule.knowledge)}</span>
-            </div>
-            <div className="unlock-progress__track">
-              <div className="unlock-progress__fill unlock-progress__fill--alt" style={{ width: `${Math.min(100, prestige.cycleRatios.knowledge * 100)}%` }} />
-            </div>
-          </div>
-        ) : null}
-      </StatCard>
-
-      {(nextSub || nextUpgrade) && (
-        <div className="unlock-grid">
-          {nextSub && <UnlockCard title="Следующая подписка" item={nextSub} accentClass="text-fuchsia" />}
-          {nextUpgrade && <UnlockCard title="Следующий апгрейд" item={nextUpgrade} accentClass="text-cyan" />}
-        </div>
-      )}
+      <ProgressStatsSection items={progressStats} />
+      <MetaSummarySection items={metaSummary} />
+      <PrestigeOverviewCard
+        prestige={prestige}
+        prestigeLabel={prestigeLabel}
+        cycleShishkiText={cycleShishkiText}
+        cycleShishkiGoalText={cycleShishkiGoalText}
+        cycleShishkiFull={cycleShishkiFull}
+        cycleShishkiAbbreviated={cycleShishkiAbbreviated}
+        cycleKnowledgeText={cycleKnowledgeText}
+        cycleKnowledgeGoalText={cycleKnowledgeGoalText}
+        cycleKnowledgeFull={cycleKnowledgeFull}
+        cycleKnowledgeAbbreviated={cycleKnowledgeAbbreviated}
+      />
+      <UnlockPreviewSection nextSub={nextSub} nextUpgrade={nextUpgrade} />
     </div>
   )
 })

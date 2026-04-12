@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { observer } from 'mobx-react-lite'
 import { useGameContext } from '../../context/GameContext'
 import { ShopCard } from './ShopCard'
 
@@ -10,26 +11,10 @@ const SCREEN_META = {
     accent: 'orange',
     emptyText: 'Подписки загружаются…',
     categories: [
-      {
-        id: 'starter',
-        title: 'Стартовые ассистенты',
-        desc: 'Ранние сервисы для первого снежного кома и мягкого входа в AI-экономику.',
-      },
-      {
-        id: 'production',
-        title: 'Рабочие модели',
-        desc: 'Основной производственный слой середины игры: стабильный доход, наука и поддержка билда.',
-      },
-      {
-        id: 'research',
-        title: 'Исследовательские сервисы',
-        desc: 'Сервисы, которые сильнее всего толкают знания и помогают готовить престиж.',
-      },
-      {
-        id: 'frontier',
-        title: 'Фронтир-кластеры',
-        desc: 'Дорогие late-game модели для глубокой меты и финального разгона.',
-      },
+      { id: 'starter', title: 'Стартовые ассистенты', desc: 'Ранние сервисы для первого снежного кома и мягкого входа в AI-экономику.' },
+      { id: 'production', title: 'Рабочие модели', desc: 'Основной производственный слой середины игры: стабильный доход, наука и поддержка билда.' },
+      { id: 'research', title: 'Исследовательские сервисы', desc: 'Сервисы, которые сильнее всего толкают знания и помогают готовить престиж.' },
+      { id: 'frontier', title: 'Фронтир-кластеры', desc: 'Дорогие late-game модели для глубокой меты и финального разгона.' },
     ],
   },
   upgrades: {
@@ -39,26 +24,10 @@ const SCREEN_META = {
     accent: 'orange',
     emptyText: 'Апгрейды загружаются…',
     categories: [
-      {
-        id: 'manual',
-        title: 'Ручной темп',
-        desc: 'Апгрейды для клика, ранней стабильности и активной игры.',
-      },
-      {
-        id: 'industry',
-        title: 'Производство и логистика',
-        desc: 'Контур шишек, денег и инфраструктуры для ровной средней игры.',
-      },
-      {
-        id: 'research',
-        title: 'Обучение и исследования',
-        desc: 'Знаниевая ветка, усиливающая AI, науку и стратегические решения.',
-      },
-      {
-        id: 'capital',
-        title: 'Рост и капитал',
-        desc: 'Поздние ускорители экономики, престижной подготовки и длинной дистанции.',
-      },
+      { id: 'manual', title: 'Ручной темп', desc: 'Апгрейды для клика, ранней стабильности и активной игры.' },
+      { id: 'industry', title: 'Производство и логистика', desc: 'Контур шишек, денег и инфраструктуры для ровной средней игры.' },
+      { id: 'research', title: 'Обучение и исследования', desc: 'Знаниевая ветка, усиливающая AI, науку и стратегические решения.' },
+      { id: 'capital', title: 'Рост и капитал', desc: 'Поздние ускорители экономики, престижной подготовки и длинной дистанции.' },
     ],
   },
 }
@@ -111,7 +80,7 @@ function groupItemsByCategory(items, type, categories) {
     .filter((category) => category.items.length > 0)
 }
 
-function renderCategorySections({ groupedItems, state, onBuy, onInspect, delayOffset = 0 }) {
+function renderCategorySections({ groupedItems, onBuy, onInspect, delayOffset = 0 }) {
   let currentOffset = delayOffset
 
   return groupedItems.map((category) => {
@@ -123,20 +92,18 @@ function renderCategorySections({ groupedItems, state, onBuy, onInspect, delayOf
         </div>
 
         <div className="shop-grid shop-grid--category">
-          {category.items.map((item, index) => {
-            const balance = state[item.currency]
-            return (
-              <ShopCard
-                key={item.id}
-                item={item}
-                canBuy={balance >= item.cost}
-                balance={balance}
-                onBuy={() => onBuy(item.id)}
-                onInspect={() => onInspect(item.id)}
-                delay={currentOffset + index}
-              />
-            )
-          })}
+          {category.items.map((item, index) => (
+            <ShopCard
+              key={item.id}
+              itemId={item.id}
+              item={item}
+              canBuy={item.canBuy}
+              balance={item.balance}
+              onBuy={onBuy}
+              onInspect={onInspect}
+              delay={currentOffset + index}
+            />
+          ))}
         </div>
       </section>
     )
@@ -146,8 +113,8 @@ function renderCategorySections({ groupedItems, state, onBuy, onInspect, delayOf
   })
 }
 
-export function ShopScreen({ type }) {
-  const { economy, state, buySubscription, buyUpgrade, markShopItemSeen } = useGameContext()
+export const ShopScreen = observer(function ShopScreen({ type }) {
+  const { economy, buySubscription, buyUpgrade, markShopItemSeen, markShopItemsSeen } = useGameContext()
   const meta = SCREEN_META[type]
   const hasItemCategories = type === 'upgrades'
 
@@ -159,12 +126,14 @@ export function ShopScreen({ type }) {
   const lockedByCategory = hasItemCategories ? groupItemsByCategory(lockedItems, type, meta.categories) : []
 
   useEffect(() => {
-    items.forEach((item) => {
-      if (item.isNew || item.isBuyableNew) {
-        markShopItemSeen(item.id)
-      }
-    })
-  }, [items, markShopItemSeen])
+    const idsToMark = items
+      .filter((item) => item.isNew || item.isBuyableNew)
+      .map((item) => item.id)
+
+    if (idsToMark.length) {
+      markShopItemsSeen(idsToMark)
+    }
+  }, [items, markShopItemsSeen])
 
   return (
     <section className={`screen shop-screen--${meta.accent}`}>
@@ -174,9 +143,7 @@ export function ShopScreen({ type }) {
         <p className="screen__desc">{meta.desc}</p>
       </div>
 
-      {items.length === 0 && (
-        <div className="shop-empty">{meta.emptyText}</div>
-      )}
+      {items.length === 0 && <div className="shop-empty">{meta.emptyText}</div>}
 
       {unlockedItems.length > 0 && (
         <section className="shop-group shop-group--active">
@@ -190,7 +157,6 @@ export function ShopScreen({ type }) {
             <div className="shop-categories">
               {renderCategorySections({
                 groupedItems: unlockedByCategory,
-                state,
                 onBuy,
                 onInspect: markShopItemSeen,
                 delayOffset: 0,
@@ -198,20 +164,18 @@ export function ShopScreen({ type }) {
             </div>
           ) : (
             <div className="shop-grid">
-              {unlockedItems.map((item, i) => {
-                const balance = state[item.currency]
-                return (
-                  <ShopCard
-                    key={item.id}
-                    item={item}
-                    canBuy={balance >= item.cost}
-                    balance={balance}
-                    onBuy={() => onBuy(item.id)}
-                    onInspect={() => markShopItemSeen(item.id)}
-                    delay={i}
-                  />
-                )
-              })}
+              {unlockedItems.map((item, index) => (
+                <ShopCard
+                  key={item.id}
+                  itemId={item.id}
+                  item={item}
+                  canBuy={item.canBuy}
+                  balance={item.balance}
+                  onBuy={onBuy}
+                  onInspect={markShopItemSeen}
+                  delay={index}
+                />
+              ))}
             </div>
           )}
         </section>
@@ -229,7 +193,6 @@ export function ShopScreen({ type }) {
             <div className="shop-categories shop-categories--locked">
               {renderCategorySections({
                 groupedItems: lockedByCategory,
-                state,
                 onBuy,
                 onInspect: markShopItemSeen,
                 delayOffset: unlockedItems.length,
@@ -237,24 +200,22 @@ export function ShopScreen({ type }) {
             </div>
           ) : (
             <div className="shop-grid shop-grid--locked">
-              {lockedItems.map((item, i) => {
-                const balance = state[item.currency]
-                return (
-                  <ShopCard
-                    key={item.id}
-                    item={item}
-                    canBuy={balance >= item.cost}
-                    balance={balance}
-                    onBuy={() => onBuy(item.id)}
-                    onInspect={() => markShopItemSeen(item.id)}
-                    delay={unlockedItems.length + i}
-                  />
-                )
-              })}
+              {lockedItems.map((item, index) => (
+                <ShopCard
+                  key={item.id}
+                  itemId={item.id}
+                  item={item}
+                  canBuy={item.canBuy}
+                  balance={item.balance}
+                  onBuy={onBuy}
+                  onInspect={markShopItemSeen}
+                  delay={unlockedItems.length + index}
+                />
+              ))}
             </div>
           )}
         </section>
       )}
     </section>
   )
-}
+})

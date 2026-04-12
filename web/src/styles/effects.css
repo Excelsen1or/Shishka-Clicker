@@ -1,7 +1,7 @@
 .clicker-particles,
 .bursts-layer {
   position: fixed;
-  inset: 0;
+  inset: auto;
   overflow: visible;
   pointer-events: none;
 }

@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import { observer } from 'mobx-react-lite'
 import { useGameContext } from '../../context/GameContext'
 import { useSettingsContext } from '../../context/SettingsContext'
 import {
@@ -12,7 +13,7 @@ import { SettingsAudio } from './SettingsAudio.jsx'
 import { SettingsEffects } from './SettingsEffects.jsx'
 import { SettingsAbout } from './SettingsAbout.jsx'
 
-export function SettingsScreen() {
+export const SettingsScreen = observer(function SettingsScreen() {
   const { resetGame, markSilenceLover, exportGameSave, importGameSave } = useGameContext()
   const {
     settings,
@@ -186,4 +187,4 @@ export function SettingsScreen() {
       </div>
     </section>
   )
-}
+})

@@ -1,8 +1,9 @@
-import { memo, useEffect, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
+import { observer } from 'mobx-react-lite'
 import { useGameContext } from '../../context/GameContext'
 import { useSettingsContext } from '../../context/SettingsContext'
 import { useSound } from '../../hooks/useSound'
-import achievementSound from '../../assets/audio/ui/opoveshchenie.mp3'
+import achievementSound from '../../assets/audio/ui/achiv.mp3'
 import { PrizeIcon } from './GameIcon'
 
 const DISPLAY_DURATION = 3400
@@ -11,9 +12,31 @@ const EXIT_DURATION = 500
 const ActiveAchievementToast = memo(function ActiveAchievementToast({ current, dismissAchievement }) {
   const [leaving, setLeaving] = useState(false)
   const { play } = useSound(achievementSound, { volume: 0.65 })
+  const replayRef = useRef(false)
 
   useEffect(() => {
-    play()
+    let cancelled = false
+
+    const tryPlay = () => {
+      if (cancelled) return
+      const maybePromise = play()
+      if (maybePromise && typeof maybePromise.catch === 'function') {
+        maybePromise.catch(() => {
+          if (replayRef.current) return
+          replayRef.current = true
+          const unlock = () => {
+            window.removeEventListener('pointerdown', unlock)
+            window.removeEventListener('keydown', unlock)
+            replayRef.current = false
+            play()
+          }
+          window.addEventListener('pointerdown', unlock, { once: true })
+          window.addEventListener('keydown', unlock, { once: true })
+        })
+      }
+    }
+
+    tryPlay()
 
     const exitTimer = window.setTimeout(() => {
       setLeaving(true)
@@ -24,6 +47,7 @@ const ActiveAchievementToast = memo(function ActiveAchievementToast({ current, d
     }, DISPLAY_DURATION + EXIT_DURATION)
 
     return () => {
+      cancelled = true
       window.clearTimeout(exitTimer)
       window.clearTimeout(dismissTimer)
     }
@@ -44,7 +68,7 @@ const ActiveAchievementToast = memo(function ActiveAchievementToast({ current, d
   )
 })
 
-export const AchievementToast = memo(function AchievementToast() {
+export const AchievementToast = observer(function AchievementToast() {
   const { achievementQueue, dismissAchievement } = useGameContext()
   const { visualEffectToggles } = useSettingsContext()
   const current = achievementQueue[0]

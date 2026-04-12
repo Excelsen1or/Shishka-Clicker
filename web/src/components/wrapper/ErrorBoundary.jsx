@@ -32,7 +32,7 @@ export class ErrorBoundary extends Component {
 						<span className="screen__kicker">Ошибка</span>
 						<h2 className="screen__title">Что-то пошло не так</h2>
 						<p className="screen__desc">
-							Произошла неожиданная ошибка интерфейса. Попробуйте перезагрузить страницу.
+							Всё сломалось, но не отчаивайтесь! Просто перезагрузите страницу, и всё должно заработать снова.
 						</p>
 						{import.meta.env.DEV && this.state.error ? (
 							<pre className="screen__desc" style={{ whiteSpace: 'pre-wrap' }}>

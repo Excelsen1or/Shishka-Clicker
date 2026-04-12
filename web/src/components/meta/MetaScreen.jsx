@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { observer } from 'mobx-react-lite'
 import { useGameContext } from '../../context/GameContext'
 import { formatNumber } from '../../lib/format'
 import { ProgressLoopCard } from '../clicker/ProgressLoopCard.jsx'
@@ -12,7 +13,7 @@ import { ConeIcon } from '../ui/ConeIcon'
 import { KnowledgeIcon, MoneyIcon, PrizeIcon } from '../ui/GameIcon'
 
 
-export function MetaScreen() {
+export const MetaScreen = observer(function MetaScreen() {
   const { state, economy, achievements, prestige, prestigeReset, buyPrestigeUpgrade } = useGameContext()
   const unlockedCount = achievements.filter((entry) => entry.unlocked).length
 
@@ -163,4 +164,4 @@ export function MetaScreen() {
       />
     </section>
   )
-}
+})

@@ -2,12 +2,31 @@ import { useCallback, useEffect, useRef } from 'react'
 import { useSettingsContext } from '../context/SettingsContext'
 
 let sharedCtx = null
+const rawAudioCache = new Map()
+const decodedAudioCache = new Map()
+
 function getAudioContext() {
   if (!sharedCtx || sharedCtx.state === 'closed') {
     sharedCtx = new (window.AudioContext || window.webkitAudioContext)()
   }
   if (sharedCtx.state === 'suspended') sharedCtx.resume()
   return sharedCtx
+}
+
+function loadRawAudio(src) {
+  if (!rawAudioCache.has(src)) {
+    rawAudioCache.set(
+      src,
+      fetch(src)
+        .then((res) => res.arrayBuffer())
+        .catch((err) => {
+          rawAudioCache.delete(src)
+          throw err
+        }),
+    )
+  }
+
+  return rawAudioCache.get(src)
 }
 
 export function useSound(src, { volume = 1, randomPitch } = {}) {
@@ -18,8 +37,7 @@ export function useSound(src, { volume = 1, randomPitch } = {}) {
   useEffect(() => {
     let cancelled = false
 
-    fetch(src)
-      .then((res) => res.arrayBuffer())
+    loadRawAudio(src)
       .then((data) => {
         if (!cancelled) rawRef.current = data
       })
@@ -32,12 +50,31 @@ export function useSound(src, { volume = 1, randomPitch } = {}) {
 
   const play = useCallback(async () => {
     if (effectVolumeFactor <= 0) return
-    if (!rawRef.current && !bufferRef.current) return
+    if (!rawRef.current && !bufferRef.current) {
+      try {
+        rawRef.current = await loadRawAudio(src)
+      } catch {
+        return
+      }
+    }
 
     const ctx = getAudioContext()
 
     if (!bufferRef.current && rawRef.current) {
-      bufferRef.current = await ctx.decodeAudioData(rawRef.current.slice(0))
+      if (!decodedAudioCache.has(src)) {
+        decodedAudioCache.set(
+          src,
+          ctx.decodeAudioData(rawRef.current.slice(0)).catch((err) => {
+            decodedAudioCache.delete(src)
+            throw err
+          }),
+        )
+      }
+      try {
+        bufferRef.current = await decodedAudioCache.get(src)
+      } catch {
+        return
+      }
     }
     if (!bufferRef.current) return
 
@@ -60,7 +97,7 @@ export function useSound(src, { volume = 1, randomPitch } = {}) {
     source.connect(gain)
     gain.connect(ctx.destination)
     source.start(0)
-  }, [effectVolumeFactor, randomPitch, volume])
+  }, [effectVolumeFactor, randomPitch, src, volume])
 
   return { play }
 }

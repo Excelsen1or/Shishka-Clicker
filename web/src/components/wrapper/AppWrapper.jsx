@@ -3,13 +3,14 @@ import {AchievementToast} from "../ui/AchievementToast.jsx"
 import {DevConsole} from "../ui/DevConsole.jsx"
 import {TooltipManager} from "../ui/TooltipManager.jsx"
 import {StatsBar} from "../stats/StatsBar.jsx"
-import {lazy, memo, Suspense, useEffect} from "react"
+import {lazy, memo, Suspense, useEffect, useMemo} from "react"
 import {Header} from "../header/Header.jsx"
 import {setupDiscord} from "../../discord.js"
 import {useBackgroundMusic} from "../../hooks/useBackgroundMusic.js"
 import {useNav} from "../../context/NavContext.jsx"
 import {useSettingsContext} from "../../context/SettingsContext.jsx"
-import backgroundMusic from '../../assets/audio/music/background.mp3'
+import backgroundMusicOpus from '../../assets/audio/music/background.opus'
+import backgroundMusicMp3 from '../../assets/audio/music/background.mp3'
 import {ScreenFallback} from "./ScreenFallback.jsx"
 
 
@@ -35,15 +36,40 @@ const AppBackground = memo(function AppBackground({ visualEffectToggles }) {
 export const AppWrapper = memo(function AppWrapper() {
 	const { activeTab } = useNav()
 	const { visualEffectToggles } = useSettingsContext()
+	const backgroundSources = useMemo(() => [backgroundMusicOpus, backgroundMusicMp3], [])
 
-	const statsBarClassName = activeTab === 'subscriptions' || activeTab === 'upgrades' || activeTab === 'meta' || activeTab === 'settings'
-		? 'stats-bar--shop'
-		: ''
-
-	useBackgroundMusic(backgroundMusic)
+	useBackgroundMusic(backgroundSources)
 
 	useEffect(() => {
 		void setupDiscord()
+	}, [])
+
+	useEffect(() => {
+		if (typeof document === 'undefined') return undefined
+
+		const root = document.documentElement
+		let timeoutId = 0
+
+		const markScrolling = () => {
+			root.dataset.appScrolling = 'true'
+			window.clearTimeout(timeoutId)
+			timeoutId = window.setTimeout(() => {
+				root.dataset.appScrolling = 'false'
+			}, 180)
+		}
+
+		root.dataset.appScrolling = 'false'
+		window.addEventListener('scroll', markScrolling, { passive: true })
+		window.addEventListener('wheel', markScrolling, { passive: true })
+		window.addEventListener('touchmove', markScrolling, { passive: true })
+
+		return () => {
+			window.clearTimeout(timeoutId)
+			delete root.dataset.appScrolling
+			window.removeEventListener('scroll', markScrolling)
+			window.removeEventListener('wheel', markScrolling)
+			window.removeEventListener('touchmove', markScrolling)
+		}
 	}, [])
 
 	return (
@@ -53,7 +79,7 @@ export const AppWrapper = memo(function AppWrapper() {
 			<div className="app-content">
 				<Header />
 				<main className="app-main">
-					{activeTab !== 'clicker' && <StatsBar className={statsBarClassName} />}
+					<StatsBar className="stats-bar--shop" />
 					<div className="screen-bg">
 						<div className="screen__glow" />
 						<Suspense fallback={<ScreenFallback />}>

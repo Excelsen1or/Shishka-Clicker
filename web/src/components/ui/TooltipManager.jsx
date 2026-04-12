@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 export function TooltipManager() {
@@ -7,12 +7,27 @@ export function TooltipManager() {
   const tooltipRef = useRef(null)
   const timeoutRef = useRef(null)
   const positionRef = useRef({ x: 0, y: 0 })
+  const frameRef = useRef(0)
 
   useEffect(() => {
-    function handleMouseMove(e) {
-      positionRef.current = { x: e.clientX, y: e.clientY }
-      if (!tooltip) return
+    if (window.matchMedia?.('(pointer: coarse)').matches) {
+      return undefined
+    }
+
+    function flushPosition() {
+      frameRef.current = 0
       setPosition(positionRef.current)
+    }
+
+    function schedulePositionUpdate() {
+      if (frameRef.current) return
+      frameRef.current = window.requestAnimationFrame(flushPosition)
+    }
+
+    function handleMouseMove(event) {
+      positionRef.current = { x: event.clientX, y: event.clientY }
+      if (!tooltip) return
+      schedulePositionUpdate()
     }
 
     function getTipFromTarget(target) {
@@ -21,10 +36,10 @@ export function TooltipManager() {
       return tipNode?.getAttribute('data-tip') || null
     }
 
-    function handleMouseEnter(e) {
-      const tip = getTipFromTarget(e.target)
+    function handleMouseEnter(event) {
+      const tip = getTipFromTarget(event.target)
       if (tip) {
-        positionRef.current = { x: e.clientX, y: e.clientY }
+        positionRef.current = { x: event.clientX, y: event.clientY }
         clearTimeout(timeoutRef.current)
         timeoutRef.current = setTimeout(() => {
           setTooltip(tip)
@@ -33,8 +48,8 @@ export function TooltipManager() {
       }
     }
 
-    function handleMouseLeave(e) {
-      if (getTipFromTarget(e.target)) {
+    function handleMouseLeave(event) {
+      if (getTipFromTarget(event.target)) {
         clearTimeout(timeoutRef.current)
         setTooltip(null)
       }
@@ -49,6 +64,9 @@ export function TooltipManager() {
       document.removeEventListener('mouseenter', handleMouseEnter, true)
       document.removeEventListener('mouseleave', handleMouseLeave, true)
       clearTimeout(timeoutRef.current)
+      if (frameRef.current) {
+        window.cancelAnimationFrame(frameRef.current)
+      }
     }
   }, [tooltip])
 
@@ -68,6 +86,6 @@ export function TooltipManager() {
     >
       <div className="tooltip-cursor__content">{tooltip}</div>
     </div>,
-    document.body
+    document.body,
   )
 }

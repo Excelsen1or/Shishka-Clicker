@@ -91,7 +91,52 @@ function getCardClassName(item, isLocked, canBuy) {
   ].filter(Boolean).join(' ')
 }
 
-export const ShopCard = memo(function ShopCard({ item, canBuy, balance = 0, onBuy, onInspect, delay = 0 }) {
+function areEffectPreviewsEqual(previousPreview, nextPreview) {
+  return (previousPreview?.currentText ?? null) === (nextPreview?.currentText ?? null)
+    && (previousPreview?.nextText ?? null) === (nextPreview?.nextText ?? null)
+}
+
+function areUnlockProgressEqual(previousProgress, nextProgress) {
+  return (previousProgress?.shishki ?? 0) === (nextProgress?.shishki ?? 0)
+    && (previousProgress?.knowledge ?? 0) === (nextProgress?.knowledge ?? 0)
+}
+
+function areUnlockRulesEqual(previousRule, nextRule) {
+  return (previousRule?.shishki ?? 0) === (nextRule?.shishki ?? 0)
+    && (previousRule?.knowledge ?? 0) === (nextRule?.knowledge ?? 0)
+}
+
+function areShopItemsEqual(previousItem, nextItem) {
+  return previousItem.id === nextItem.id
+    && previousItem.title === nextItem.title
+    && previousItem.description === nextItem.description
+    && previousItem.currency === nextItem.currency
+    && previousItem.tier === nextItem.tier
+    && previousItem.level === nextItem.level
+    && previousItem.cost === nextItem.cost
+    && previousItem.balance === nextItem.balance
+    && previousItem.canBuy === nextItem.canBuy
+    && previousItem.unlocked === nextItem.unlocked
+    && previousItem.isNew === nextItem.isNew
+    && previousItem.isBuyableNew === nextItem.isBuyableNew
+    && previousItem.unlockText === nextItem.unlockText
+    && previousItem.effectLabel === nextItem.effectLabel
+    && areEffectPreviewsEqual(previousItem.effectPreview, nextItem.effectPreview)
+    && areUnlockProgressEqual(previousItem.unlockProgress, nextItem.unlockProgress)
+    && areUnlockRulesEqual(previousItem.unlockRule, nextItem.unlockRule)
+}
+
+function areShopCardPropsEqual(previousProps, nextProps) {
+  return previousProps.itemId === nextProps.itemId
+    && previousProps.canBuy === nextProps.canBuy
+    && previousProps.balance === nextProps.balance
+    && previousProps.delay === nextProps.delay
+    && previousProps.onBuy === nextProps.onBuy
+    && previousProps.onInspect === nextProps.onInspect
+    && areShopItemsEqual(previousProps.item, nextProps.item)
+}
+
+export const ShopCard = memo(function ShopCard({ itemId, item, canBuy, balance = 0, onBuy, onInspect, delay = 0 }) {
   const isLocked = !item.unlocked
   const showDetails = !isLocked
   const currency = CURRENCY_META[item.currency] ?? { icon: '✨', label: 'ресурс' }
@@ -197,12 +242,12 @@ export const ShopCard = memo(function ShopCard({ item, canBuy, balance = 0, onBu
     }
 
     playBuySound()
-    onBuy()
+    onBuy?.(itemId)
   }
 
   const handleInspect = () => {
     if (!item.isNew && !item.isBuyableNew) return
-    onInspect?.()
+    onInspect?.(itemId)
   }
 
   const missingAmount = Math.max(0, Number(item.cost) - Number(balance))
@@ -300,4 +345,4 @@ export const ShopCard = memo(function ShopCard({ item, canBuy, balance = 0, onBu
       )}
     </article>
   )
-})
+}, areShopCardPropsEqual)

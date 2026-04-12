@@ -1,4 +1,5 @@
-import { memo, useCallback, useMemo } from 'react'
+import { useCallback } from 'react'
+import { observer } from 'mobx-react-lite'
 import { useNav } from '../../context/NavContext.jsx'
 import { useGameContext } from '../../context/GameContext.jsx'
 import { useSound } from '../../hooks/useSound.js'
@@ -8,31 +9,10 @@ function getButtonClassName(isActive) {
   return `bottom-nav__btn ${isActive ? 'bottom-nav__btn--active' : ''}`
 }
 
-export const BottomNav = memo(function BottomNav() {
+export const BottomNav = observer(function BottomNav() {
   const { activeTab, setActiveTab, tabs } = useNav()
-  const { economy } = useGameContext()
+  const { bottomNavAlerts } = useGameContext()
   const { play } = useSound(switchSound, { volume: 0.1 })
-
-  const tabAlerts = useMemo(() => ({
-    subscriptions: (() => {
-      const items = economy.subscriptions ?? []
-      const readyCount = items.filter((item) => item.isBuyableNew).length
-      const newCount = items.filter((item) => item.isNew && !item.isBuyableNew).length
-      return {
-        count: readyCount || newCount,
-        hasReady: readyCount > 0,
-      }
-    })(),
-    upgrades: (() => {
-      const items = economy.upgrades ?? []
-      const readyCount = items.filter((item) => item.isBuyableNew).length
-      const newCount = items.filter((item) => item.isNew && !item.isBuyableNew).length
-      return {
-        count: readyCount || newCount,
-        hasReady: readyCount > 0,
-      }
-    })(),
-  }), [economy.subscriptions, economy.upgrades])
 
   const handleTabChange = useCallback((tabId) => {
     play()
@@ -44,7 +24,7 @@ export const BottomNav = memo(function BottomNav() {
       <div className="bottom-nav__track">
         {tabs.map((tab) => {
           const isActive = tab.id === activeTab
-          const alert = tabAlerts[tab.id]
+          const alert = bottomNavAlerts[tab.id]
 
           return (
             <button
