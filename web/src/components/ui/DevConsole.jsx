@@ -36,7 +36,6 @@ const DevConsolePanel = observer(function DevConsolePanel() {
     "date": () => pushLog(new Date().toLocaleString()),
     "sv.cheats true": () => {
       setCheatsEnabled(true)
-      pushLog('> sv.cheats true', 'cmd')
       pushLog('Читы активированы. Админ-панель открыта.', 'success')
     },
     "help": () => {
@@ -90,8 +89,6 @@ const DevConsolePanel = observer(function DevConsolePanel() {
 
       return
     }
-
-    pushLog(`> ${cmd}`, 'cmd')
 
     if (cmd === 'sv.cheats false') {
       setCheatsEnabled(false)
@@ -169,9 +166,9 @@ const DevConsolePanel = observer(function DevConsolePanel() {
                 ? 'Введите help для списка команд'
                 : 'Введите секретную команду для активации читов…'}
             </div>
-            <div className="dev-console__hint">
+            {!cheatsEnabled && <div className="dev-console__hint">
               или help для списка команд
-            </div>
+            </div>}
           </>
         )}
         {log.map((entry) => (
