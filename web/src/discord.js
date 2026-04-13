@@ -2,6 +2,7 @@ import { DiscordSDK } from '@discord/embedded-app-sdk'
 import { exchangeDiscordCode } from './lib/discordAuth.js'
 
 const DISCORD_CLIENT_ID = import.meta.env.VITE_CLIENT_ID ?? import.meta.env.VITE_DISCORD_CLIENT_ID
+const DISCORD_ACTIVITY_SCOPES = ['identify', 'rpc.activities.write']
 
 function createDiscordSdk() {
   if (typeof window === 'undefined' || !DISCORD_CLIENT_ID) {
@@ -36,7 +37,7 @@ export async function setupDiscord() {
       response_type: 'code',
       state: 'discord-activity',
       prompt: 'none',
-      scope: ['identify'],
+      scope: DISCORD_ACTIVITY_SCOPES,
     })
 
     const { access_token: accessToken } = await exchangeDiscordCode(code)
@@ -64,6 +65,15 @@ export async function setupDiscord() {
       error,
     }
   }
+}
+
+export async function setDiscordRichPresence(activity) {
+  if (!discordSdk || !activity) {
+    return false
+  }
+
+  await discordSdk.commands.setActivity({ activity })
+  return true
 }
 
 export function getDiscordSdk() {

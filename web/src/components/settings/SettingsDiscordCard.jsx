@@ -23,6 +23,9 @@ export function SettingsDiscordCard() {
     lastSyncedAt,
     syncSource,
     manualSync,
+    presenceState,
+    presenceError,
+    lastPresenceAt,
   } = useDiscordActivity()
   const [isSyncing, setIsSyncing] = useState(false)
 
@@ -53,6 +56,10 @@ export function SettingsDiscordCard() {
       </p>
 
       <p className="settings-card__hint settings-card__hint--block">
+        Rich Presence: {presenceState}. Последнее обновление: {formatDate(lastPresenceAt)}.
+      </p>
+
+      <p className="settings-card__hint settings-card__hint--block">
         Последняя синхронизация: {formatDate(lastSyncedAt)}
         {syncSource ? ` (${syncSource})` : ''}
       </p>
@@ -60,6 +67,12 @@ export function SettingsDiscordCard() {
       {syncError ? (
         <div className="settings-transfer-status settings-transfer-status--error">
           {syncError}
+        </div>
+      ) : null}
+
+      {presenceError ? (
+        <div className="settings-transfer-status settings-transfer-status--error">
+          {presenceError}
         </div>
       ) : null}
 

@@ -90,7 +90,6 @@
   z-index: -1;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.05' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 120px 120px;
-  mix-blend-mode: soft-light;
   contain: paint;
 }
 
@@ -1174,7 +1173,6 @@
   background:
     radial-gradient(circle at top, rgba(255, 196, 77, 0.16), transparent 34%),
     rgba(9, 10, 17, 0.84);
-  backdrop-filter: blur(18px);
 }
 
 .sync-conflict {

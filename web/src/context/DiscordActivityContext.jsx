@@ -9,7 +9,7 @@ import {
 } from 'react'
 import { useStores } from '../stores/StoresProvider.jsx'
 import { useSettingsContext } from './SettingsContext.jsx'
-import { setupDiscord } from '../discord.js'
+import { setDiscordRichPresence, setupDiscord } from '../discord.js'
 import { APP_VERSION } from '../config/appMeta.js'
 import { createSaveBundle, normalizeImportedBundle } from '../lib/saveTransfer.js'
 import { downloadCloudSave, uploadCloudSave } from '../lib/cloudSave.js'
@@ -97,9 +97,14 @@ export function DiscordActivityProvider({ children }) {
     lastSyncedAt: null,
     syncSource: null,
     conflict: null,
+    presenceState: 'idle',
+    presenceError: null,
+    lastPresenceAt: null,
   })
   const remoteVersionRef = useRef(null)
   const syncedLocalUpdatedAtRef = useRef(null)
+  const discordSdkRef = useRef(null)
+  const lastPresenceSignatureRef = useRef('')
 
   const setSyncState = useCallback((patch) => {
     setState((current) => ({
@@ -378,15 +383,22 @@ export function DiscordActivityProvider({ children }) {
         const session = await setupDiscord()
 
         if (cancelled || !session?.isActivity || !session.user?.id) {
+          discordSdkRef.current = null
+          lastPresenceSignatureRef.current = ''
+
           setState((current) => ({
             ...current,
             isActivity: false,
             status: 'idle',
+            presenceState: 'idle',
+            presenceError: null,
           }))
           return
         }
 
         const playerId = buildDiscordPlayerId(session.user.id)
+        discordSdkRef.current = session.discordSdk ?? null
+        lastPresenceSignatureRef.current = ''
 
         setState((current) => ({
           ...current,
@@ -397,11 +409,16 @@ export function DiscordActivityProvider({ children }) {
           error: null,
           syncState: 'loading',
           syncError: null,
+          presenceState: 'idle',
+          presenceError: null,
         }))
 
         await synchronizeNow({ playerIdOverride: playerId })
       } catch (error) {
         if (cancelled) return
+
+        discordSdkRef.current = null
+        lastPresenceSignatureRef.current = ''
 
         setState((current) => ({
           ...current,
@@ -409,6 +426,8 @@ export function DiscordActivityProvider({ children }) {
           error: error instanceof Error ? error.message : 'discord_activity_init_failed',
           syncState: 'error',
           syncError: error instanceof Error ? error.message : 'discord_activity_init_failed',
+          presenceState: 'error',
+          presenceError: error instanceof Error ? error.message : 'discord_activity_init_failed',
         }))
       }
     }
@@ -453,6 +472,39 @@ export function DiscordActivityProvider({ children }) {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [flushLatestSaveOnExit, state.playerId])
+
+  const updateRichPresence = useCallback(async (activity) => {
+    if (!state.isActivity || state.status !== 'ready' || !discordSdkRef.current || !activity) {
+      return false
+    }
+
+    const signature = JSON.stringify(activity)
+
+    if (lastPresenceSignatureRef.current === signature && state.presenceState === 'ready') {
+      return true
+    }
+
+    try {
+      await setDiscordRichPresence(activity)
+      lastPresenceSignatureRef.current = signature
+
+      setState((current) => ({
+        ...current,
+        presenceState: 'ready',
+        presenceError: null,
+        lastPresenceAt: new Date().toISOString(),
+      }))
+
+      return true
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        presenceState: 'error',
+        presenceError: error instanceof Error ? error.message : 'rich_presence_update_failed',
+      }))
+      return false
+    }
+  }, [state.isActivity, state.presenceState, state.status])
 
   const manualSync = useCallback(async () => {
     try {
@@ -510,10 +562,11 @@ export function DiscordActivityProvider({ children }) {
   const value = useMemo(() => ({
     ...state,
     manualSync,
+    updateRichPresence,
     acceptCloudSave,
     keepLocalSave,
     clearConflict,
-  }), [acceptCloudSave, clearConflict, keepLocalSave, manualSync, state])
+  }), [acceptCloudSave, clearConflict, keepLocalSave, manualSync, state, updateRichPresence])
 
   return <DiscordActivityContext.Provider value={value}>{children}</DiscordActivityContext.Provider>
 }
