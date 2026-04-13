@@ -39,6 +39,7 @@ export function DiscordActivityProvider({ children }) {
     syncSource: null,
   })
   const lastUploadedLocalUpdatedAtRef = useRef(null)
+  const lastSeenRemoteUpdatedAtRef = useRef(null)
 
   const setSyncState = useCallback((patch) => {
     setState((current) => ({
@@ -88,6 +89,88 @@ export function DiscordActivityProvider({ children }) {
     return true
   }, [exportSettings, setSyncState, state.playerId, stores.gameStore])
 
+  const applyRemoteSave = useCallback((cloudSave) => {
+    if (!cloudSave?.save) return false
+
+    const imported = normalizeImportedBundle(cloudSave.save)
+    stores.gameStore.importGameSave(imported.game)
+
+    if (imported.settings) {
+      importSettings(imported.settings)
+    }
+
+    const localRecord = loadGameRecord()
+    lastUploadedLocalUpdatedAtRef.current = localRecord.updatedAt
+    lastSeenRemoteUpdatedAtRef.current = cloudSave.updatedAt ?? null
+
+    setSyncState({
+      syncState: 'synced',
+      syncError: null,
+      lastSyncedAt: cloudSave.updatedAt ?? new Date().toISOString(),
+      syncSource: 'download',
+    })
+
+    return true
+  }, [importSettings, setSyncState, stores.gameStore])
+
+  const synchronizeNow = useCallback(async ({
+    forceUpload = false,
+    forceDownload = false,
+    playerIdOverride = null,
+  } = {}) => {
+    const playerId = playerIdOverride ?? state.playerId
+    if (!playerId) return false
+
+    setSyncState({
+      syncState: 'syncing',
+      syncError: null,
+    })
+
+    const localRecord = loadGameRecord()
+    const localUpdatedAtValue = getTimeValue(localRecord.updatedAt)
+    const cloudSave = await downloadCloudSave(playerId)
+
+    if (!cloudSave?.save) {
+      lastSeenRemoteUpdatedAtRef.current = null
+      const uploaded = await uploadLatestSave({ force: true, playerIdOverride: playerId })
+      return uploaded
+    }
+
+    const remoteUpdatedAtValue = getTimeValue(cloudSave.updatedAt)
+    const lastSeenRemoteValue = getTimeValue(lastSeenRemoteUpdatedAtRef.current)
+
+    if (forceDownload || remoteUpdatedAtValue > localUpdatedAtValue) {
+      return applyRemoteSave(cloudSave)
+    }
+
+    if (forceUpload || localUpdatedAtValue > remoteUpdatedAtValue) {
+      const uploaded = await uploadLatestSave({
+        force: true,
+        playerIdOverride: playerId,
+      })
+
+      if (uploaded) {
+        lastSeenRemoteUpdatedAtRef.current = cloudSave.updatedAt ?? lastSeenRemoteUpdatedAtRef.current
+      }
+
+      return uploaded
+    }
+
+    lastSeenRemoteUpdatedAtRef.current =
+      remoteUpdatedAtValue >= lastSeenRemoteValue
+        ? (cloudSave.updatedAt ?? lastSeenRemoteUpdatedAtRef.current)
+        : lastSeenRemoteUpdatedAtRef.current
+
+    setSyncState({
+      syncState: 'synced',
+      syncError: null,
+      lastSyncedAt: cloudSave.updatedAt ?? localRecord.updatedAt ?? new Date().toISOString(),
+      syncSource: 'noop',
+    })
+
+    return false
+  }, [applyRemoteSave, setSyncState, state.playerId, uploadLatestSave])
+
   useEffect(() => {
     let cancelled = false
 
@@ -124,42 +207,7 @@ export function DiscordActivityProvider({ children }) {
           syncError: null,
         }))
 
-        const localRecord = loadGameRecord()
-        const cloudSave = await downloadCloudSave(playerId)
-
-        if (cancelled) return
-
-        if (!cloudSave?.save) {
-          lastUploadedLocalUpdatedAtRef.current = null
-          await uploadLatestSave({ force: true, playerIdOverride: playerId })
-          return
-        }
-
-        const localUpdatedAt = getTimeValue(localRecord.updatedAt)
-        const remoteUpdatedAt = getTimeValue(cloudSave.updatedAt)
-
-        if (remoteUpdatedAt > localUpdatedAt) {
-          const imported = normalizeImportedBundle(cloudSave.save)
-          stores.gameStore.importGameSave(imported.game)
-
-          if (imported.settings) {
-            importSettings(imported.settings)
-          }
-
-          lastUploadedLocalUpdatedAtRef.current = loadGameRecord().updatedAt
-
-          setState((current) => ({
-            ...current,
-            syncState: 'synced',
-            syncError: null,
-            lastSyncedAt: cloudSave.updatedAt ?? new Date().toISOString(),
-            syncSource: 'download',
-          }))
-
-          return
-        }
-
-        await uploadLatestSave({ force: true, playerIdOverride: playerId })
+        await synchronizeNow({ forceUpload: true, playerIdOverride: playerId })
       } catch (error) {
         if (cancelled) return
 
@@ -178,23 +226,25 @@ export function DiscordActivityProvider({ children }) {
     return () => {
       cancelled = true
     }
-  }, [importSettings, stores.gameStore, uploadLatestSave])
+  }, [synchronizeNow])
 
   useEffect(() => {
     if (!state.playerId) return undefined
 
     const intervalId = window.setInterval(() => {
-      void uploadLatestSave()
+      void synchronizeNow()
     }, AUTO_SYNC_INTERVAL_MS)
 
     return () => {
       window.clearInterval(intervalId)
     }
-  }, [state.playerId, uploadLatestSave])
+  }, [state.playerId, synchronizeNow])
 
   const manualSync = useCallback(async () => {
     try {
-      await uploadLatestSave({ force: true })
+      await synchronizeNow({
+        forceUpload: true,
+      })
       return true
     } catch (error) {
       setState((current) => ({
@@ -205,7 +255,7 @@ export function DiscordActivityProvider({ children }) {
 
       return false
     }
-  }, [uploadLatestSave])
+  }, [synchronizeNow])
 
   const value = useMemo(() => ({
     ...state,
