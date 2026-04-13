@@ -18,7 +18,8 @@ import { buildDiscordPlayerId } from '../lib/playerId.js'
 
 const DiscordActivityContext = createContext(null)
 const AUTO_SYNC_INTERVAL_MS = 15000
-const PROGRESS_SCORE_EPSILON = 20
+const EMPTY_PROGRESS_SCORE_THRESHOLD = 25
+const CONFLICT_PROGRESS_SCORE_GAP = 140
 
 function getTimeValue(value) {
   const time = Date.parse(value ?? '')
@@ -84,6 +85,7 @@ export function DiscordActivityProvider({ children }) {
     syncError: null,
     lastSyncedAt: null,
     syncSource: null,
+    conflict: null,
   })
   const lastUploadedLocalUpdatedAtRef = useRef(null)
   const lastSeenRemoteUpdatedAtRef = useRef(null)
@@ -92,6 +94,13 @@ export function DiscordActivityProvider({ children }) {
     setState((current) => ({
       ...current,
       ...patch,
+    }))
+  }, [])
+
+  const clearConflict = useCallback(() => {
+    setState((current) => ({
+      ...current,
+      conflict: null,
     }))
   }, [])
 
@@ -157,11 +166,45 @@ export function DiscordActivityProvider({ children }) {
       syncSource: 'download',
     })
 
+    clearConflict()
+
     return true
-  }, [importSettings, setSyncState, stores.gameStore])
+  }, [clearConflict, importSettings, setSyncState, stores.gameStore])
+
+  const buildSnapshotSummary = useCallback((gameState, updatedAt, source) => ({
+    source,
+    updatedAt: updatedAt ?? null,
+    progressScore: Math.round(getProgressScore(gameState)),
+    lifetimeShishkiEarned: Number(gameState?.lifetimeShishkiEarned ?? gameState?.totalShishkiEarned ?? 0),
+    lifetimeMoneyEarned: Number(gameState?.lifetimeMoneyEarned ?? gameState?.totalMoneyEarned ?? 0),
+    lifetimeKnowledgeEarned: Number(gameState?.lifetimeKnowledgeEarned ?? gameState?.totalKnowledgeEarned ?? 0),
+    rebirths: Number(gameState?.rebirths ?? 0),
+    prestigeShards: Number(gameState?.prestigeShards ?? 0),
+    achievements: countUnlockedAchievements(gameState?.achievements),
+    subscriptions: sumLevels(gameState?.subscriptions),
+    upgrades: sumLevels(gameState?.upgrades),
+  }), [])
+
+  const openConflict = useCallback(({ localRecord, cloudSave, playerId, winner }) => {
+    const remoteGameState = getGameStateFromCloudSave(cloudSave)
+    const localGameState = localRecord.state
+
+    setState((current) => ({
+      ...current,
+      syncState: 'conflict',
+      syncError: null,
+      syncSource: 'conflict',
+      conflict: {
+        winner,
+        playerId,
+        local: buildSnapshotSummary(localGameState, localRecord.updatedAt, 'local'),
+        remote: buildSnapshotSummary(remoteGameState, cloudSave?.updatedAt, 'cloud'),
+        cloudSave,
+      },
+    }))
+  }, [buildSnapshotSummary])
 
   const synchronizeNow = useCallback(async ({
-    forceUpload = false,
     forceDownload = false,
     playerIdOverride = null,
   } = {}) => {
@@ -180,6 +223,9 @@ export function DiscordActivityProvider({ children }) {
     if (!cloudSave?.save) {
       lastSeenRemoteUpdatedAtRef.current = null
       const uploaded = await uploadLatestSave({ force: true, playerIdOverride: playerId })
+      if (uploaded) {
+        clearConflict()
+      }
       return uploaded
     }
 
@@ -188,14 +234,68 @@ export function DiscordActivityProvider({ children }) {
     const lastSeenRemoteValue = getTimeValue(lastSeenRemoteUpdatedAtRef.current)
     const localProgressScore = getProgressScore(localRecord.state)
     const remoteProgressScore = getProgressScore(remoteGameState)
-    const remoteProgressAhead = remoteProgressScore > localProgressScore + PROGRESS_SCORE_EPSILON
-    const localProgressAhead = localProgressScore > remoteProgressScore + PROGRESS_SCORE_EPSILON
+    const localIsNearlyEmpty = localProgressScore <= EMPTY_PROGRESS_SCORE_THRESHOLD
+    const remoteIsNearlyEmpty = remoteProgressScore <= EMPTY_PROGRESS_SCORE_THRESHOLD
+    const progressGap = Math.abs(localProgressScore - remoteProgressScore)
 
-    if (forceDownload || remoteProgressAhead || remoteUpdatedAtValue > localUpdatedAtValue) {
+    if (!localIsNearlyEmpty && remoteIsNearlyEmpty) {
+      const uploaded = await uploadLatestSave({
+        force: true,
+        playerIdOverride: playerId,
+      })
+
+      if (uploaded) {
+        clearConflict()
+      }
+
+      return uploaded
+    }
+
+    if (localIsNearlyEmpty && !remoteIsNearlyEmpty) {
       return applyRemoteSave(cloudSave)
     }
 
-    if ((forceUpload && !remoteProgressAhead) || localProgressAhead || localUpdatedAtValue > remoteUpdatedAtValue) {
+    if (forceDownload) {
+      return applyRemoteSave(cloudSave)
+    }
+
+    if (
+      remoteUpdatedAtValue > localUpdatedAtValue &&
+      !remoteIsNearlyEmpty &&
+      !localIsNearlyEmpty &&
+      localProgressScore > remoteProgressScore &&
+      progressGap >= CONFLICT_PROGRESS_SCORE_GAP
+    ) {
+      openConflict({
+        localRecord,
+        cloudSave,
+        playerId,
+        winner: 'cloud_by_timestamp',
+      })
+      return false
+    }
+
+    if (
+      localUpdatedAtValue > remoteUpdatedAtValue &&
+      !remoteIsNearlyEmpty &&
+      !localIsNearlyEmpty &&
+      remoteProgressScore > localProgressScore &&
+      progressGap >= CONFLICT_PROGRESS_SCORE_GAP
+    ) {
+      openConflict({
+        localRecord,
+        cloudSave,
+        playerId,
+        winner: 'local_by_timestamp',
+      })
+      return false
+    }
+
+    if (remoteUpdatedAtValue > localUpdatedAtValue) {
+      return applyRemoteSave(cloudSave)
+    }
+
+    if (localUpdatedAtValue > remoteUpdatedAtValue) {
       const uploaded = await uploadLatestSave({
         force: true,
         playerIdOverride: playerId,
@@ -203,6 +303,7 @@ export function DiscordActivityProvider({ children }) {
 
       if (uploaded) {
         lastSeenRemoteUpdatedAtRef.current = cloudSave.updatedAt ?? lastSeenRemoteUpdatedAtRef.current
+        clearConflict()
       }
 
       return uploaded
@@ -220,8 +321,10 @@ export function DiscordActivityProvider({ children }) {
       syncSource: 'noop',
     })
 
+    clearConflict()
+
     return false
-  }, [applyRemoteSave, setSyncState, state.playerId, uploadLatestSave])
+  }, [applyRemoteSave, clearConflict, openConflict, setSyncState, state.playerId, uploadLatestSave])
 
   useEffect(() => {
     let cancelled = false
@@ -259,7 +362,7 @@ export function DiscordActivityProvider({ children }) {
           syncError: null,
         }))
 
-        await synchronizeNow({ forceUpload: true, playerIdOverride: playerId })
+        await synchronizeNow({ playerIdOverride: playerId })
       } catch (error) {
         if (cancelled) return
 
@@ -294,9 +397,7 @@ export function DiscordActivityProvider({ children }) {
 
   const manualSync = useCallback(async () => {
     try {
-      await synchronizeNow({
-        forceUpload: false,
-      })
+      await synchronizeNow()
       return true
     } catch (error) {
       setState((current) => ({
@@ -309,10 +410,51 @@ export function DiscordActivityProvider({ children }) {
     }
   }, [synchronizeNow])
 
+  const acceptCloudSave = useCallback(async () => {
+    const conflict = state.conflict
+    if (!conflict?.cloudSave) return false
+
+    try {
+      applyRemoteSave(conflict.cloudSave)
+      return true
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        syncState: 'error',
+        syncError: error instanceof Error ? error.message : 'accept_cloud_save_failed',
+      }))
+      return false
+    }
+  }, [applyRemoteSave, state.conflict])
+
+  const keepLocalSave = useCallback(async () => {
+    const conflict = state.conflict
+    if (!conflict?.playerId) return false
+
+    try {
+      await uploadLatestSave({
+        force: true,
+        playerIdOverride: conflict.playerId,
+      })
+      clearConflict()
+      return true
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        syncState: 'error',
+        syncError: error instanceof Error ? error.message : 'keep_local_save_failed',
+      }))
+      return false
+    }
+  }, [clearConflict, state.conflict, uploadLatestSave])
+
   const value = useMemo(() => ({
     ...state,
     manualSync,
-  }), [manualSync, state])
+    acceptCloudSave,
+    keepLocalSave,
+    clearConflict,
+  }), [acceptCloudSave, clearConflict, keepLocalSave, manualSync, state])
 
   return <DiscordActivityContext.Provider value={value}>{children}</DiscordActivityContext.Provider>
 }

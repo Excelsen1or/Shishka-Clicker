@@ -6,6 +6,7 @@ import { memo, useEffect, useSyncExternalStore } from 'react'
 import { Header } from '../header/Header.jsx'
 import { useNav } from '../../context/NavContext.jsx'
 import { useSettingsContext } from '../../context/SettingsContext.jsx'
+import { SyncConflictDialog } from '../settings/SyncConflictDialog.jsx'
 import { ScreenFallback } from './ScreenFallback.jsx'
 
 export const loadClickerScreen = () => import('../clicker/ClickerScreen')
@@ -190,6 +191,7 @@ export const AppWrapper = memo(function AppWrapper() {
       </div>
 
       <AchievementToast />
+      <SyncConflictDialog />
       <DevConsole />
       <BottomNav />
     </div>
