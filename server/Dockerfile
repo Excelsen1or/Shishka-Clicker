@@ -26,4 +26,4 @@ COPY --from=server-build /server/dist ./dist
 
 ENV NODE_ENV=development
 
-EXPOSE 8000
+EXPOSE 8002

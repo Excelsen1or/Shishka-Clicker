@@ -27,7 +27,7 @@ app.use(bodyParser.urlencoded({
 }))
 app.use(express.json())
 
-const port = Number(process.env.SERVER_PORT) || 8000
+const port = Number(process.env.SERVER_PORT) || 8002
 
 server.listen(port, "0.0.0.0", () => {
 	console.log("Server running on port " + port)

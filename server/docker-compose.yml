@@ -6,6 +6,6 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8002:8000"
+      - "8002:8002"
     command:
       sh -c "cd /server && node ./dist/index.js"
