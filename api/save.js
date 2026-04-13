@@ -26,7 +26,7 @@ export default async function handler(req, res) {
       })
     }
 
-    const { playerId, appVersion, save } = req.body ?? {}
+    const { playerId, appVersion, save, expectedVersion = null, force = false } = req.body ?? {}
 
     if (!playerId || !save) {
       return res.status(400).json({
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
 
     const { data: existingRows, error: selectError } = await supabase
       .from('player_saves')
-      .select('id')
+      .select('id, save_data, updated_at, app_version, save_version')
       .eq('player_id', normalizedPlayerId)
       .order('updated_at', { ascending: false })
 
@@ -52,30 +52,60 @@ export default async function handler(req, res) {
       })
     }
 
-    const payload = {
-      player_id: normalizedPlayerId,
-      app_version: appVersion ?? null,
-      save_version: 1,
-      save_data: save,
-    }
-
-    let error = null
-
     if (existingRows?.length) {
       const newestRow = existingRows[0]
-      const updateResult = await supabase
+
+      if (!force && expectedVersion !== null && Number(expectedVersion) !== Number(newestRow.save_version ?? 0)) {
+        return res.status(409).json({
+          ok: false,
+          error: 'save_conflict',
+          current: {
+            save: newestRow.save_data,
+            updatedAt: newestRow.updated_at,
+            appVersion: newestRow.app_version,
+            saveVersion: newestRow.save_version ?? null,
+          },
+        })
+      }
+
+      const nextVersion = Number(newestRow.save_version ?? 0) + 1
+      const { data: updatedRow, error } = await supabase
         .from('player_saves')
-        .update(payload)
+        .update({
+          player_id: normalizedPlayerId,
+          app_version: appVersion ?? null,
+          save_version: nextVersion,
+          save_data: save,
+        })
         .eq('id', newestRow.id)
+        .select('updated_at, save_version')
+        .single()
 
-      error = updateResult.error
-    } else {
-      const insertResult = await supabase
-        .from('player_saves')
-        .insert(payload)
+      if (error) {
+        console.error('SAVE_ERROR', error)
+        return res.status(500).json({
+          ok: false,
+          error: error.message,
+        })
+      }
 
-      error = insertResult.error
+      return res.status(200).json({
+        ok: true,
+        saveVersion: updatedRow?.save_version ?? nextVersion,
+        updatedAt: updatedRow?.updated_at ?? new Date().toISOString(),
+      })
     }
+
+    const { data: insertedRow, error } = await supabase
+      .from('player_saves')
+      .insert({
+        player_id: normalizedPlayerId,
+        app_version: appVersion ?? null,
+        save_version: 1,
+        save_data: save,
+      })
+      .select('updated_at, save_version')
+      .single()
 
     if (error) {
       console.error('SAVE_ERROR', error)
@@ -87,6 +117,8 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       ok: true,
+      saveVersion: insertedRow?.save_version ?? 1,
+      updatedAt: insertedRow?.updated_at ?? new Date().toISOString(),
     })
   } catch (error) {
     console.error('SAVE_FATAL', error)

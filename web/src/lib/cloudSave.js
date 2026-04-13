@@ -1,4 +1,4 @@
-export async function uploadCloudSave({ playerId, appVersion, save }) {
+export async function uploadCloudSave({ playerId, appVersion, save, expectedVersion = null, force = false }) {
   const response = await fetch('/api/save', {
     method: 'POST',
     headers: {
@@ -8,9 +8,19 @@ export async function uploadCloudSave({ playerId, appVersion, save }) {
       playerId,
       appVersion,
       save,
+      expectedVersion,
+      force,
     }),
     keepalive: true,
   })
+
+  if (response.status === 409) {
+    const payload = await response.json()
+    const error = new Error('Cloud save conflict')
+    error.code = 'cloud_conflict'
+    error.current = payload.current ?? null
+    throw error
+  }
 
   if (!response.ok) {
     const text = await response.text()

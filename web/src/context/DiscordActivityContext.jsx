@@ -19,12 +19,6 @@ import { buildDiscordPlayerId } from '../lib/playerId.js'
 const DiscordActivityContext = createContext(null)
 const AUTO_SYNC_INTERVAL_MS = 15000
 const EMPTY_PROGRESS_SCORE_THRESHOLD = 25
-const CONFLICT_PROGRESS_SCORE_GAP = 140
-
-function getTimeValue(value) {
-  const time = Date.parse(value ?? '')
-  return Number.isFinite(time) ? time : 0
-}
 
 function sumLevels(map) {
   if (!map || typeof map !== 'object') return 0
@@ -72,6 +66,23 @@ function getGameStateFromCloudSave(cloudSave) {
   }
 }
 
+function buildSnapshotSummary(gameState, updatedAt, source, saveVersion = null) {
+  return {
+    source,
+    updatedAt: updatedAt ?? null,
+    saveVersion,
+    progressScore: Math.round(getProgressScore(gameState)),
+    lifetimeShishkiEarned: Number(gameState?.lifetimeShishkiEarned ?? gameState?.totalShishkiEarned ?? 0),
+    lifetimeMoneyEarned: Number(gameState?.lifetimeMoneyEarned ?? gameState?.totalMoneyEarned ?? 0),
+    lifetimeKnowledgeEarned: Number(gameState?.lifetimeKnowledgeEarned ?? gameState?.totalKnowledgeEarned ?? 0),
+    rebirths: Number(gameState?.rebirths ?? 0),
+    prestigeShards: Number(gameState?.prestigeShards ?? 0),
+    achievements: countUnlockedAchievements(gameState?.achievements),
+    subscriptions: sumLevels(gameState?.subscriptions),
+    upgrades: sumLevels(gameState?.upgrades),
+  }
+}
+
 export function DiscordActivityProvider({ children }) {
   const stores = useStores()
   const { exportSettings, importSettings } = useSettingsContext()
@@ -87,8 +98,8 @@ export function DiscordActivityProvider({ children }) {
     syncSource: null,
     conflict: null,
   })
-  const lastUploadedLocalUpdatedAtRef = useRef(null)
-  const lastSeenRemoteUpdatedAtRef = useRef(null)
+  const remoteVersionRef = useRef(null)
+  const syncedLocalUpdatedAtRef = useRef(null)
 
   const setSyncState = useCallback((patch) => {
     setState((current) => ({
@@ -104,7 +115,65 @@ export function DiscordActivityProvider({ children }) {
     }))
   }, [])
 
-  const uploadLatestSave = useCallback(async ({ force = false, playerIdOverride = null } = {}) => {
+  const markSynced = useCallback(({ localUpdatedAt, remoteUpdatedAt, remoteVersion, source }) => {
+    syncedLocalUpdatedAtRef.current = localUpdatedAt ?? null
+    remoteVersionRef.current = remoteVersion ?? null
+
+    setSyncState({
+      syncState: 'synced',
+      syncError: null,
+      lastSyncedAt: remoteUpdatedAt ?? localUpdatedAt ?? new Date().toISOString(),
+      syncSource: source,
+    })
+
+    clearConflict()
+  }, [clearConflict, setSyncState])
+
+  const openConflict = useCallback(({ playerId, localRecord, cloudSave, reason }) => {
+    const remoteGameState = getGameStateFromCloudSave(cloudSave)
+
+    setState((current) => ({
+      ...current,
+      syncState: 'conflict',
+      syncError: null,
+      syncSource: 'conflict',
+      conflict: {
+        reason,
+        playerId,
+        local: buildSnapshotSummary(localRecord.state, localRecord.updatedAt, 'local', remoteVersionRef.current),
+        remote: buildSnapshotSummary(remoteGameState, cloudSave?.updatedAt, 'cloud', cloudSave?.saveVersion ?? null),
+        cloudSave,
+      },
+    }))
+  }, [])
+
+  const applyRemoteSave = useCallback((cloudSave) => {
+    if (!cloudSave?.save) return false
+
+    const imported = normalizeImportedBundle(cloudSave.save)
+    stores.gameStore.importGameSave(imported.game)
+
+    if (imported.settings) {
+      importSettings(imported.settings)
+    }
+
+    const localRecord = loadGameRecord()
+
+    markSynced({
+      localUpdatedAt: localRecord.updatedAt,
+      remoteUpdatedAt: cloudSave.updatedAt,
+      remoteVersion: cloudSave.saveVersion ?? null,
+      source: 'download',
+    })
+
+    return true
+  }, [importSettings, markSynced, stores.gameStore])
+
+  const uploadLatestSave = useCallback(async ({
+    force = false,
+    playerIdOverride = null,
+    expectedVersionOverride = undefined,
+  } = {}) => {
     const playerId = playerIdOverride ?? state.playerId
 
     if (!playerId) return false
@@ -112,7 +181,7 @@ export function DiscordActivityProvider({ children }) {
     const localRecord = loadGameRecord()
     const localUpdatedAt = localRecord.updatedAt
 
-    if (!force && (!localUpdatedAt || lastUploadedLocalUpdatedAtRef.current === localUpdatedAt)) {
+    if (!force && (!localUpdatedAt || syncedLocalUpdatedAtRef.current === localUpdatedAt)) {
       return false
     }
 
@@ -127,87 +196,25 @@ export function DiscordActivityProvider({ children }) {
       syncError: null,
     })
 
-    await uploadCloudSave({
+    const result = await uploadCloudSave({
       playerId,
       appVersion: APP_VERSION,
       save,
+      expectedVersion: expectedVersionOverride === undefined ? remoteVersionRef.current : expectedVersionOverride,
+      force,
     })
 
-    lastUploadedLocalUpdatedAtRef.current = localUpdatedAt ?? new Date().toISOString()
-
-    setSyncState({
-      syncState: 'synced',
-      syncError: null,
-      lastSyncedAt: new Date().toISOString(),
-      syncSource: 'upload',
+    markSynced({
+      localUpdatedAt,
+      remoteUpdatedAt: result.updatedAt ?? new Date().toISOString(),
+      remoteVersion: result.saveVersion ?? remoteVersionRef.current,
+      source: 'upload',
     })
 
     return true
-  }, [exportSettings, setSyncState, state.playerId, stores.gameStore])
+  }, [exportSettings, markSynced, setSyncState, state.playerId, stores.gameStore])
 
-  const applyRemoteSave = useCallback((cloudSave) => {
-    if (!cloudSave?.save) return false
-
-    const imported = normalizeImportedBundle(cloudSave.save)
-    stores.gameStore.importGameSave(imported.game)
-
-    if (imported.settings) {
-      importSettings(imported.settings)
-    }
-
-    const localRecord = loadGameRecord()
-    lastUploadedLocalUpdatedAtRef.current = localRecord.updatedAt
-    lastSeenRemoteUpdatedAtRef.current = cloudSave.updatedAt ?? null
-
-    setSyncState({
-      syncState: 'synced',
-      syncError: null,
-      lastSyncedAt: cloudSave.updatedAt ?? new Date().toISOString(),
-      syncSource: 'download',
-    })
-
-    clearConflict()
-
-    return true
-  }, [clearConflict, importSettings, setSyncState, stores.gameStore])
-
-  const buildSnapshotSummary = useCallback((gameState, updatedAt, source) => ({
-    source,
-    updatedAt: updatedAt ?? null,
-    progressScore: Math.round(getProgressScore(gameState)),
-    lifetimeShishkiEarned: Number(gameState?.lifetimeShishkiEarned ?? gameState?.totalShishkiEarned ?? 0),
-    lifetimeMoneyEarned: Number(gameState?.lifetimeMoneyEarned ?? gameState?.totalMoneyEarned ?? 0),
-    lifetimeKnowledgeEarned: Number(gameState?.lifetimeKnowledgeEarned ?? gameState?.totalKnowledgeEarned ?? 0),
-    rebirths: Number(gameState?.rebirths ?? 0),
-    prestigeShards: Number(gameState?.prestigeShards ?? 0),
-    achievements: countUnlockedAchievements(gameState?.achievements),
-    subscriptions: sumLevels(gameState?.subscriptions),
-    upgrades: sumLevels(gameState?.upgrades),
-  }), [])
-
-  const openConflict = useCallback(({ localRecord, cloudSave, playerId, winner }) => {
-    const remoteGameState = getGameStateFromCloudSave(cloudSave)
-    const localGameState = localRecord.state
-
-    setState((current) => ({
-      ...current,
-      syncState: 'conflict',
-      syncError: null,
-      syncSource: 'conflict',
-      conflict: {
-        winner,
-        playerId,
-        local: buildSnapshotSummary(localGameState, localRecord.updatedAt, 'local'),
-        remote: buildSnapshotSummary(remoteGameState, cloudSave?.updatedAt, 'cloud'),
-        cloudSave,
-      },
-    }))
-  }, [buildSnapshotSummary])
-
-  const synchronizeNow = useCallback(async ({
-    forceDownload = false,
-    playerIdOverride = null,
-  } = {}) => {
+  const synchronizeNow = useCallback(async ({ forceDownload = false, playerIdOverride = null } = {}) => {
     const playerId = playerIdOverride ?? state.playerId
     if (!playerId) return false
 
@@ -217,114 +224,113 @@ export function DiscordActivityProvider({ children }) {
     })
 
     const localRecord = loadGameRecord()
-    const localUpdatedAtValue = getTimeValue(localRecord.updatedAt)
+    const localGameState = localRecord.state
+    const localProgressScore = getProgressScore(localGameState)
+    const localIsNearlyEmpty = localProgressScore <= EMPTY_PROGRESS_SCORE_THRESHOLD
+    const localDirty =
+      Boolean(localRecord.updatedAt) &&
+      localRecord.updatedAt !== syncedLocalUpdatedAtRef.current
+
     const cloudSave = await downloadCloudSave(playerId)
 
     if (!cloudSave?.save) {
-      lastSeenRemoteUpdatedAtRef.current = null
-      const uploaded = await uploadLatestSave({ force: true, playerIdOverride: playerId })
-      if (uploaded) {
-        clearConflict()
+      if (localIsNearlyEmpty) {
+        markSynced({
+          localUpdatedAt: localRecord.updatedAt,
+          remoteUpdatedAt: localRecord.updatedAt,
+          remoteVersion: null,
+          source: 'noop',
+        })
+        return false
       }
-      return uploaded
+
+      return uploadLatestSave({
+        force: true,
+        playerIdOverride: playerId,
+        expectedVersionOverride: null,
+      })
     }
 
     const remoteGameState = getGameStateFromCloudSave(cloudSave)
-    const remoteUpdatedAtValue = getTimeValue(cloudSave.updatedAt)
-    const lastSeenRemoteValue = getTimeValue(lastSeenRemoteUpdatedAtRef.current)
-    const localProgressScore = getProgressScore(localRecord.state)
     const remoteProgressScore = getProgressScore(remoteGameState)
-    const localIsNearlyEmpty = localProgressScore <= EMPTY_PROGRESS_SCORE_THRESHOLD
     const remoteIsNearlyEmpty = remoteProgressScore <= EMPTY_PROGRESS_SCORE_THRESHOLD
-    const progressGap = Math.abs(localProgressScore - remoteProgressScore)
-
-    if (!localIsNearlyEmpty && remoteIsNearlyEmpty) {
-      const uploaded = await uploadLatestSave({
-        force: true,
-        playerIdOverride: playerId,
-      })
-
-      if (uploaded) {
-        clearConflict()
-      }
-
-      return uploaded
-    }
+    const knownRemoteVersion = remoteVersionRef.current
+    const remoteVersion = cloudSave.saveVersion ?? null
 
     if (localIsNearlyEmpty && !remoteIsNearlyEmpty) {
       return applyRemoteSave(cloudSave)
+    }
+
+    if (!localIsNearlyEmpty && remoteIsNearlyEmpty) {
+      return uploadLatestSave({
+        force: true,
+        playerIdOverride: playerId,
+        expectedVersionOverride: remoteVersion,
+      })
     }
 
     if (forceDownload) {
       return applyRemoteSave(cloudSave)
     }
 
-    if (
-      remoteUpdatedAtValue > localUpdatedAtValue &&
-      !remoteIsNearlyEmpty &&
-      !localIsNearlyEmpty &&
-      localProgressScore > remoteProgressScore &&
-      progressGap >= CONFLICT_PROGRESS_SCORE_GAP
-    ) {
-      openConflict({
-        localRecord,
-        cloudSave,
-        playerId,
-        winner: 'cloud_by_timestamp',
-      })
-      return false
-    }
-
-    if (
-      localUpdatedAtValue > remoteUpdatedAtValue &&
-      !remoteIsNearlyEmpty &&
-      !localIsNearlyEmpty &&
-      remoteProgressScore > localProgressScore &&
-      progressGap >= CONFLICT_PROGRESS_SCORE_GAP
-    ) {
-      openConflict({
-        localRecord,
-        cloudSave,
-        playerId,
-        winner: 'local_by_timestamp',
-      })
-      return false
-    }
-
-    if (remoteUpdatedAtValue > localUpdatedAtValue) {
-      return applyRemoteSave(cloudSave)
-    }
-
-    if (localUpdatedAtValue > remoteUpdatedAtValue) {
-      const uploaded = await uploadLatestSave({
-        force: true,
-        playerIdOverride: playerId,
-      })
-
-      if (uploaded) {
-        lastSeenRemoteUpdatedAtRef.current = cloudSave.updatedAt ?? lastSeenRemoteUpdatedAtRef.current
-        clearConflict()
+    if (knownRemoteVersion == null) {
+      if (!localDirty || localIsNearlyEmpty) {
+        return applyRemoteSave(cloudSave)
       }
 
-      return uploaded
+      openConflict({
+        playerId,
+        localRecord,
+        cloudSave,
+        reason: 'first_sync_conflict',
+      })
+      return false
     }
 
-    lastSeenRemoteUpdatedAtRef.current =
-      remoteUpdatedAtValue >= lastSeenRemoteValue
-        ? (cloudSave.updatedAt ?? lastSeenRemoteUpdatedAtRef.current)
-        : lastSeenRemoteUpdatedAtRef.current
+    if (remoteVersion !== knownRemoteVersion) {
+      if (!localDirty) {
+        return applyRemoteSave(cloudSave)
+      }
 
-    setSyncState({
-      syncState: 'synced',
-      syncError: null,
-      lastSyncedAt: cloudSave.updatedAt ?? localRecord.updatedAt ?? new Date().toISOString(),
-      syncSource: 'noop',
-    })
+      openConflict({
+        playerId,
+        localRecord,
+        cloudSave,
+        reason: 'remote_changed_while_local_dirty',
+      })
+      return false
+    }
 
-    clearConflict()
+    if (!localDirty) {
+      markSynced({
+        localUpdatedAt: localRecord.updatedAt,
+        remoteUpdatedAt: cloudSave.updatedAt,
+        remoteVersion,
+        source: 'noop',
+      })
+      return false
+    }
 
-    return false
-  }, [applyRemoteSave, clearConflict, openConflict, setSyncState, state.playerId, uploadLatestSave])
+    try {
+      return await uploadLatestSave({
+        force: true,
+        playerIdOverride: playerId,
+        expectedVersionOverride: knownRemoteVersion,
+      })
+    } catch (error) {
+      if (error?.code === 'cloud_conflict' && error.current) {
+        openConflict({
+          playerId,
+          localRecord,
+          cloudSave: error.current,
+          reason: 'save_rejected_by_server_revision',
+        })
+        return false
+      }
+
+      throw error
+    }
+  }, [applyRemoteSave, markSynced, openConflict, setSyncState, state.playerId, uploadLatestSave])
 
   useEffect(() => {
     let cancelled = false
@@ -405,7 +411,6 @@ export function DiscordActivityProvider({ children }) {
         syncState: 'error',
         syncError: error instanceof Error ? error.message : 'manual_sync_failed',
       }))
-
       return false
     }
   }, [synchronizeNow])
@@ -435,6 +440,7 @@ export function DiscordActivityProvider({ children }) {
       await uploadLatestSave({
         force: true,
         playerIdOverride: conflict.playerId,
+        expectedVersionOverride: null,
       })
       clearConflict()
       return true

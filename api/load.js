@@ -39,7 +39,7 @@ export default async function handler(req, res) {
 
     const { data, error } = await supabase
       .from('player_saves')
-      .select('save_data, updated_at, app_version')
+      .select('save_data, updated_at, app_version, save_version')
       .eq('player_id', String(playerId))
       .order('updated_at', { ascending: false })
       .limit(1)
@@ -66,6 +66,7 @@ export default async function handler(req, res) {
       save: data.save_data,
       updatedAt: data.updated_at,
       appVersion: data.app_version,
+      saveVersion: data.save_version ?? null,
     })
   } catch (error) {
     return res.status(500).json({
