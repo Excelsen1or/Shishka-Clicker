@@ -1,4 +1,4 @@
-import {corsOptions, server} from "../index"
+import {server} from "../index"
 import {Server} from "socket.io"
 
 
@@ -34,16 +34,27 @@ export class ServerSocket {
 
 	static async initServerSocket() {
 		this.io = new Server(server, {
-			cors: corsOptions
+			cors: {
+				origin: "*"
+			}
 		})
-
 		console.log("Server socket created")
 
+		let activityClient: any = null
+
 		this.io.on("connection", socket => {
+			activityClient = socket
+
+			// backend -> iframe
+			socket.on("ws-emit", (msg) => {
+				console.log(`Received ${JSON.stringify(msg)}`)
+			})
+
 			console.log("Client connected", socket.id)
 			this.updateTopList()
 
 			socket.on("disconnect", async (reason) => {
+				activityClient = null
 				console.log("Client disconnected", socket.id, reason)
 				await this.updateTopList()
 			})
@@ -57,6 +68,16 @@ export class ServerSocket {
 				socket.emit("pong", data)
 			})
 		})
+
+		function sendToIframe(event: string, data: any) {
+			if (!activityClient) return
+
+			activityClient.emit("message", {
+				type: "ws-event",
+				event,
+				data
+			})
+		}
 	}
 
 }

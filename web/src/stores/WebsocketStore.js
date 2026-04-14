@@ -1,8 +1,6 @@
 import {makeAutoObservable, runInAction} from 'mobx'
-import { io } from 'socket.io-client'
+import { socket } from "../lib/activitySocket.js"
 
-
-const WEBSOCKET_URL = 'https://shishki.default-squad.ru/'
 
 export const WEBSOCKET_STATE = {
   LOADING: 'LOADING',
@@ -11,7 +9,6 @@ export const WEBSOCKET_STATE = {
 }
 
 export default class WebsocketStore {
-  socket
   user
   data = []
   CURRENT_STATE = WEBSOCKET_STATE.LOADING
@@ -32,45 +29,38 @@ export default class WebsocketStore {
   }
 
   sendDataToServer() {
-    if (!this.username || !this.socket) return
+    console.log("Send data to server", this.username)
+    if (!this.username) return
 
-    this.socket.emit('client_data', {
+    socket.emit("client_data", {
       username: this.username,
-      shishki: this.shishkiTotal,
+      shishki: this.shishkiTotal
     })
   }
 
-  log(message) {
-    console.log(`WebSocket | ${message}`)
-  }
+  log = (message) => console.log(`WebSocket | ${message}`)
 
   init() {
     this.log("Initializing")
 
-    this.socket = io(WEBSOCKET_URL)
-
     setInterval(this.sendDataToServer, 5 * 1000)
 
-    this.socket.on('connect', this.connectSuccess)
-    this.socket.on('disconnect', (reason) => {
+    socket.on("connect", this.connectSuccess)
+    socket.on('disconnect', (reason) => {
       console.log('[WebSocket] Disconnected', reason)
 
       if (reason === 'transport close') {
         this.connectErrorFailure()
       }
     })
-    this.socket.on('connect_error', (error) => {
-      this.log(`Connect error: ${error}`)
-    })
-    this.socket.on('top_list', this.updateTopList)
-    this.socket.on("pong", () => this.log("Ответ от сервера успешно получен и связь установлена!"))
+    socket.on('connect_error', (error) => this.log(`Connect error: ${error}`))
+    socket.on('top_list', this.updateTopList)
+    socket.on("pong", () => this.log("Ответ от сервера успешно получен и связь установлена!"))
   }
 
   ping = () => this.emit("ping", {})
 
-  emit(type, data) {
-    this.socket?.emit(type, JSON.stringify(data))
-  }
+  emit = (type, data) => socket?.emit(type, JSON.stringify(data))
 
   connectSuccess() {
     this.CURRENT_STATE = WEBSOCKET_STATE.SUCCESS
