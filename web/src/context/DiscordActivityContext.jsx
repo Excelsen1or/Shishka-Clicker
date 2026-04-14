@@ -105,6 +105,7 @@ export function DiscordActivityProvider({ children }) {
   const syncedLocalUpdatedAtRef = useRef(null)
   const discordSdkRef = useRef(null)
   const lastPresenceSignatureRef = useRef('')
+  const discordBootstrapStartedRef = useRef(false)
 
   const setSyncState = useCallback((patch) => {
     setState((current) => ({
@@ -369,6 +370,11 @@ export function DiscordActivityProvider({ children }) {
   }, [applyRemoteSave, markSynced, openConflict, setSyncState, state.playerId, uploadLatestSave])
 
   useEffect(() => {
+    if (discordBootstrapStartedRef.current) {
+      return undefined
+    }
+
+    discordBootstrapStartedRef.current = true
     let cancelled = false
 
     const bootstrap = async () => {
