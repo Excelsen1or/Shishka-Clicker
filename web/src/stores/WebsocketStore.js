@@ -1,22 +1,22 @@
-import {makeAutoObservable, runInAction} from 'mobx'
-import { socket } from "../lib/activitySocket.js"
-
+import { makeAutoObservable, runInAction } from 'mobx'
+import { socket } from '../lib/activitySocket.js'
 
 export const WEBSOCKET_STATE = {
   LOADING: 'LOADING',
-  SUCCESS: 'SUCCESS',
-  FAILURE: 'FAILURE'
+  READY: 'READY',
+  FAILURE: 'FAILURE',
 }
 
 export default class WebsocketStore {
-  user
+  user = null
   data = []
-  CURRENT_STATE = WEBSOCKET_STATE.LOADING
+  state = WEBSOCKET_STATE.LOADING
   rootStore
+  syncIntervalId = null
 
   constructor(rootStore) {
     this.rootStore = rootStore
-    makeAutoObservable(this, { rootStore: false }, { autoBind: true })
+    makeAutoObservable(this, { rootStore: false, syncIntervalId: false }, { autoBind: true })
     this.init()
   }
 
@@ -25,72 +25,91 @@ export default class WebsocketStore {
   }
 
   get shishkiTotal() {
-    return Math.round(this.rootStore.gameStore._state.lifetimeShishkiEarned)
+    const total = this.rootStore.gameStore?._state?.lifetimeShishkiEarned ?? 0
+    return Number.isFinite(total) ? Math.round(total) : 0
+  }
+
+  init() {
+    socket.on('top_list', this.updateTopList)
+    socket.on('pong', this.connectSuccess)
+  }
+
+  startSync() {
+    if (this.syncIntervalId !== null) return
+
+    this.syncIntervalId = window.setInterval(() => {
+      this.sendDataToServer()
+    }, 5_000)
+  }
+
+  stopSync() {
+    if (this.syncIntervalId === null) return
+
+    window.clearInterval(this.syncIntervalId)
+    this.syncIntervalId = null
+  }
+
+  emit(event, data) {
+    socket.emit(event, {
+      username: this.username,
+      ...data,
+    })
+  }
+
+  ping() {
+    this.emit('ping', {})
+  }
+
+  connectWithServer() {
+    if (!this.username) return
+
+    this.emit('init', {
+      username: this.username,
+      shishki: this.shishkiTotal,
+    })
   }
 
   sendDataToServer() {
-    console.log("Send data to server", this.username)
     if (!this.username) return
 
-    socket.emit("client_data", {
+    this.emit('client_data', {
       username: this.username,
-      shishki: this.shishkiTotal
+      shishki: this.shishkiTotal,
     })
   }
-
-  log = (message) => console.log(`WebSocket | ${message}`)
-
-  connectWithServer = () => this.emit("init", {
-    username: this.username
-  })
-
-  init() {
-    this.log("Initializing")
-
-    this.connectWithServer()
-
-    setInterval(this.sendDataToServer, 5 * 1000)
-
-    socket.on("connect", this.connectSuccess)
-    socket.on('disconnect', (reason) => {
-      console.log('[WebSocket] Disconnected', reason)
-      if (reason === 'transport close') this.connectErrorFailure()
-    })
-    socket.on('connect_error', (error) => this.log(`Connect error: ${error}`))
-    socket.on('top_list', this.updateTopList)
-    socket.on("pong", () => this.log("Ответ от сервера успешно получен и связь установлена!"))
-  }
-
-  ping = () => this.emit("ping", {})
-
-  emit = (event, data) =>
-    socket.emit(event, {
-      username: this.username,
-      ...data
-    })
 
   connectSuccess() {
-    this.CURRENT_STATE = WEBSOCKET_STATE.SUCCESS
-    this.ping()
+    this.state = WEBSOCKET_STATE.READY
   }
 
   connectErrorFailure() {
     runInAction(() => {
-			this.CURRENT_STATE = WEBSOCKET_STATE.FAILURE
-		})
-    this.log("Connection failure")
+      this.state = WEBSOCKET_STATE.FAILURE
+    })
   }
 
-	updateTopList(data) {
-		runInAction(() => {
-			this.data = data
-		})
-	}
+  updateTopList(data) {
+    runInAction(() => {
+      this.data = Array.isArray(data) ? data : []
+    })
+  }
 
-	setUser = (user) => {
-		runInAction(() => {
-			this.user = user
-		})
-	}
+  setUser(user) {
+    runInAction(() => {
+      this.user = user
+      this.data = user ? this.data : []
+      this.state = user ? WEBSOCKET_STATE.LOADING : WEBSOCKET_STATE.FAILURE
+    })
 
+    this.stopSync()
+
+    if (!user) {
+      return
+    }
+
+    this.connectWithServer()
+    this.ping()
+    this.sendDataToServer()
+    this.startSync()
+  }
 }

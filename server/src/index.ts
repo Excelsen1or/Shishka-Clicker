@@ -1,10 +1,8 @@
 import "dotenv/config"
 import express from "express"
-import bodyParser from "body-parser"
-import cookieParser from "cookie-parser"
 import cors from "cors"
 import * as http from "node:http"
-import {initSocket} from "./lib/ws"
+import {initSocket} from "./lib/ws.js"
 
 
 const app = express()
@@ -21,13 +19,10 @@ export const corsOptions = {
 }
 initSocket()
 
+app.disable("x-powered-by")
 app.use(cors(corsOptions))
-app.use(cookieParser())
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({
-	extended: true
-}))
 app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
 app.get("/health", (req, res) => {
 	res.status(200).send("OK")

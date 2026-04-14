@@ -1,141 +1,84 @@
-import {server} from "../index"
-import {Server} from "socket.io"
+import { server } from "../index.js"
+import { Server } from "socket.io"
 
+type SocketEvent = "init" | "client_data" | "ping"
 
-// export class ServerSocket {
-// 	static io: Server
-// 	static users: any = new Map()
-//
-// 	static async addClientToMap(data: any) {
-// 		this.users.set(data.username, data)
-// 		console.log(`${data.username}:`, data)
-// 		await this.updateTopList()
-// 	}
-//
-// 	static async sendToClients(event: string, data: any) {
-// 		if (this.io.engine.clientsCount > 0) {
-// 			this.io.emit(event, data)
-// 		}
-// 	}
-//
-// 	static async updateTopList() {
-// 		// сформировать ответ
-// 		const usersArr = [...this.users.values()]
-// 			.sort(([, a], [, b]) => b.clicks - a.clicks)
-// 			.slice(0, 5)
-//
-// 		// разослать всем
-// 		await this.sendToClients("top_list", usersArr)
-// 	}
-//
-// 	static async init() {
-// 		await this.initServerSocket()
-// 	}
-//
-// 	static async incomingHandler(socket: any, data: any) {
-// 		console.log("Incoming handler", socket, data)
-//
-// 		const events: any = {
-// 			"ping": () => this.sendToWeb(socket, "pong", data),
-// 			"client_data": () => {
-// 				console.log("Client data", data)
-// 				this.addClientToMap(data)
-// 			},
-// 			"init": async () => this.addClientToMap(data)
-// 		}
-//
-// 		if (!data?.event) return
-//
-// 		if (data.event in events) {
-// 			events[data.event]()
-// 		}
-// 	}
-//
-// 	static async initServerSocket() {
-// 		this.io = new Server(server, {
-// 			cors: {
-// 				origin: "*"
-// 			}
-// 		})
-// 		console.log("Server socket created")
-//
-// 		let activityClient: any = null
-//
-// 		this.io.on("connection", socket => {
-// 			activityClient = socket
-// 			console.log("Client connected", socket.id)
-//
-// 			socket.on("ws-emit", async (data) => await this.incomingHandler(activityClient, data, activityClient))
-//
-// 			this.updateTopList()
-//
-// 			socket.on("disconnect", async (reason) => {
-// 				activityClient = null
-// 				console.log("Client disconnected", socket.id, reason)
-// 				await this.updateTopList()
-// 			})
-// 		})
-// 	}
-//
-// 	static sendToWeb = (socket: any, event: string, data: any) => {
-// 		if (!socket) return
-//
-// 		socket.emit("message", {
-// 			type: "ws-event",
-// 			event,
-// 			data
-// 		})
-// 	}
-// }
+type LeaderboardEntry = {
+  username: string
+  shishki: number
+}
+
+type SocketEnvelope = {
+  event?: SocketEvent
+  data?: Partial<LeaderboardEntry> | null
+}
+
+function normalizeEntry(data?: Partial<LeaderboardEntry> | null): LeaderboardEntry | null {
+  const username = data?.username?.trim()
+  const shishki = Number(data?.shishki ?? 0)
+
+  if (!username) {
+    return null
+  }
+
+  return {
+    username,
+    shishki: Number.isFinite(shishki) ? Math.max(0, Math.round(shishki)) : 0,
+  }
+}
 
 export function initSocket() {
-	const io = new Server(server, {
-		cors: { origin: "*" }
-	})
+  const io = new Server(server, {
+    cors: { origin: "*" },
+  })
 
-	const users = new Map();
+  const users = new Map<string, LeaderboardEntry>()
 
-	io.on("connection", (socket) => {
-		console.log("Client connected", socket.id)
+  const emitMessage = (event: string, data: unknown) => {
+    io.emit("message", {
+      type: "ws-event",
+      event,
+      data,
+    })
+  }
 
-		socket.on("ws-emit", (msg) => {
-			const { event, data } = msg || {}
+  const emitTopList = () => {
+    const list = [...users.values()]
+      .sort((a, b) => b.shishki - a.shishki)
+      .slice(0, 5)
 
-			if (!event) return
+    emitMessage("top_list", list)
+  }
 
-			// === ОБРАБОТКА ===
-			if (event === "init") {
-				console.log("Init:", data)
-				users.set(socket.id, data)
-			}
+  io.on("connection", (socket) => {
+    console.log("Client connected", socket.id)
 
-			if (event === "client_data") {
-				users.set(socket.id, data)
+    socket.on("ws-emit", (message: SocketEnvelope | null | undefined) => {
+      const { event, data } = message ?? {}
+      if (!event) return
 
-				// рассылаем всем
-				const list = [...users.values()]
-					.sort((a, b) => b.shishki - a.shishki)
-					.slice(0, 5)
+      if (event === "ping") {
+        socket.emit("message", {
+          type: "ws-event",
+          event: "pong",
+          data: {},
+        })
+        return
+      }
 
-				io.emit("message", {
-					type: "ws-event",
-					event: "top_list",
-					data: list
-				})
-			}
+      const entry = normalizeEntry(data)
+      if (!entry) return
 
-			if (event === "ping") {
-				socket.emit("message", {
-					type: "ws-event",
-					event: "pong",
-					data: {}
-				})
-			}
-		})
+      users.set(socket.id, entry)
+      emitTopList()
+    })
 
-		socket.on("disconnect", () => {
-			users.delete(socket.id);
-			console.log("Disconnected", socket.id)
-		})
-	})
+    socket.on("disconnect", () => {
+      users.delete(socket.id)
+      console.log("Disconnected", socket.id)
+      emitTopList()
+    })
+  })
 }
+
+// Руслан Я просто эксперементирую - восстановим по надобности

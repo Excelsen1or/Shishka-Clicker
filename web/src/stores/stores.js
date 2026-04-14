@@ -4,8 +4,8 @@ import GameStore from './GameStore.js'
 
 class RootStore {
   constructor() {
-    this.websocketStore = new WebsocketStore(this)
     this.gameStore = new GameStore(this)
+    this.websocketStore = new WebsocketStore(this)
 
     makeAutoObservable(this)
   }

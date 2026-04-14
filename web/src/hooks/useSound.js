@@ -41,7 +41,7 @@ export function useSound(src, { volume = 1, randomPitch } = {}) {
       .then((data) => {
         if (!cancelled) rawRef.current = data
       })
-      .catch((err) => console.log('Audio load error:', err))
+      .catch(() => {})
 
     return () => {
       cancelled = true
