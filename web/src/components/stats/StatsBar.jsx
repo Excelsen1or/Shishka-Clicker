@@ -1,9 +1,9 @@
 import { observer } from 'mobx-react-lite'
-import { useGameContext } from '../../context/GameContext'
+import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { StatCard } from './StatCard'
 
 export const StatsBar = observer(function StatsBar({ className = '' }) {
-  const { statsBarData } = useGameContext()
+  const { statsBarData } = useGameStore()
 
   return (
     <section className={`stats-bar ${className}`.trim()}>

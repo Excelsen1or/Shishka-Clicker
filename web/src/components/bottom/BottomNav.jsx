@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { observer } from 'mobx-react-lite'
 import { useNav } from '../../context/NavContext.jsx'
-import { useGameContext } from '../../context/GameContext.jsx'
+import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { useSound } from '../../hooks/useSound.js'
 import switchSound from '../../assets/audio/ui/wpn_select.mp3'
 import { isTabScreenLoaded, preloadTabScreen } from '../wrapper/AppWrapper.jsx'
@@ -12,7 +12,7 @@ function getButtonClassName(isActive) {
 
 export const BottomNav = observer(function BottomNav() {
   const { activeTab, setActiveTab, tabs } = useNav()
-  const { bottomNavAlerts } = useGameContext()
+  const { bottomNavAlerts } = useGameStore()
   const { play } = useSound(switchSound, { volume: 0.1 })
 
   const handleTabChange = useCallback(async (tabId) => {

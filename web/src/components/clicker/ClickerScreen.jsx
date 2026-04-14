@@ -1,12 +1,12 @@
 import { observer } from 'mobx-react-lite'
 import { ClickerButton } from './ClickerButton'
 import { ProgressOverview } from './ProgressOverview'
-import {useStores} from "../../stores/StoresProvider.jsx"
-import {formatNumber} from "../../lib/format.js"
+import { useWebsocketStore } from '../../stores/StoresProvider.jsx'
+import { formatNumber } from '../../lib/format.js'
 
 
 export const ClickerScreen = observer(function ClickerScreen() {
-  const { websocketStore } = useStores()
+  const websocketStore = useWebsocketStore()
 
   return (
     <section className="screen clicker-screen">

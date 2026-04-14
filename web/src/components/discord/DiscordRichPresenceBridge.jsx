@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { observer } from 'mobx-react-lite'
 import { useDiscordActivity } from '../../context/DiscordActivityContext.jsx'
-import { useGameContext } from '../../context/GameContext.jsx'
+import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { useNav } from '../../context/NavContext.jsx'
 import { deriveEconomy } from '../../game/config.js'
 import { buildDiscordRichPresence } from '../../lib/discordPresence.js'
@@ -23,7 +23,7 @@ function countUnlockedAchievements(achievements) {
 
 export const DiscordRichPresenceBridge = observer(function DiscordRichPresenceBridge() {
   const { activeTab } = useNav()
-  const game = useGameContext()
+  const game = useGameStore()
   const { isActivity, status, updateRichPresence } = useDiscordActivity()
   const startedAtRef = useRef(Math.floor(Date.now() / 1000))
   const gameState = game._state

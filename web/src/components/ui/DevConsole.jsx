@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { observer } from 'mobx-react-lite'
-import { useGameContext } from '../../context/GameContext'
+import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { formatNumber } from '../../lib/format'
 import wrongImg from '../../assets/wrong.png'
 import {useSound} from "../../hooks/useSound.js"
@@ -17,7 +17,7 @@ const RESOURCES = [
 const PRESETS = [1e3, 1e4, 100e3, 1e6, 1e9]
 
 const DevConsolePanel = observer(function DevConsolePanel() {
-  const { devConsoleResources, _devGiveResource, _devSetResource } = useGameContext()
+  const { devConsoleResources, _devGiveResource, _devSetResource } = useGameStore()
   const [cheatsEnabled, setCheatsEnabled] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [log, setLog] = useState([])

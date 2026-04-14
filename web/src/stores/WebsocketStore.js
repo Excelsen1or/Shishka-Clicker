@@ -1,98 +1,85 @@
-import {makeAutoObservable, runInAction} from "mobx"
-import { io } from "socket.io-client"
-import stores from "./stores.js"
+import {makeAutoObservable, runInAction} from 'mobx'
+import { io } from 'socket.io-client'
 
+
+const WEBSOCKET_URL = 'https://shishki.default-squad.ru/'
 
 export const WEBSOCKET_STATE = {
-	"LOADING": "LOADING",
-	"SUCCESS": "SUCCESS",
-	"FAILURE": "FAILURE"
+  LOADING: 'LOADING',
+  SUCCESS: 'SUCCESS',
+  FAILURE: 'FAILURE'
 }
 
 export default class WebsocketStore {
-	socket
-	user
-	data = []
-	CURRENT_STATE = WEBSOCKET_STATE.LOADING
+  socket
+  user
+  data = []
+  CURRENT_STATE = WEBSOCKET_STATE.LOADING
+  rootStore
 
-	constructor() {
-		makeAutoObservable(this)
-		this.init()
-	}
+  constructor(rootStore) {
+    this.rootStore = rootStore
+    makeAutoObservable(this, { rootStore: false }, { autoBind: true })
+    this.init()
+  }
 
-	sendDataToServer() {
-		const name = this.user?.global_name || this.user?.username
+  get username() {
+    return this.user?.global_name || this.user?.username || null
+  }
 
-		if (name) {
-			this.socket.emit("client_data", {
-				username: name,
-				shishki: Math.round(stores.gameStore._state.lifetimeShishkiEarned) // здесь можно добавить больше полей для синхронизации
-			})
-		}
-	}
+  get shishkiTotal() {
+    return Math.round(this.rootStore.gameStore._state.lifetimeShishkiEarned)
+  }
 
-	log(message) {
-		console.log(`WebSocket | ${message}`)
-	}
+  sendDataToServer() {
+    if (!this.username || !this.socket) return
 
-	init() {
-		setInterval(() => {
-			this.sendDataToServer()
-		}, 5 * 1000)
+    this.socket.emit('client_data', {
+      username: this.username,
+      shishki: this.shishkiTotal,
+    })
+  }
 
-		runInAction(() => {
-			this.socket = io("https://shishki.default-squad.ru/")
-		})
+  log(message) {
+    console.log(`WebSocket | ${message}`)
+  }
 
-		// runInAction(() => {
-		// 	this.socket = io("http://localhost:8003/") // для тестирования локальный адрес сервера
-		// })
+  init() {
+    setInterval(this.sendDataToServer, 5 * 1000)
+    this.socket = io(WEBSOCKET_URL)
 
-		this.socket.on("connect", () => {
-			this.connectSuccess()
-		})
+    this.socket.on('connect', this.connectSuccess)
+    this.socket.on('disconnect', (reason) => {
+      console.log('[WebSocket] Disconnected', reason)
 
-		this.socket.on("disconnect", (reason) => {
-			console.log("[WebSocket] Disconnected", reason)
+      if (reason === 'transport close') {
+        this.connectErrorFailure()
+      }
+    })
+    this.socket.on('connect_error', (error) => {
+      this.log(`"Connect error": ${error}`)
+    })
+    this.socket.on('top_list', this.updateTopList)
+  }
 
-			switch (reason) {
-				case "transport close":
-					this.connectErrorFailure()
-					break
-			}
-		})
+  emit(type, data) {
+    this.socket?.emit(type, JSON.stringify(data))
+  }
 
-		this.socket.on("connect_error", (e) => {
-			this.log(`Connect error: ${e}`)
-		})
+  connectSuccess() {
+    this.CURRENT_STATE = WEBSOCKET_STATE.SUCCESS
+  }
 
-		this.socket.on("top_list", data => {
-			this.updateTopList(data)
-		})
-	}
-
-	emit(type, data) {
-		const dataString = JSON.stringify(data)
-		this.socket.emit(type, dataString)
-	}
-
-	connectSuccess() {
-		runInAction(() => {
-			this.CURRENT_STATE = WEBSOCKET_STATE.SUCCESS
-		})
-	}
-
-	connectErrorFailure() {
-		runInAction(() => {
+  connectErrorFailure() {
+    runInAction(() => {
 			this.CURRENT_STATE = WEBSOCKET_STATE.FAILURE
 		})
+    this.log('Connection failure')
+  }
 
-		this.log("Connection failure")
-	}
-
-	updateTopList(dataString) {
+	updateTopList(data) {
 		runInAction(() => {
-			this.data = dataString
+			this.data = data
 		})
 	}
 

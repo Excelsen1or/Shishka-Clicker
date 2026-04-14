@@ -1,6 +1,6 @@
 import { memo, useMemo } from 'react'
 import { observer } from 'mobx-react-lite'
-import { useGameContext } from '../../context/GameContext'
+import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { StatCard } from '../stats/StatCard.jsx'
 import { UnlockCard } from './UnlockCard.jsx'
 import { ConeIcon } from '../ui/ConeIcon'
@@ -84,7 +84,7 @@ const UnlockPreviewSection = memo(function UnlockPreviewSection({ nextSub, nextU
 })
 
 export const ProgressOverview = observer(function ProgressOverview() {
-  const { progressOverviewData } = useGameContext()
+  const { progressOverviewData } = useGameStore()
   const {
     nextSub,
     nextUpgrade,

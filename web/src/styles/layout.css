@@ -33,6 +33,10 @@
   min-width: 0;
 }
 
+.app-main--boot {
+  min-height: clamp(28rem, 68vh, 46rem);
+}
+
 .ambient {
   position: fixed;
   border-radius: 50%;
@@ -176,21 +180,46 @@
   transition: border-color 0.8s ease;
 }
 
+.screen-bg--boot {
+  display: grid;
+  align-items: stretch;
+  min-height: clamp(24rem, 58vh, 40rem);
+}
+
 .screen-stage {
   position: relative;
   min-width: 0;
   isolation: isolate;
+  overflow: hidden;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgb(var(--surface-2-rgb)), rgb(var(--surface-1-rgb)));
   transform: translate3d(0, 0, 0);
   will-change: transform, opacity;
 }
 
+.screen-stage--boot {
+  width: 100%;
+  min-height: inherit;
+}
+
 .screen {
   overflow: hidden;
+  min-height: 100%;
   padding: clamp(0.8rem, 1.6vw, 1.15rem);
   --screen-accent-rgb: var(--accent-primary-rgb);
   --screen-accent-secondary-rgb: var(--white-rgb);
+  background: linear-gradient(180deg, rgb(var(--surface-2-rgb)), rgb(var(--surface-1-rgb)));
   content-visibility: auto;
   contain-intrinsic-size: 720px;
+}
+
+.screen--boot-loading {
+  display: grid;
+  align-items: center;
+  min-height: 100%;
+  content-visibility: visible;
+  contain-intrinsic-size: auto;
+  background: linear-gradient(180deg, rgb(var(--surface-2-rgb) / 0.98), rgb(var(--surface-1-rgb) / 0.94));
 }
 
 .screen::before {
@@ -227,6 +256,20 @@
   height: 2px;
   border-radius: var(--radius-pill);
   background: linear-gradient(90deg, rgb(var(--screen-accent-rgb) / 0.86), rgb(var(--screen-accent-rgb) / 0.22), transparent);
+}
+
+.screen__header--boot {
+  justify-items: center;
+  text-align: center;
+  margin-bottom: clamp(1.4rem, 3vw, 2rem);
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.screen__header--boot::after {
+  width: min(8.5rem, 42%);
+  margin-inline: auto;
+  margin-top: 0.1rem;
 }
 
 .screen__kicker,

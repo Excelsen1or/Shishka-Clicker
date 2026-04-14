@@ -1,6 +1,6 @@
 import { memo, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { observer } from 'mobx-react-lite'
-import { useGameContext } from '../../context/GameContext'
+import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { ShopCard } from './ShopCard'
 
 const SCREEN_META = {
@@ -179,7 +179,7 @@ function ShopCardGrid({ items, onBuy, onInspect, locked = false }) {
 }
 
 export const ShopScreen = observer(function ShopScreen({ type }) {
-  const { uiEconomy, buySubscription, buyUpgrade, markShopItemSeen, markShopItemsSeen } = useGameContext()
+  const { uiEconomy, buySubscription, buyUpgrade, markShopItemSeen, markShopItemsSeen } = useGameStore()
   const meta = SCREEN_META[type]
   const hasItemCategories = type === 'upgrades'
 

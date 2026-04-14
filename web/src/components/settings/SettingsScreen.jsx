@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
 import { observer } from 'mobx-react-lite'
-import { useGameContext } from '../../context/GameContext'
+import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { useSettingsContext } from '../../context/SettingsContext'
 import {
   buildSaveFileName,
@@ -15,7 +15,7 @@ import { SettingsAbout } from './SettingsAbout.jsx'
 import { SettingsDiscordCard } from './SettingsDiscordCard.jsx'
 
 export const SettingsScreen = observer(function SettingsScreen() {
-  const { resetGame, exportGameSave, importGameSave } = useGameContext()
+  const { resetGame, exportGameSave, importGameSave } = useGameStore()
   const {
     settings,
     setVolume,

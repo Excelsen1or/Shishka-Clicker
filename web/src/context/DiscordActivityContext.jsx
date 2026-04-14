@@ -7,18 +7,19 @@ import {
   useRef,
   useState,
 } from 'react'
-import { useStores } from '../stores/StoresProvider.jsx'
+import { useGameStore, useWebsocketStore } from '../stores/StoresProvider.jsx'
 import { useSettingsContext } from './SettingsContext.jsx'
 import { setDiscordRichPresence, setupDiscord } from '../discord.js'
 import { APP_VERSION } from '../config/appMeta.js'
 import { createSaveBundle, normalizeImportedBundle } from '../lib/saveTransfer.js'
 import { downloadCloudSave, uploadCloudSave } from '../lib/cloudSave.js'
-import { loadGameRecord } from '../lib/storage.js'
-import { buildDiscordPlayerId } from '../lib/playerId.js'
+import { clearLegacyGame, loadLegacyGameRecord } from '../lib/storage.js'
+import { resolvePlayerId } from '../lib/playerId.js'
 
 const DiscordActivityContext = createContext(null)
-const AUTO_SYNC_INTERVAL_MS = 5000
+const AUTO_SYNC_INTERVAL_MS = 2500
 const EMPTY_PROGRESS_SCORE_THRESHOLD = 25
+const INITIAL_SYNC_BLOCKING_MS = 1500
 
 function sumLevels(map) {
   if (!map || typeof map !== 'object') return 0
@@ -84,7 +85,8 @@ function buildSnapshotSummary(gameState, updatedAt, source, saveVersion = null) 
 }
 
 export function DiscordActivityProvider({ children }) {
-  const stores = useStores()
+  const gameStore = useGameStore()
+  const websocketStore = useWebsocketStore()
   const { exportSettings, importSettings } = useSettingsContext()
   const [state, setState] = useState({
     isActivity: false,
@@ -100,12 +102,20 @@ export function DiscordActivityProvider({ children }) {
     presenceState: 'idle',
     presenceError: null,
     lastPresenceAt: null,
+    offlineMode: false,
+    saveReady: false,
   })
   const remoteVersionRef = useRef(null)
-  const syncedLocalUpdatedAtRef = useRef(null)
+  const syncedClientRevisionRef = useRef(null)
   const discordSdkRef = useRef(null)
   const lastPresenceSignatureRef = useRef('')
   const discordBootstrapStartedRef = useRef(false)
+  const offlineModeRef = useRef(false)
+
+  const wait = useCallback((ms) => new Promise((resolve) => {
+    const timeoutId = window.setTimeout(resolve, ms)
+    return () => window.clearTimeout(timeoutId)
+  }), [])
 
   const setSyncState = useCallback((patch) => {
     setState((current) => ({
@@ -121,21 +131,50 @@ export function DiscordActivityProvider({ children }) {
     }))
   }, [])
 
-  const markSynced = useCallback(({ localUpdatedAt, remoteUpdatedAt, remoteVersion, source }) => {
-    syncedLocalUpdatedAtRef.current = localUpdatedAt ?? null
+  const enterOfflineMode = useCallback(() => {
+    offlineModeRef.current = true
+
+    setState((current) => ({
+      ...current,
+      playerId: current.playerId ?? resolvePlayerId(null),
+      saveReady: true,
+      offlineMode: true,
+      syncState: 'offline',
+      syncSource: 'offline',
+      syncError: null,
+      conflict: null,
+      lastSyncedAt: null,
+    }))
+  }, [])
+
+  const getLocalSnapshot = useCallback(() => {
+    const meta = gameStore.getSaveMeta()
+
+    return {
+      state: gameStore.exportGameSave(),
+      updatedAt: meta.updatedAt,
+      clientRevision: meta.clientRevision,
+    }
+  }, [gameStore])
+
+  const markSynced = useCallback(({ remoteUpdatedAt, remoteVersion, source }) => {
+    const localSnapshot = getLocalSnapshot()
+
+    syncedClientRevisionRef.current = localSnapshot.clientRevision
     remoteVersionRef.current = remoteVersion ?? null
 
     setSyncState({
       syncState: 'synced',
       syncError: null,
-      lastSyncedAt: remoteUpdatedAt ?? localUpdatedAt ?? new Date().toISOString(),
+      lastSyncedAt: remoteUpdatedAt ?? localSnapshot.updatedAt ?? new Date().toISOString(),
       syncSource: source,
     })
 
     clearConflict()
-  }, [clearConflict, setSyncState])
+  }, [clearConflict, getLocalSnapshot, setSyncState])
 
-  const openConflict = useCallback(({ playerId, localRecord, cloudSave, reason }) => {
+  const openConflict = useCallback(({ playerId, cloudSave, reason }) => {
+    const localSnapshot = getLocalSnapshot()
     const remoteGameState = getGameStateFromCloudSave(cloudSave)
 
     setState((current) => ({
@@ -146,53 +185,60 @@ export function DiscordActivityProvider({ children }) {
       conflict: {
         reason,
         playerId,
-        local: buildSnapshotSummary(localRecord.state, localRecord.updatedAt, 'local', remoteVersionRef.current),
+        local: buildSnapshotSummary(
+          localSnapshot.state,
+          localSnapshot.updatedAt,
+          'local',
+          remoteVersionRef.current,
+        ),
         remote: buildSnapshotSummary(remoteGameState, cloudSave?.updatedAt, 'cloud', cloudSave?.saveVersion ?? null),
         cloudSave,
       },
     }))
-  }, [])
+  }, [getLocalSnapshot])
 
   const applyRemoteSave = useCallback((cloudSave) => {
     if (!cloudSave?.save) return false
 
     const imported = normalizeImportedBundle(cloudSave.save)
-    stores.gameStore.importGameSave(imported.game)
+    gameStore.importGameSave(imported.game, {
+      markDirty: false,
+      updatedAt: cloudSave.updatedAt ?? new Date().toISOString(),
+    })
 
     if (imported.settings) {
       importSettings(imported.settings)
     }
 
-    const localRecord = loadGameRecord()
-
     markSynced({
-      localUpdatedAt: localRecord.updatedAt,
       remoteUpdatedAt: cloudSave.updatedAt,
       remoteVersion: cloudSave.saveVersion ?? null,
       source: 'download',
     })
 
     return true
-  }, [importSettings, markSynced, stores.gameStore])
+  }, [gameStore, importSettings, markSynced])
 
   const uploadLatestSave = useCallback(async ({
     force = false,
     playerIdOverride = null,
     expectedVersionOverride = undefined,
+    source = 'upload',
   } = {}) => {
+    if (offlineModeRef.current) return false
+
     const playerId = playerIdOverride ?? state.playerId
 
     if (!playerId) return false
 
-    const localRecord = loadGameRecord()
-    const localUpdatedAt = localRecord.updatedAt
+    const localSnapshot = getLocalSnapshot()
 
-    if (!force && (!localUpdatedAt || syncedLocalUpdatedAtRef.current === localUpdatedAt)) {
+    if (!force && localSnapshot.clientRevision === syncedClientRevisionRef.current) {
       return false
     }
 
     const save = createSaveBundle({
-      gameState: stores.gameStore.exportGameSave(),
+      gameState: localSnapshot.state,
       settings: exportSettings(),
       appVersion: APP_VERSION,
     })
@@ -211,28 +257,28 @@ export function DiscordActivityProvider({ children }) {
     })
 
     markSynced({
-      localUpdatedAt,
-      remoteUpdatedAt: result.updatedAt ?? new Date().toISOString(),
+      remoteUpdatedAt: result.updatedAt ?? localSnapshot.updatedAt ?? new Date().toISOString(),
       remoteVersion: result.saveVersion ?? remoteVersionRef.current,
-      source: 'upload',
+      source,
     })
 
     return true
-  }, [exportSettings, markSynced, setSyncState, state.playerId, stores.gameStore])
+  }, [exportSettings, getLocalSnapshot, markSynced, setSyncState, state.playerId])
 
   const flushLatestSaveOnExit = useCallback(({ playerIdOverride = null } = {}) => {
+    if (offlineModeRef.current) return
+
     const playerId = playerIdOverride ?? state.playerId
     if (!playerId) return
 
-    const localRecord = loadGameRecord()
-    const localUpdatedAt = localRecord.updatedAt
+    const localSnapshot = getLocalSnapshot()
 
-    if (!localUpdatedAt || syncedLocalUpdatedAtRef.current === localUpdatedAt) {
+    if (localSnapshot.clientRevision === syncedClientRevisionRef.current) {
       return
     }
 
     const save = createSaveBundle({
-      gameState: stores.gameStore.exportGameSave(),
+      gameState: localSnapshot.state,
       settings: exportSettings(),
       appVersion: APP_VERSION,
     })
@@ -242,16 +288,22 @@ export function DiscordActivityProvider({ children }) {
       appVersion: APP_VERSION,
       save,
       expectedVersion: remoteVersionRef.current,
-      force: true,
+      force: false,
     }).then((result) => {
-      syncedLocalUpdatedAtRef.current = localUpdatedAt
+      syncedClientRevisionRef.current = localSnapshot.clientRevision
       remoteVersionRef.current = result?.saveVersion ?? remoteVersionRef.current
     }).catch((error) => {
       console.warn('Failed to flush save on exit:', error)
     })
-  }, [exportSettings, state.playerId, stores.gameStore])
+  }, [exportSettings, getLocalSnapshot, state.playerId])
 
-  const synchronizeNow = useCallback(async ({ forceDownload = false, playerIdOverride = null } = {}) => {
+  const synchronizeNow = useCallback(async ({
+    forceDownload = false,
+    playerIdOverride = null,
+    allowLegacyMigration = false,
+  } = {}) => {
+    if (offlineModeRef.current) return false
+
     const playerId = playerIdOverride ?? state.playerId
     if (!playerId) return false
 
@@ -260,21 +312,46 @@ export function DiscordActivityProvider({ children }) {
       syncError: null,
     })
 
-    const localRecord = loadGameRecord()
-    const localGameState = localRecord.state
+    const localSnapshot = getLocalSnapshot()
+    const localGameState = localSnapshot.state
     const localProgressScore = getProgressScore(localGameState)
     const localIsNearlyEmpty = localProgressScore <= EMPTY_PROGRESS_SCORE_THRESHOLD
+    const hasCompletedInitialSync = syncedClientRevisionRef.current !== null
     const localDirty =
-      Boolean(localRecord.updatedAt) &&
-      localRecord.updatedAt !== syncedLocalUpdatedAtRef.current
-
+      hasCompletedInitialSync &&
+      localSnapshot.clientRevision !== syncedClientRevisionRef.current
     const cloudSave = await downloadCloudSave(playerId)
 
+    if (offlineModeRef.current) return false
+
     if (!cloudSave?.save) {
+      if (allowLegacyMigration) {
+        const legacyRecord = loadLegacyGameRecord()
+        const legacyProgressScore = getProgressScore(legacyRecord.state)
+
+        if (legacyProgressScore > EMPTY_PROGRESS_SCORE_THRESHOLD) {
+          gameStore.importGameSave(legacyRecord.state, {
+            markDirty: true,
+            updatedAt: legacyRecord.updatedAt ?? new Date().toISOString(),
+          })
+
+          const migrated = await uploadLatestSave({
+            playerIdOverride: playerId,
+            expectedVersionOverride: null,
+            source: 'migration',
+          })
+
+          if (migrated) {
+            clearLegacyGame()
+          }
+
+          return migrated
+        }
+      }
+
       if (localIsNearlyEmpty) {
         markSynced({
-          localUpdatedAt: localRecord.updatedAt,
-          remoteUpdatedAt: localRecord.updatedAt,
+          remoteUpdatedAt: localSnapshot.updatedAt,
           remoteVersion: null,
           source: 'noop',
         })
@@ -282,7 +359,6 @@ export function DiscordActivityProvider({ children }) {
       }
 
       return uploadLatestSave({
-        force: true,
         playerIdOverride: playerId,
         expectedVersionOverride: null,
       })
@@ -294,30 +370,38 @@ export function DiscordActivityProvider({ children }) {
     const knownRemoteVersion = remoteVersionRef.current
     const remoteVersion = cloudSave.saveVersion ?? null
 
+    if (offlineModeRef.current) return false
+
     if (localIsNearlyEmpty && !remoteIsNearlyEmpty) {
-      return applyRemoteSave(cloudSave)
+      const applied = applyRemoteSave(cloudSave)
+      if (allowLegacyMigration) clearLegacyGame()
+      return applied
     }
 
     if (!localIsNearlyEmpty && remoteIsNearlyEmpty) {
-      return uploadLatestSave({
-        force: true,
+      const uploaded = await uploadLatestSave({
         playerIdOverride: playerId,
         expectedVersionOverride: remoteVersion,
       })
+      if (allowLegacyMigration) clearLegacyGame()
+      return uploaded
     }
 
     if (forceDownload) {
-      return applyRemoteSave(cloudSave)
+      const applied = applyRemoteSave(cloudSave)
+      if (allowLegacyMigration) clearLegacyGame()
+      return applied
     }
 
     if (knownRemoteVersion == null) {
       if (!localDirty || localIsNearlyEmpty) {
-        return applyRemoteSave(cloudSave)
+        const applied = applyRemoteSave(cloudSave)
+        if (allowLegacyMigration) clearLegacyGame()
+        return applied
       }
 
       openConflict({
         playerId,
-        localRecord,
         cloudSave,
         reason: 'first_sync_conflict',
       })
@@ -326,12 +410,13 @@ export function DiscordActivityProvider({ children }) {
 
     if (remoteVersion !== knownRemoteVersion) {
       if (!localDirty) {
-        return applyRemoteSave(cloudSave)
+        const applied = applyRemoteSave(cloudSave)
+        if (allowLegacyMigration) clearLegacyGame()
+        return applied
       }
 
       openConflict({
         playerId,
-        localRecord,
         cloudSave,
         reason: 'remote_changed_while_local_dirty',
       })
@@ -339,8 +424,9 @@ export function DiscordActivityProvider({ children }) {
     }
 
     if (!localDirty) {
+      if (allowLegacyMigration) clearLegacyGame()
+
       markSynced({
-        localUpdatedAt: localRecord.updatedAt,
         remoteUpdatedAt: cloudSave.updatedAt,
         remoteVersion,
         source: 'noop',
@@ -349,16 +435,16 @@ export function DiscordActivityProvider({ children }) {
     }
 
     try {
-      return await uploadLatestSave({
-        force: true,
+      const uploaded = await uploadLatestSave({
         playerIdOverride: playerId,
         expectedVersionOverride: knownRemoteVersion,
       })
+      if (allowLegacyMigration) clearLegacyGame()
+      return uploaded
     } catch (error) {
       if (error?.code === 'cloud_conflict' && error.current) {
         openConflict({
           playerId,
-          localRecord,
           cloudSave: error.current,
           reason: 'save_rejected_by_server_revision',
         })
@@ -367,7 +453,7 @@ export function DiscordActivityProvider({ children }) {
 
       throw error
     }
-  }, [applyRemoteSave, markSynced, openConflict, setSyncState, state.playerId, uploadLatestSave])
+  }, [applyRemoteSave, gameStore, getLocalSnapshot, markSynced, openConflict, setSyncState, state.playerId, uploadLatestSave])
 
   useEffect(() => {
     if (discordBootstrapStartedRef.current) {
@@ -378,62 +464,97 @@ export function DiscordActivityProvider({ children }) {
     let cancelled = false
 
     const bootstrap = async () => {
+      offlineModeRef.current = false
+
       setState((current) => ({
         ...current,
         status: 'connecting',
         error: null,
+        syncState: 'loading',
         syncError: null,
+        offlineMode: false,
+        saveReady: false,
       }))
 
       try {
         const session = await setupDiscord()
+        if (cancelled || offlineModeRef.current) return
 
-        if (cancelled || !session?.isActivity || !session.user?.id) {
-          discordSdkRef.current = null
-          lastPresenceSignatureRef.current = ''
+        const isActivity = Boolean(session?.isActivity && session.user?.id)
+        const playerId = resolvePlayerId(session?.user?.id ?? null)
 
-          setState((current) => ({
-            ...current,
-            isActivity: false,
-            status: 'idle',
-            presenceState: 'idle',
-            presenceError: null,
-          }))
-          return
+        if (!playerId) {
+          throw new Error('player_id_unavailable')
         }
 
-        const playerId = buildDiscordPlayerId(session.user.id)
-        discordSdkRef.current = session.discordSdk ?? null
+        discordSdkRef.current = session?.discordSdk ?? null
         lastPresenceSignatureRef.current = ''
+        websocketStore.setUser(isActivity ? session.user : null)
 
         setState((current) => ({
           ...current,
-          isActivity: true,
+          isActivity,
           status: 'ready',
-          user: session.user,
+          user: isActivity ? session.user : null,
           playerId,
           error: null,
           syncState: 'loading',
           syncError: null,
+          offlineMode: false,
           presenceState: 'idle',
           presenceError: null,
         }))
 
-        await synchronizeNow({ playerIdOverride: playerId })
-      } catch (error) {
-        if (cancelled) return
+        const initialSyncPromise = synchronizeNow({
+          playerIdOverride: playerId,
+          allowLegacyMigration: true,
+        })
+        let didFinishWithinBootWindow = false
 
-        discordSdkRef.current = null
-        lastPresenceSignatureRef.current = ''
+        await Promise.race([
+          initialSyncPromise.then(() => {
+            didFinishWithinBootWindow = true
+          }),
+          wait(INITIAL_SYNC_BLOCKING_MS),
+        ])
+
+        if (cancelled || offlineModeRef.current) return
 
         setState((current) => ({
           ...current,
-          status: current.isActivity ? current.status : 'error',
+          saveReady: true,
+        }))
+
+        if (!didFinishWithinBootWindow) {
+          void initialSyncPromise.catch((error) => {
+            if (cancelled || offlineModeRef.current) return
+
+            setState((current) => ({
+              ...current,
+              syncState: 'error',
+              syncError: error instanceof Error ? error.message : 'initial_sync_failed',
+            }))
+          })
+        }
+      } catch (error) {
+        if (cancelled || offlineModeRef.current) return
+
+        discordSdkRef.current = null
+        lastPresenceSignatureRef.current = ''
+        websocketStore.setUser(null)
+
+        setState((current) => ({
+          ...current,
+          status: 'error',
           error: error instanceof Error ? error.message : 'discord_activity_init_failed',
           syncState: 'error',
           syncError: error instanceof Error ? error.message : 'discord_activity_init_failed',
-          presenceState: 'error',
-          presenceError: error instanceof Error ? error.message : 'discord_activity_init_failed',
+          offlineMode: false,
+          presenceState: current.isActivity ? 'error' : 'idle',
+          presenceError: current.isActivity
+            ? (error instanceof Error ? error.message : 'discord_activity_init_failed')
+            : null,
+          saveReady: true,
         }))
       }
     }
@@ -443,10 +564,10 @@ export function DiscordActivityProvider({ children }) {
     return () => {
       cancelled = true
     }
-  }, [synchronizeNow])
+  }, [synchronizeNow, wait, websocketStore])
 
   useEffect(() => {
-    if (!state.playerId) return undefined
+    if (!state.playerId || !state.saveReady || state.offlineMode) return undefined
 
     const intervalId = window.setInterval(() => {
       void synchronizeNow()
@@ -455,10 +576,10 @@ export function DiscordActivityProvider({ children }) {
     return () => {
       window.clearInterval(intervalId)
     }
-  }, [state.playerId, synchronizeNow])
+  }, [state.offlineMode, state.playerId, state.saveReady, synchronizeNow])
 
   useEffect(() => {
-    if (!state.playerId) return undefined
+    if (!state.playerId || !state.saveReady || state.offlineMode) return undefined
 
     const handlePageHide = () => {
       flushLatestSaveOnExit()
@@ -477,7 +598,7 @@ export function DiscordActivityProvider({ children }) {
       window.removeEventListener('pagehide', handlePageHide)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [flushLatestSaveOnExit, state.playerId])
+  }, [flushLatestSaveOnExit, state.offlineMode, state.playerId, state.saveReady])
 
   const updateRichPresence = useCallback(async (activity) => {
     if (!state.isActivity || state.status !== 'ready' || !discordSdkRef.current || !activity) {
@@ -514,6 +635,16 @@ export function DiscordActivityProvider({ children }) {
 
   const manualSync = useCallback(async () => {
     try {
+      if (state.offlineMode) {
+        offlineModeRef.current = false
+        setState((current) => ({
+          ...current,
+          offlineMode: false,
+          syncState: 'loading',
+          syncError: null,
+        }))
+      }
+
       await synchronizeNow()
       return true
     } catch (error) {
@@ -524,7 +655,7 @@ export function DiscordActivityProvider({ children }) {
       }))
       return false
     }
-  }, [synchronizeNow])
+  }, [state.offlineMode, synchronizeNow])
 
   const acceptCloudSave = useCallback(async () => {
     const conflict = state.conflict
@@ -572,7 +703,8 @@ export function DiscordActivityProvider({ children }) {
     acceptCloudSave,
     keepLocalSave,
     clearConflict,
-  }), [acceptCloudSave, clearConflict, keepLocalSave, manualSync, state, updateRichPresence])
+    enterOfflineMode,
+  }), [acceptCloudSave, clearConflict, enterOfflineMode, keepLocalSave, manualSync, state, updateRichPresence])
 
   return <DiscordActivityContext.Provider value={value}>{children}</DiscordActivityContext.Provider>
 }

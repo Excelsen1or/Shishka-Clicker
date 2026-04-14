@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { observer } from 'mobx-react-lite'
 import { createPortal } from 'react-dom'
-import { useGameContext } from '../../context/GameContext'
+import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { useSettingsContext } from '../../context/SettingsContext'
 import { useNav } from '../../context/NavContext'
 import { useSound } from '../../hooks/useSound'
@@ -422,7 +422,7 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay({ a
         const scale = particle.isNormalConeDrop
           ? particle.scale
           : particle.scale * (particle.isEmojiExplosion ? 1 + 0.12 * (1 - progress) : 0.9 + 0.18 * (1 - progress))
-        const fontSize = particle.isEmojiExplosion ? 30 : particle.isMega ? 25 : 20
+        const fontSize = particle.isEmojiExplosion ? 22 : particle.isMega ? 25 : 20
 
         ctx.save()
         ctx.translate(x, y)
@@ -586,7 +586,7 @@ export const ClickerButton = observer(function ClickerButton() {
   const effectsOverlayRef = useRef(null)
   const buttonRef = useRef(null)
 
-  const { clickerMetrics, mineShishki, markAutoClicker } = useGameContext()
+  const { clickerMetrics, mineShishki, markAutoClicker } = useGameStore()
   const { visualEffectToggles } = useSettingsContext()
   const { activeTab } = useNav()
   const { play } = useSound(shishkaSound, { volume: 0.42, randomPitch: [-3.9, 5.8] })

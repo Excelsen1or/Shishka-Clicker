@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { observer } from 'mobx-react-lite'
-import { useGameContext } from '../../context/GameContext'
+import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { formatNumber } from '../../lib/format'
 import { ProgressLoopCard } from '../clicker/ProgressLoopCard.jsx'
 import { PrestigeStep } from './PrestigeStep.jsx'
@@ -101,7 +101,7 @@ export const MetaScreen = observer(function MetaScreen() {
     uiPrestige,
     prestigeReset,
     buyPrestigeUpgrade,
-  } = useGameContext()
+  } = useGameStore()
   const unlockedCount = uiAchievements.filter((entry) => entry.unlocked).length
 
   const grouped = useMemo(() => {

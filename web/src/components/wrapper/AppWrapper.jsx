@@ -6,6 +6,7 @@ import { memo, useEffect, useSyncExternalStore } from 'react'
 import { Header } from '../header/Header.jsx'
 import { useNav } from '../../context/NavContext.jsx'
 import { useSettingsContext } from '../../context/SettingsContext.jsx'
+import { useDiscordActivity } from '../../context/DiscordActivityContext.jsx'
 import { SyncConflictDialog } from '../settings/SyncConflictDialog.jsx'
 import { ScreenFallback } from './ScreenFallback.jsx'
 
@@ -144,6 +145,8 @@ const AppBackground = memo(function AppBackground({ visualEffectToggles }) {
 export const AppWrapper = memo(function AppWrapper() {
   const { activeTab, transitionDirection } = useNav()
   const { visualEffectToggles } = useSettingsContext()
+  const { saveReady, status, syncState, enterOfflineMode } = useDiscordActivity()
+  const showBootScreen = !saveReady && status !== 'ready' && status !== 'error'
 
   useSyncExternalStore(subscribeToScreenRegistry, getScreenRegistrySnapshot, getScreenRegistrySnapshot)
 
@@ -175,16 +178,25 @@ export const AppWrapper = memo(function AppWrapper() {
 
       <div className="app-content">
         <Header />
-        <main className="app-main">
-          <StatsBar className="stats-bar--shop" />
-          <div className="screen-bg">
+        <main className={`app-main ${showBootScreen ? 'app-main--boot' : ''}`.trim()}>
+          {showBootScreen ? null : <StatsBar className="stats-bar--shop" />}
+          <div className={`screen-bg ${showBootScreen ? 'screen-bg--boot' : ''}`.trim()}>
             <div className="screen__glow" />
             <div
               key={activeTab}
-              className={`screen-stage ${visualEffectToggles.revealAnimations ? 'screen-stage--animate' : ''}`}
+              className={`screen-stage ${visualEffectToggles.revealAnimations ? 'screen-stage--animate' : ''} ${showBootScreen ? 'screen-stage--boot' : ''}`.trim()}
               data-direction={transitionDirection}
             >
-              {renderLoadedScreen(activeTab)}
+              {showBootScreen ? (
+                <ScreenFallback
+                  mode="boot"
+                  phase={syncState === 'syncing' ? 'syncing' : status === 'connecting' ? 'connecting' : 'loading'}
+                  allowOffline
+                  onSkipSync={enterOfflineMode}
+                />
+              ) : (
+                renderLoadedScreen(activeTab)
+              )}
             </div>
           </div>
         </main>
@@ -193,7 +205,7 @@ export const AppWrapper = memo(function AppWrapper() {
       <AchievementToast />
       <SyncConflictDialog />
       <DevConsole />
-      <BottomNav />
+      {showBootScreen ? null : <BottomNav />}
     </div>
   )
 })

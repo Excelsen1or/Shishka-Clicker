@@ -1,6 +1,6 @@
 import { memo, useEffect, useRef, useState } from 'react'
 import { observer } from 'mobx-react-lite'
-import { useGameContext } from '../../context/GameContext'
+import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { useSettingsContext } from '../../context/SettingsContext'
 import { useSound } from '../../hooks/useSound'
 import achievementSound from '../../assets/audio/ui/achiv.mp3'
@@ -69,7 +69,7 @@ const ActiveAchievementToast = memo(function ActiveAchievementToast({ current, d
 })
 
 export const AchievementToast = observer(function AchievementToast() {
-  const { achievementQueue, dismissAchievement } = useGameContext()
+  const { achievementQueue, dismissAchievement } = useGameStore()
   const { visualEffectToggles } = useSettingsContext()
   const current = achievementQueue[0]
 

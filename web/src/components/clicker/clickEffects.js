@@ -160,9 +160,9 @@ function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosi
       ? Math.round((Math.random() - 0.5) * 90)
       : Math.round((Math.random() - 0.5) * (isEmojiExplosion ? 1080 : isMega ? 720 : 540))
     particle.scale = isNormalConeDrop
-      ? 0.96 + Math.random() * 0.12
+      ? 1.25 + Math.random() * 0.24
       : isEmojiExplosion
-        ? 0.9 + Math.random() * 0.2
+        ? 0.72 + Math.random() * 0.16
         : isMega
           ? 0.9 + Math.random() * 0.2
           : 0.9 + Math.random() * 0.58
