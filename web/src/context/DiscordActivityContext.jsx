@@ -19,6 +19,7 @@ import { resolvePlayerId } from '../lib/playerId.js'
 const DiscordActivityContext = createContext(null)
 const AUTO_SYNC_INTERVAL_MS = 2500
 const EMPTY_PROGRESS_SCORE_THRESHOLD = 25
+const INITIAL_SYNC_BLOCKING_MS = 1500
 
 function sumLevels(map) {
   if (!map || typeof map !== 'object') return 0
@@ -110,6 +111,11 @@ export function DiscordActivityProvider({ children }) {
   const lastPresenceSignatureRef = useRef('')
   const discordBootstrapStartedRef = useRef(false)
   const offlineModeRef = useRef(false)
+
+  const wait = useCallback((ms) => new Promise((resolve) => {
+    const timeoutId = window.setTimeout(resolve, ms)
+    return () => window.clearTimeout(timeoutId)
+  }), [])
 
   const setSyncState = useCallback((patch) => {
     setState((current) => ({
@@ -499,10 +505,22 @@ export function DiscordActivityProvider({ children }) {
           presenceError: null,
         }))
 
-        await synchronizeNow({
+        const initialSyncPromise = synchronizeNow({
           playerIdOverride: playerId,
           allowLegacyMigration: true,
         })
+        let didFinishWithinBootWindow = false
+
+        try {
+          await Promise.race([
+            initialSyncPromise.then(() => {
+              didFinishWithinBootWindow = true
+            }),
+            wait(INITIAL_SYNC_BLOCKING_MS),
+          ])
+        } catch (error) {
+          throw error
+        }
 
         if (cancelled || offlineModeRef.current) return
 
@@ -510,6 +528,18 @@ export function DiscordActivityProvider({ children }) {
           ...current,
           saveReady: true,
         }))
+
+        if (!didFinishWithinBootWindow) {
+          void initialSyncPromise.catch((error) => {
+            if (cancelled || offlineModeRef.current) return
+
+            setState((current) => ({
+              ...current,
+              syncState: 'error',
+              syncError: error instanceof Error ? error.message : 'initial_sync_failed',
+            }))
+          })
+        }
       } catch (error) {
         if (cancelled || offlineModeRef.current) return
 
