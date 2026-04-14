@@ -18,6 +18,7 @@ export function SettingsDiscordCard() {
     isActivity,
     status,
     user,
+    offlineMode,
     syncState,
     syncError,
     lastSyncedAt,
@@ -42,11 +43,15 @@ export function SettingsDiscordCard() {
     <article className="settings-card">
       <div className="settings-card__head">
         <h3 className="settings-card__title">Discord Activity</h3>
-        <span className="settings-chip">{isActivity ? 'Connected' : 'Cloud Profile'}</span>
+        <span className="settings-chip">
+          {offlineMode ? 'Offline' : isActivity ? 'Connected' : 'Cloud Profile'}
+        </span>
       </div>
 
       <p className="settings-card__hint settings-card__hint--block">
-        {isActivity
+        {offlineMode
+          ? 'Сейчас включён офлайн-режим. Облачная синхронизация приостановлена, игра работает локально в памяти.'
+          : isActivity
           ? `Игрок: ${user?.username ?? 'unknown'}${user?.discriminator ? `#${user.discriminator}` : ''}`
           : 'Приложение открыто вне Discord Activity. Для сейва используется облачный профиль этого устройства.'}
       </p>
@@ -82,7 +87,7 @@ export function SettingsDiscordCard() {
         onClick={handleSync}
         disabled={isSyncing}
       >
-        {isSyncing ? 'Синхронизация...' : 'Синхронизировать сейчас'}
+        {isSyncing ? 'Синхронизация...' : offlineMode ? 'Включить синхронизацию' : 'Синхронизировать сейчас'}
       </button>
     </article>
   )

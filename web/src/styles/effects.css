@@ -283,9 +283,11 @@
 }
 
 .screen-stage--animate {
-  animation-duration: 280ms;
-  animation-timing-function: cubic-bezier(0.18, 0.88, 0.2, 1);
+  transform-origin: center center;
+  animation-duration: 320ms;
+  animation-timing-function: cubic-bezier(0.2, 0.88, 0.24, 1);
   animation-fill-mode: both;
+  backface-visibility: hidden;
 }
 
 .screen > * {
@@ -299,11 +301,11 @@
 .screen > :nth-child(5) { animation-delay: 160ms; }
 
 .screen-stage--animate[data-direction='forward'] {
-  animation-name: screenSlideInFromLeft;
+  animation-name: screenPageFlipForward;
 }
 
 .screen-stage--animate[data-direction='backward'] {
-  animation-name: screenSlideInFromRight;
+  animation-name: screenPageFlipBackward;
 }
 
 :root[data-fx-click-animations='false'] .clicker-btn,
@@ -362,25 +364,25 @@
   }
 }
 
-@keyframes screenSlideInFromRight {
+@keyframes screenPageFlipBackward {
   from {
-    opacity: 0;
-    transform: translate3d(18px, 0, 0);
+    opacity: 1;
+    transform: perspective(1200px) translate3d(28px, 0, 0) rotateY(-7deg) scale(0.988);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
+    transform: perspective(1200px) translate3d(0, 0, 0) rotateY(0deg) scale(1);
   }
 }
 
-@keyframes screenSlideInFromLeft {
+@keyframes screenPageFlipForward {
   from {
-    opacity: 0;
-    transform: translate3d(-18px, 0, 0);
+    opacity: 1;
+    transform: perspective(1200px) translate3d(-28px, 0, 0) rotateY(7deg) scale(0.988);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
+    transform: perspective(1200px) translate3d(0, 0, 0) rotateY(0deg) scale(1);
   }
 }
 
@@ -841,4 +843,3 @@
     font-size: 22px;
   }
 }
-
