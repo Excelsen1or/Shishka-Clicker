@@ -1,5 +1,6 @@
 import {makeAutoObservable, runInAction} from "mobx"
 import { io } from "socket.io-client"
+import stores from "./stores.js"
 
 
 export const WEBSOCKET_STATE = {
@@ -10,16 +11,24 @@ export const WEBSOCKET_STATE = {
 
 export default class WebsocketStore {
 	socket
-	data
+	user
+	data = []
 	CURRENT_STATE = WEBSOCKET_STATE.LOADING
 
 	constructor() {
 		makeAutoObservable(this)
-		// this.init()
+		this.init()
 	}
 
 	sendDataToServer() {
-		this.socket.emit("client_data", { clicks: 10 })
+		const name = "user" // this.user?.global_name || this.user?.username // для теста сделал user
+
+		if (name) {
+			this.socket.emit("client_data", {
+				username: name,
+				shishki: Math.round(stores.gameStore._state.lifetimeShishkiEarned) // здесь можно добавить больше полей для синхронизации
+			})
+		}
 	}
 
 	log(message) {
@@ -31,8 +40,12 @@ export default class WebsocketStore {
 			this.sendDataToServer()
 		}, 5 * 1000)
 
+		// runInAction(() => {
+		// 	this.socket = io("https://shishki.default-squad.ru/")
+		// })
+
 		runInAction(() => {
-			this.socket = io("https://shishki.default-squad.ru/")
+			this.socket = io("http://localhost:8002/") // для тестирования локальный адрес сервера
 		})
 
 		this.socket.on("connect", () => {
@@ -53,8 +66,8 @@ export default class WebsocketStore {
 			this.log(e)
 		})
 
-		this.socket.on("send", data => {
-			this.onServerEvent("send", data)
+		this.socket.on("top_list", data => {
+			this.updateTopList(data)
 		})
 	}
 
@@ -77,28 +90,16 @@ export default class WebsocketStore {
 		this.log("Connection failure")
 	}
 
-	onServerEvent(type, dataString) {
-		let data
-		try {
-			this.log(`Get from server [${type}]\n${dataString}`)
-			data = JSON.parse(dataString)
-		} catch (error) {
-			return this.log(error.message)
-		}
+	updateTopList(dataString) {
+		runInAction(() => {
+			this.data = dataString
+		})
+	}
 
-		console.log("Data from server:", data)
-
-		const types = {
-			"top_list": () => {
-				runInAction(() => {
-					this.data = data
-				})
-			}
-		}
-
-		if (data.type in types) {
-			types[data.type]()
-		}
+	setUser = (user) => {
+		runInAction(() => {
+			this.user = user
+		})
 	}
 
 }

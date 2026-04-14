@@ -7,7 +7,9 @@ export class ServerSocket {
 	static users: any = new Map()
 
 	static async addClientToMap(data: any) {
-		this.users.set("client", data)
+		this.users.set(data.username, data)
+		console.log(`${data.username}:`, data)
+		await this.updateTopList()
 	}
 
 	static async sendToClients(event: string, data: any) {
@@ -18,7 +20,7 @@ export class ServerSocket {
 
 	static async updateTopList() {
 		// сформировать ответ
-		const usersArr = [...this.users.entries()]
+		const usersArr = [...this.users.values()]
 			.sort(([, a], [, b]) => b.clicks - a.clicks)
 			.slice(0, 5)
 
@@ -43,12 +45,8 @@ export class ServerSocket {
 				await this.updateTopList()
 			})
 
-			socket.on("send", data => {
-				console.log("send Обработать:", data)
-			})
-
 			socket.on("client_data", data => {
-				console.log("client_data Обработать:", data)
+				this.addClientToMap(data)
 			})
 		})
 	}

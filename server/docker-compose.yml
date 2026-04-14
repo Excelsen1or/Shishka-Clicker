@@ -2,10 +2,34 @@ services:
   server:
     container_name: shishki_server
     restart: always
+    env_file:
+      - ./server/.env
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "8002:8002"
+    depends_on:
+      db:
+        condition: service_healthy
     command:
-      sh -c "cd /server && node ./dist/index.js"
+      sh -c "cd /server && npx prisma migrate deploy && node ./dist/index.js"
+
+  db:
+    image: postgres:18.3-alpine
+    restart: always
+    container_name: postgresql
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=9h834f29f83g53g
+      - POSTGRES_DB=ShishkiClicker
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d ShishkiClicker" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

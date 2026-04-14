@@ -1,3 +1,4 @@
+import "dotenv/config"
 import express from "express"
 import bodyParser from "body-parser"
 import cookieParser from "cookie-parser"
@@ -31,7 +32,7 @@ app.get("/health", (req, res) => {
 	res.status(200).send("OK")
 })
 
-const port = 8002
+const port = Number(process.env.SERVER_PORT) || 8002
 
 server.listen(port, "0.0.0.0", () => {
 	console.log("Server running on port " + port)
