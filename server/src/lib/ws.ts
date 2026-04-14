@@ -37,15 +37,19 @@ export class ServerSocket {
 			cors: corsOptions
 		})
 
+		console.log("Server socket created")
+
 		this.io.on("connection", socket => {
-			// console.log("Client connected", socket.id, socket.data.user)
+			console.log("Client connected", socket)
 			this.updateTopList()
 
 			socket.on("disconnect", async (reason) => {
+				console.log("Client disconnected:", reason)
 				await this.updateTopList()
 			})
 
 			socket.on("client_data", data => {
+				console.log("Client data", data)
 				this.addClientToMap(data)
 			})
 		})
