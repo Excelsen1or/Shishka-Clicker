@@ -18,7 +18,13 @@ export function buildSaveFileName(date = new Date()) {
   return `shishka-clicker-save-${stamp}${SAVE_FILE_EXTENSION}`
 }
 
-export function createSaveBundle({ gameState, settings, appVersion = 'unknown', exportedAt = new Date().toISOString() }) {
+export function createSaveBundle({
+  gameState,
+  settings,
+  includeSettings = true,
+  appVersion = 'unknown',
+  exportedAt = new Date().toISOString(),
+}) {
   return {
     format: SAVE_EXPORT_FORMAT,
     version: SAVE_EXPORT_VERSION,
@@ -26,7 +32,7 @@ export function createSaveBundle({ gameState, settings, appVersion = 'unknown', 
     exportedAt,
     payload: {
       game: gameState,
-      settings: normalizeSettings(settings),
+      ...(includeSettings && settings ? { settings: normalizeSettings(settings) } : {}),
     },
   }
 }

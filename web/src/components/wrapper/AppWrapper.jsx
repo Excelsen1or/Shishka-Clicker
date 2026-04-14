@@ -7,7 +7,6 @@ import { Header } from '../header/Header.jsx'
 import { useNav } from '../../context/NavContext.jsx'
 import { useSettingsContext } from '../../context/SettingsContext.jsx'
 import { useDiscordActivity } from '../../context/DiscordActivityContext.jsx'
-import { SyncConflictDialog } from '../settings/SyncConflictDialog.jsx'
 import { ScreenFallback } from './ScreenFallback.jsx'
 
 export const loadClickerScreen = () => import('../clicker/ClickerScreen')
@@ -146,7 +145,7 @@ export const AppWrapper = memo(function AppWrapper() {
   const { activeTab, transitionDirection } = useNav()
   const { visualEffectToggles } = useSettingsContext()
   const { saveReady, status, syncState, enterOfflineMode } = useDiscordActivity()
-  const showBootScreen = !saveReady && status !== 'ready' && status !== 'error'
+  const showBootScreen = !saveReady
 
   useSyncExternalStore(subscribeToScreenRegistry, getScreenRegistrySnapshot, getScreenRegistrySnapshot)
 
@@ -203,7 +202,6 @@ export const AppWrapper = memo(function AppWrapper() {
       </div>
 
       <AchievementToast />
-      <SyncConflictDialog />
       <DevConsole />
       {showBootScreen ? null : <BottomNav />}
     </div>

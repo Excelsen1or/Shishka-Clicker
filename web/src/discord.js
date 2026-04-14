@@ -3,10 +3,32 @@ import { exchangeDiscordCode } from './lib/discordAuth.js'
 
 const DISCORD_CLIENT_ID = import.meta.env.VITE_CLIENT_ID ?? import.meta.env.VITE_DISCORD_CLIENT_ID
 const DISCORD_ACTIVITY_SCOPES = ['identify', 'rpc.activities.write']
-const DISCORD_READY_TIMEOUT_MS = 1500
-const DISCORD_AUTHORIZE_TIMEOUT_MS = 2500
-const DISCORD_AUTHENTICATE_TIMEOUT_MS = 2500
-const DISCORD_TOKEN_EXCHANGE_TIMEOUT_MS = 5000
+const DISCORD_READY_TIMEOUT_MS = 5000
+const DISCORD_AUTHORIZE_TIMEOUT_MS = 10000
+const DISCORD_AUTHENTICATE_TIMEOUT_MS = 10000
+const DISCORD_TOKEN_EXCHANGE_TIMEOUT_MS = 10000
+
+function isDiscordEmbeddedContext() {
+  if (typeof window === 'undefined') {
+    return false
+  }
+
+  const params = new URLSearchParams(window.location.search)
+  if (params.has('frame_id') || params.has('instance_id') || params.has('referrer_id')) {
+    return true
+  }
+
+  const referrer = document.referrer ?? ''
+  if (/discord(app)?\.com|discordsays\.com/i.test(referrer)) {
+    return true
+  }
+
+  try {
+    return window.parent !== window || Boolean(window.opener)
+  } catch {
+    return true
+  }
+}
 
 function withTimeout(promise, timeoutMs, label) {
   return Promise.race([
@@ -36,11 +58,12 @@ function createDiscordSdk() {
   }
 }
 
-const discordSdk = createDiscordSdk()
+const discordSdk = isDiscordEmbeddedContext() ? createDiscordSdk() : null
 
 export async function setupDiscord() {
   if (!discordSdk) {
     return {
+      mode: 'standalone',
       isActivity: false,
       discordSdk: null,
       auth: null,
@@ -81,6 +104,7 @@ export async function setupDiscord() {
     }
 
     return {
+      mode: 'activity',
       isActivity: true,
       discordSdk,
       auth,
@@ -89,6 +113,7 @@ export async function setupDiscord() {
   } catch (error) {
     console.warn('Failed to initialize Discord activity:', error)
     return {
+      mode: 'activity_error',
       isActivity: false,
       discordSdk,
       auth: null,

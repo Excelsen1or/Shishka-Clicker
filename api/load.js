@@ -1,4 +1,5 @@
-import { createClient } from '@supabase/supabase-js'
+import { createServerSupabase } from './_lib/supabase.js'
+import { requireSession } from './_lib/session.js'
 
 export default async function handler(req, res) {
   try {
@@ -9,40 +10,15 @@ export default async function handler(req, res) {
       })
     }
 
-    const supabaseUrl = process.env.SUPABASE_URL
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const session = requireSession(req, res)
+    if (!session) return
 
-    if (!supabaseUrl) {
-      return res.status(500).json({
-        ok: false,
-        error: 'missing_SUPABASE_URL',
-      })
-    }
-
-    if (!serviceRoleKey) {
-      return res.status(500).json({
-        ok: false,
-        error: 'missing_SUPABASE_SERVICE_ROLE_KEY',
-      })
-    }
-
-    const { playerId } = req.query
-
-    if (!playerId) {
-      return res.status(400).json({
-        ok: false,
-        error: 'playerId is required',
-      })
-    }
-
-    const supabase = createClient(supabaseUrl, serviceRoleKey)
+    const supabase = createServerSupabase()
 
     const { data, error } = await supabase
       .from('player_saves')
       .select('save_data, updated_at, app_version, save_version')
-      .eq('player_id', String(playerId))
-      .order('updated_at', { ascending: false })
-      .limit(1)
+      .eq('player_id', String(session.playerId))
       .maybeSingle()
 
     if (error) {

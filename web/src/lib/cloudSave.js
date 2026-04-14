@@ -1,4 +1,4 @@
-const CLOUD_SAVE_TIMEOUT_MS = 5000
+const CLOUD_SAVE_TIMEOUT_MS = 12000
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = CLOUD_SAVE_TIMEOUT_MS) {
   const controller = new AbortController()
@@ -20,14 +20,29 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = CLOUD_SAVE_TIMEOU
   }
 }
 
-export async function uploadCloudSave({ playerId, appVersion, save, expectedVersion = null, force = false }) {
+export async function initializeCloudSession() {
+  const response = await fetchWithTimeout('/api/session', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    const text = await response.text()
+    throw new Error(`Cloud session init failed: ${text}`)
+  }
+
+  return response.json()
+}
+
+export async function uploadCloudSave({ appVersion, save, expectedVersion = null, force = false }) {
   const response = await fetchWithTimeout('/api/save', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      playerId,
       appVersion,
       save,
       expectedVersion,
@@ -52,8 +67,8 @@ export async function uploadCloudSave({ playerId, appVersion, save, expectedVers
   return response.json()
 }
 
-export async function downloadCloudSave(playerId) {
-  const response = await fetchWithTimeout(`/api/load?playerId=${encodeURIComponent(playerId)}`)
+export async function downloadCloudSave() {
+  const response = await fetchWithTimeout('/api/load')
 
   if (response.status === 404) {
     return null

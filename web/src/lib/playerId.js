@@ -1,10 +1,10 @@
 const PLAYER_ID_KEY = 'shishka_player_id'
 
-export function buildDiscordPlayerId(discordUserId) {
+function buildDiscordPlayerId(discordUserId) {
   return `discord:${String(discordUserId)}`
 }
 
-export function getOrCreatePlayerId() {
+function getOrCreatePlayerId() {
   if (typeof window === 'undefined') {
     return null
   }

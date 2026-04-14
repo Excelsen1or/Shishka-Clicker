@@ -1,6 +1,37 @@
 import { useState } from 'react'
 import { useDiscordActivity } from '../../context/DiscordActivityContext.jsx'
 
+const STATUS_LABELS = {
+  idle: 'ожидание',
+  connecting: 'подключение',
+  ready: 'готово',
+  error: 'ошибка',
+}
+
+const SYNC_STATE_LABELS = {
+  idle: 'ожидание',
+  loading: 'загрузка',
+  syncing: 'синхронизация',
+  synced: 'синхронизировано',
+  offline: 'оффлайн',
+  error: 'ошибка',
+}
+
+const SYNC_SOURCE_LABELS = {
+  download: 'облако',
+  upload: 'выгрузка',
+  override: 'перезапись облака',
+  migration: 'миграция',
+  offline: 'оффлайн',
+  noop: 'без изменений',
+}
+
+const PRESENCE_STATE_LABELS = {
+  idle: 'ожидание',
+  ready: 'активен',
+  error: 'ошибка',
+}
+
 function formatDate(value) {
   if (!value) return 'ещё не синхронизировано'
 
@@ -11,6 +42,10 @@ function formatDate(value) {
   }
 
   return date.toLocaleString('ru-RU')
+}
+
+function formatLabel(value, labels) {
+  return labels[value] ?? value ?? 'нет данных'
 }
 
 export function SettingsDiscordCard() {
@@ -57,16 +92,16 @@ export function SettingsDiscordCard() {
       </p>
 
       <p className="settings-card__hint settings-card__hint--block">
-        Статус SDK: {status}. Синхронизация: {syncState}.
+        Статус SDK: {formatLabel(status, STATUS_LABELS)}. Синхронизация: {formatLabel(syncState, SYNC_STATE_LABELS)}.
       </p>
 
       <p className="settings-card__hint settings-card__hint--block">
-        Rich Presence: {presenceState}. Последнее обновление: {formatDate(lastPresenceAt)}.
+        Rich Presence: {formatLabel(presenceState, PRESENCE_STATE_LABELS)}. Последнее обновление: {formatDate(lastPresenceAt)}.
       </p>
 
       <p className="settings-card__hint settings-card__hint--block">
         Последняя синхронизация: {formatDate(lastSyncedAt)}
-        {syncSource ? ` (${syncSource})` : ''}
+        {syncSource ? ` (${formatLabel(syncSource, SYNC_SOURCE_LABELS)})` : ''}
       </p>
 
       {syncError ? (

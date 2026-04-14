@@ -1,4 +1,7 @@
+import { writeSession } from './_lib/session.js'
+
 const DISCORD_API_URL = 'https://discord.com/api/oauth2/token'
+const DISCORD_ME_API_URL = 'https://discord.com/api/users/@me'
 
 function getDiscordClientId() {
   return process.env.VITE_CLIENT_ID ?? process.env.VITE_DISCORD_CLIENT_ID
@@ -59,6 +62,26 @@ export default async function handler(req, res) {
         error: payload.error_description ?? payload.error ?? 'token_exchange_failed',
       })
     }
+
+    const meResponse = await fetch(DISCORD_ME_API_URL, {
+      headers: {
+        Authorization: `Bearer ${payload.access_token}`,
+      },
+    })
+    const mePayload = await meResponse.json()
+
+    if (!meResponse.ok || !mePayload?.id) {
+      return res.status(500).json({
+        ok: false,
+        error: mePayload?.message ?? 'discord_user_fetch_failed',
+      })
+    }
+
+    writeSession(res, {
+      playerId: `discord:${String(mePayload.id)}`,
+      provider: 'discord',
+      discordUserId: String(mePayload.id),
+    })
 
     return res.status(200).json({
       ok: true,
