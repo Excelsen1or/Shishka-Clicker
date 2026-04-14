@@ -3,6 +3,25 @@ import { exchangeDiscordCode } from './lib/discordAuth.js'
 
 const DISCORD_CLIENT_ID = import.meta.env.VITE_CLIENT_ID ?? import.meta.env.VITE_DISCORD_CLIENT_ID
 const DISCORD_ACTIVITY_SCOPES = ['identify', 'rpc.activities.write']
+const DISCORD_READY_TIMEOUT_MS = 1500
+const DISCORD_AUTHORIZE_TIMEOUT_MS = 2500
+const DISCORD_AUTHENTICATE_TIMEOUT_MS = 2500
+const DISCORD_TOKEN_EXCHANGE_TIMEOUT_MS = 5000
+
+function withTimeout(promise, timeoutMs, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      const timeoutId = window.setTimeout(() => {
+        reject(new Error(`${label}_timeout`))
+      }, timeoutMs)
+
+      Promise.resolve(promise).finally(() => {
+        window.clearTimeout(timeoutId)
+      })
+    }),
+  ])
+}
 
 function createDiscordSdk() {
   if (typeof window === 'undefined' || !DISCORD_CLIENT_ID) {
@@ -30,20 +49,32 @@ export async function setupDiscord() {
   }
 
   try {
-    await discordSdk.ready()
+    await withTimeout(discordSdk.ready(), DISCORD_READY_TIMEOUT_MS, 'discord_ready')
 
-    const { code } = await discordSdk.commands.authorize({
-      client_id: DISCORD_CLIENT_ID,
-      response_type: 'code',
-      state: 'discord-activity',
-      prompt: 'none',
-      scope: DISCORD_ACTIVITY_SCOPES,
-    })
+    const { code } = await withTimeout(
+      discordSdk.commands.authorize({
+        client_id: DISCORD_CLIENT_ID,
+        response_type: 'code',
+        state: 'discord-activity',
+        prompt: 'none',
+        scope: DISCORD_ACTIVITY_SCOPES,
+      }),
+      DISCORD_AUTHORIZE_TIMEOUT_MS,
+      'discord_authorize',
+    )
 
-    const { access_token: accessToken } = await exchangeDiscordCode(code)
-    const auth = await discordSdk.commands.authenticate({
-      access_token: accessToken,
-    })
+    const { access_token: accessToken } = await withTimeout(
+      exchangeDiscordCode(code),
+      DISCORD_TOKEN_EXCHANGE_TIMEOUT_MS,
+      'discord_exchange_token',
+    )
+    const auth = await withTimeout(
+      discordSdk.commands.authenticate({
+        access_token: accessToken,
+      }),
+      DISCORD_AUTHENTICATE_TIMEOUT_MS,
+      'discord_authenticate',
+    )
 
     if (!auth) {
       throw new Error('Authenticate command returned null')

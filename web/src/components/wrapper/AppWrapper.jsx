@@ -146,6 +146,7 @@ export const AppWrapper = memo(function AppWrapper() {
   const { activeTab, transitionDirection } = useNav()
   const { visualEffectToggles } = useSettingsContext()
   const { saveReady, status, syncState, enterOfflineMode } = useDiscordActivity()
+  const showBootScreen = !saveReady && status !== 'ready' && status !== 'error'
 
   useSyncExternalStore(subscribeToScreenRegistry, getScreenRegistrySnapshot, getScreenRegistrySnapshot)
 
@@ -177,24 +178,24 @@ export const AppWrapper = memo(function AppWrapper() {
 
       <div className="app-content">
         <Header />
-        <main className={`app-main ${saveReady ? '' : 'app-main--boot'}`.trim()}>
-          {saveReady ? <StatsBar className="stats-bar--shop" /> : null}
-          <div className={`screen-bg ${saveReady ? '' : 'screen-bg--boot'}`.trim()}>
+        <main className={`app-main ${showBootScreen ? 'app-main--boot' : ''}`.trim()}>
+          {showBootScreen ? null : <StatsBar className="stats-bar--shop" />}
+          <div className={`screen-bg ${showBootScreen ? 'screen-bg--boot' : ''}`.trim()}>
             <div className="screen__glow" />
             <div
               key={activeTab}
-              className={`screen-stage ${visualEffectToggles.revealAnimations ? 'screen-stage--animate' : ''} ${saveReady ? '' : 'screen-stage--boot'}`.trim()}
+              className={`screen-stage ${visualEffectToggles.revealAnimations ? 'screen-stage--animate' : ''} ${showBootScreen ? 'screen-stage--boot' : ''}`.trim()}
               data-direction={transitionDirection}
             >
-              {saveReady ? (
-                renderLoadedScreen(activeTab)
-              ) : (
+              {showBootScreen ? (
                 <ScreenFallback
                   mode="boot"
                   phase={syncState === 'syncing' ? 'syncing' : status === 'connecting' ? 'connecting' : 'loading'}
                   allowOffline
                   onSkipSync={enterOfflineMode}
                 />
+              ) : (
+                renderLoadedScreen(activeTab)
               )}
             </div>
           </div>
@@ -204,7 +205,7 @@ export const AppWrapper = memo(function AppWrapper() {
       <AchievementToast />
       <SyncConflictDialog />
       <DevConsole />
-      {saveReady ? <BottomNav /> : null}
+      {showBootScreen ? null : <BottomNav />}
     </div>
   )
 })

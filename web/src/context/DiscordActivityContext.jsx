@@ -511,16 +511,12 @@ export function DiscordActivityProvider({ children }) {
         })
         let didFinishWithinBootWindow = false
 
-        try {
-          await Promise.race([
-            initialSyncPromise.then(() => {
-              didFinishWithinBootWindow = true
-            }),
-            wait(INITIAL_SYNC_BLOCKING_MS),
-          ])
-        } catch (error) {
-          throw error
-        }
+        await Promise.race([
+          initialSyncPromise.then(() => {
+            didFinishWithinBootWindow = true
+          }),
+          wait(INITIAL_SYNC_BLOCKING_MS),
+        ])
 
         if (cancelled || offlineModeRef.current) return
 
@@ -568,7 +564,7 @@ export function DiscordActivityProvider({ children }) {
     return () => {
       cancelled = true
     }
-  }, [synchronizeNow, websocketStore])
+  }, [synchronizeNow, wait, websocketStore])
 
   useEffect(() => {
     if (!state.playerId || !state.saveReady || state.offlineMode) return undefined
