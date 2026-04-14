@@ -286,7 +286,10 @@ export function DiscordActivityProvider({ children }) {
     const localGameState = localSnapshot.state
     const localProgressScore = getProgressScore(localGameState)
     const localIsNearlyEmpty = localProgressScore <= EMPTY_PROGRESS_SCORE_THRESHOLD
-    const localDirty = localSnapshot.clientRevision !== syncedClientRevisionRef.current
+    const hasCompletedInitialSync = syncedClientRevisionRef.current !== null
+    const localDirty =
+      hasCompletedInitialSync &&
+      localSnapshot.clientRevision !== syncedClientRevisionRef.current
     const cloudSave = await downloadCloudSave(playerId)
 
     if (!cloudSave?.save) {
