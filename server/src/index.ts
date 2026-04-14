@@ -4,7 +4,7 @@ import bodyParser from "body-parser"
 import cookieParser from "cookie-parser"
 import cors from "cors"
 import * as http from "node:http"
-import {ServerSocket} from "./lib/ws"
+import {initSocket} from "./lib/ws"
 
 
 const app = express()
@@ -19,7 +19,7 @@ export const corsOptions = {
 	],
 	credentials: true
 }
-await ServerSocket.init()
+initSocket()
 
 app.use(cors(corsOptions))
 app.use(cookieParser())

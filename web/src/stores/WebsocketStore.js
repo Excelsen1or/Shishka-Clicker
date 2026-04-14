@@ -40,7 +40,9 @@ export default class WebsocketStore {
 
   log = (message) => console.log(`WebSocket | ${message}`)
 
-  connectWithServer = () => this.emit("init", {})
+  connectWithServer = () => this.emit("init", {
+    username: this.username
+  })
 
   init() {
     this.log("Initializing")
@@ -61,10 +63,11 @@ export default class WebsocketStore {
 
   ping = () => this.emit("ping", {})
 
-  emit = (event, data) => socket?.emit(event, JSON.stringify({
-    username: this.username,
-    ...data
-  }))
+  emit = (event, data) =>
+    socket.emit(event, {
+      username: this.username,
+      ...data
+    })
 
   connectSuccess() {
     this.CURRENT_STATE = WEBSOCKET_STATE.SUCCESS
