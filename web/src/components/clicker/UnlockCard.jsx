@@ -1,24 +1,37 @@
-import {formatNumber} from "../../lib/format.js"
-import {StatCard} from "../stats/StatCard.jsx"
+import { memo } from 'react'
+import { formatNumber } from '../../lib/format.js'
+import { StatCard } from '../stats/StatCard.jsx'
 import { ConeIcon } from '../ui/ConeIcon'
 import { KnowledgeIcon } from '../ui/GameIcon'
 
+function areUnlockItemsEqual(previousItem, nextItem) {
+  if (previousItem === nextItem) return true
+  if (!previousItem || !nextItem) return previousItem === nextItem
 
-export const UnlockCard = ({ title, item, accentClass }) => {
-	if (!item) {
-		return (
-			<StatCard
-				label={title}
-				value="✓ Всё открыто"
-				hint="Фокус на прокачке уровней и престиже."
-				formatValue={false}
-				className="stat-card--shop-surface stat-card--unlock"
-				valueClassName="stat-card__value--done"
-			/>
-		)
-	}
+  return previousItem.id === nextItem.id
+    && previousItem.title === nextItem.title
+    && previousItem.unlockText === nextItem.unlockText
+    && previousItem.unlockRule?.shishki === nextItem.unlockRule?.shishki
+    && previousItem.unlockRule?.knowledge === nextItem.unlockRule?.knowledge
+    && previousItem.unlockProgress?.shishki === nextItem.unlockProgress?.shishki
+    && previousItem.unlockProgress?.knowledge === nextItem.unlockProgress?.knowledge
+}
 
-	const shishkiPct = Math.min(100, (item.unlockProgress.shishki / Math.max(1, item.unlockRule.shishki)) * 100)
+export const UnlockCard = memo(function UnlockCard({ title, item, accentClass }) {
+  if (!item) {
+    return (
+      <StatCard
+        label={title}
+        value="✓ Всё открыто"
+        hint="Фокус на прокачке уровней и престиже."
+        formatValue={false}
+        className="stat-card--shop-surface stat-card--unlock"
+        valueClassName="stat-card__value--done"
+      />
+    )
+  }
+
+  const shishkiPct = Math.min(100, (item.unlockProgress.shishki / Math.max(1, item.unlockRule.shishki)) * 100)
   const knowledgePct = Math.min(100, (item.unlockProgress.knowledge / Math.max(1, item.unlockRule.knowledge)) * 100)
 
   return (
@@ -49,4 +62,8 @@ export const UnlockCard = ({ title, item, accentClass }) => {
       </div>
     </StatCard>
   )
-}
+}, (previousProps, nextProps) => (
+  previousProps.title === nextProps.title
+  && previousProps.accentClass === nextProps.accentClass
+  && areUnlockItemsEqual(previousProps.item, nextProps.item)
+))

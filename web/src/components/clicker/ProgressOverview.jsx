@@ -4,13 +4,20 @@ import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { StatCard } from '../stats/StatCard.jsx'
 import { UnlockCard } from './UnlockCard.jsx'
 import { ConeIcon } from '../ui/ConeIcon'
-import { MoneyIcon, KnowledgeIcon } from '../ui/GameIcon'
+import { KnowledgeIcon } from '../ui/GameIcon'
 
-const ProgressStatsSection = memo(function ProgressStatsSection({ items }) {
+const SideKpiGrid = memo(function SideKpiGrid({ items, reserveHintSpace = false }) {
   return (
-    <div className="progress-stats">
+    <div className="side-kpi-grid">
       {items.map((item, index) => (
-        <StatCard key={item.label} {...item} delay={index} className="progress-stats__card" formatValue={false} />
+        <StatCard
+          key={item.label}
+          {...item}
+          delay={index}
+          className="side-kpi-card"
+          formatValue={false}
+          reserveHintSpace={reserveHintSpace}
+        />
       ))}
     </div>
   )
@@ -25,6 +32,42 @@ const MetaSummarySection = memo(function MetaSummarySection({ items }) {
     </section>
   )
 })
+
+function useProgressStatsItems() {
+  const { progressOverviewData } = useGameStore()
+  const {
+    lifetimeShishkiEarnedText,
+    totalMoneyEarnedText,
+    totalKnowledgeEarnedText,
+    megaClicksText,
+  } = progressOverviewData
+
+  return useMemo(() => ([
+    { iconKey: 'cone', label: 'Всего шишек', value: lifetimeShishkiEarnedText },
+    { iconKey: 'money', label: 'Денег в цикле', value: totalMoneyEarnedText },
+    { iconKey: 'knowledge', label: 'Знаний в цикле', value: totalKnowledgeEarnedText },
+    { iconKey: 'mega', label: 'Мега-кликов', value: megaClicksText },
+  ]), [lifetimeShishkiEarnedText, megaClicksText, totalKnowledgeEarnedText, totalMoneyEarnedText])
+}
+
+function useMetaSummaryItems() {
+  const { progressOverviewData } = useGameStore()
+  const {
+    unlockedAchievements,
+    achievementsTotal,
+    rebirthsText,
+    prestigeShardsText,
+    projectedShardsText,
+    prestige,
+  } = progressOverviewData
+
+  return useMemo(() => ([
+    { iconKey: 'prize', label: 'Достижения', value: `${unlockedAchievements}/${achievementsTotal}`, hint: 'открыто сейчас' },
+    { iconKey: 'rebirth', label: 'Ребёрсы', value: rebirthsText, hint: 'завершённых циклов' },
+    { iconKey: 'shards', label: 'Осколки', value: prestige.isUnlocked ? `${prestigeShardsText} 💎` : 'закрыто', hint: 'баланс престижа' },
+    { iconKey: 'reward', label: 'След. награда', value: prestige.isUnlocked ? `${projectedShardsText} 💎` : 'закрыто', hint: 'если ребёрс сейчас' },
+  ]), [achievementsTotal, projectedShardsText, prestige.isUnlocked, prestigeShardsText, rebirthsText, unlockedAchievements])
+}
 
 const PrestigeOverviewCard = memo(function PrestigeOverviewCard({
   prestige,
@@ -77,67 +120,58 @@ const UnlockPreviewSection = memo(function UnlockPreviewSection({ nextSub, nextU
 
   return (
     <div className="unlock-grid">
-      {nextSub && <UnlockCard title="Следующая подписка" item={nextSub} accentClass="text-fuchsia" />}
-      {nextUpgrade && <UnlockCard title="Следующий апгрейд" item={nextUpgrade} accentClass="text-cyan" />}
+      {nextSub ? <UnlockCard title="Следующая подписка" item={nextSub} accentClass="text-fuchsia" /> : null}
+      {nextUpgrade ? <UnlockCard title="Следующий апгрейд" item={nextUpgrade} accentClass="text-cyan" /> : null}
     </div>
   )
 })
 
-export const ProgressOverview = observer(function ProgressOverview() {
+export const ProgressStatsPanel = observer(function ProgressStatsPanel({ className = '' }) {
+  const items = useProgressStatsItems()
+
+  return (
+    <section className={`progress-stats-panel ${className}`.trim()}>
+      <SideKpiGrid items={items} reserveHintSpace />
+    </section>
+  )
+})
+
+export const ProgressMetaPanel = observer(function ProgressMetaPanel({ className = '' }) {
+  const items = useMetaSummaryItems()
+
+  return (
+    <section className={`progress-stats-panel ${className}`.trim()}>
+      <SideKpiGrid items={items} />
+    </section>
+  )
+})
+
+export const ProgressOverview = observer(function ProgressOverview({ hideStats = false, hideMeta = false }) {
   const { progressOverviewData } = useGameStore()
   const {
     nextSub,
     nextUpgrade,
-    unlockedAchievements,
-    achievementsTotal,
-    rebirthsText,
-    prestigeShardsText,
-    projectedShardsText,
-    lifetimeShishkiEarnedText,
-    totalMoneyEarnedText,
-    totalKnowledgeEarnedText,
-    megaClicksText,
     prestigeLabel,
     cycleShishkiText,
     cycleShishkiGoalText,
-    cycleShishkiFull,
-    cycleShishkiAbbreviated,
     cycleKnowledgeText,
     cycleKnowledgeGoalText,
-    cycleKnowledgeFull,
-    cycleKnowledgeAbbreviated,
     prestige,
   } = progressOverviewData
-
-  const metaSummary = useMemo(() => ([
-    { iconKey: 'prize', label: 'Достижения', value: `${unlockedAchievements}/${achievementsTotal}`, hint: 'открыто сейчас' },
-    { iconKey: 'rebirth', label: 'Ребёрсы', value: rebirthsText, hint: 'завершённых циклов' },
-    { iconKey: 'shards', label: 'Осколки', value: prestige.isUnlocked ? `${prestigeShardsText} 💎` : 'закрыто', hint: 'баланс престижа' },
-    { iconKey: 'reward', label: 'След. награда', value: prestige.isUnlocked ? `${projectedShardsText} 💎` : 'закрыто', hint: 'если ребёрс сейчас' },
-  ]), [achievementsTotal, projectedShardsText, prestige.isUnlocked, prestigeShardsText, rebirthsText, unlockedAchievements])
-
-  const progressStats = useMemo(() => ([
-    { icon: <ConeIcon />, label: 'Всего шишек', value: lifetimeShishkiEarnedText },
-    { icon: <MoneyIcon />, label: 'Денег в цикле', value: totalMoneyEarnedText },
-    { icon: <KnowledgeIcon />, label: 'Знаний в цикле', value: totalKnowledgeEarnedText },
-    { iconKey: 'mega', label: 'Мега-кликов', value: megaClicksText },
-  ]), [lifetimeShishkiEarnedText, megaClicksText, totalKnowledgeEarnedText, totalMoneyEarnedText])
+  const progressStats = useProgressStatsItems()
+  const metaSummary = useMetaSummaryItems()
 
   return (
     <div className="progress-overview">
-      <ProgressStatsSection items={progressStats} />
-      <MetaSummarySection items={metaSummary} />
+      {hideStats ? null : <SideKpiGrid items={progressStats} reserveHintSpace />}
+      {hideMeta ? null : <MetaSummarySection items={metaSummary} />}
       <PrestigeOverviewCard
         prestige={prestige}
         prestigeLabel={prestigeLabel}
         cycleShishkiText={cycleShishkiText}
         cycleShishkiGoalText={cycleShishkiGoalText}
-        cycleShishkiFull={cycleShishkiFull}
-        cycleShishkiAbbreviated={cycleShishkiAbbreviated}
         cycleKnowledgeText={cycleKnowledgeText}
         cycleKnowledgeGoalText={cycleKnowledgeGoalText}
-        cycleKnowledgeFull={cycleKnowledgeFull}
-        cycleKnowledgeAbbreviated={cycleKnowledgeAbbreviated}
       />
       <UnlockPreviewSection nextSub={nextSub} nextUpgrade={nextUpgrade} />
     </div>

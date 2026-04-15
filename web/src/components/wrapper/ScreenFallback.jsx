@@ -104,8 +104,6 @@ export const ScreenFallback = ({
 
           <div className="unlock-progress">
             <div className="unlock-progress__row">
-              <span>Общий прогресс</span>
-              <span>{progress}%</span>
             </div>
             <div className="unlock-progress__track">
               <div className="unlock-progress__fill unlock-progress__fill--alt" style={{ width: `${progress}%` }} />

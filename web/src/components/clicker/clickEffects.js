@@ -11,7 +11,7 @@ export const EFFECT_LIFETIMES = {
     emoji: 1460,
   },
   particle: {
-    normal: 920,
+    normal: 1080,
     mega: 1120,
     emoji: 1860,
   },
@@ -137,35 +137,43 @@ function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosi
   const angleJitter = (Math.PI * 2) / Math.max(total, 1)
 
   return Array.from({ length: total }, (_, index) => {
-    const angle = isNormalConeDrop
-      ? (Math.PI / 2) + ((Math.random() - 0.5) * 0.12)
-      : isEmojiExplosion
+    const particle = acquirePooledEffect(effectPool)
+
+    if (isNormalConeDrop) {
+      const horizontalDirection = Math.random() < 0.5 ? -1 : 1
+      particle.x = localX + ((Math.random() - 0.5) * 18)
+      particle.y = localY - 8 - (Math.random() * 14)
+      particle.dx = horizontalDirection * (18 + Math.random() * 64)
+      particle.dy = 88 + Math.random() * 62
+      particle.rotate = horizontalDirection * (140 + Math.random() * 260)
+      particle.scale = 1.04 + Math.random() * 0.3
+      particle.arcHeight = 18 + Math.random() * 28
+      particle.wobble = 2 + Math.random() * 12
+      particle.wobbleTurns = 0.7 + Math.random() * 1.1
+      particle.fallCurve = 1.35 + Math.random() * 0.7
+      particle.arcBias = 0.8 + Math.random() * 0.5
+      particle.wobblePhase = Math.random() * Math.PI * 2
+    } else {
+      const angle = isEmojiExplosion
         ? ((Math.PI * 2 * index) / total) + ((Math.random() - 0.5) * angleJitter * 0.9)
         : getRandomAngle()
-    const spawnOffset = isNormalConeDrop
-      ? { x: (Math.random() - 0.5) * 8, y: -10 - Math.random() * 10 }
-      : getRandomOffset(isEmojiExplosion ? 18 : isMega ? 20 : 18)
-    const distance = isNormalConeDrop
-      ? 156 + Math.random() * 72
-      : isEmojiExplosion
+      const spawnOffset = getRandomOffset(isEmojiExplosion ? 18 : isMega ? 20 : 18)
+      const distance = isEmojiExplosion
         ? 180 + Math.random() * 180
         : 22 + Math.random() * (isMega ? 180 : 92)
 
-    const particle = acquirePooledEffect(effectPool)
-    particle.x = localX + spawnOffset.x
-    particle.y = localY + spawnOffset.y
-    particle.dx = Math.cos(angle) * distance
-    particle.dy = Math.sin(angle) * distance
-    particle.rotate = isNormalConeDrop
-      ? Math.round((Math.random() - 0.5) * 90)
-      : Math.round((Math.random() - 0.5) * (isEmojiExplosion ? 1080 : isMega ? 720 : 540))
-    particle.scale = isNormalConeDrop
-      ? 1.25 + Math.random() * 0.24
-      : isEmojiExplosion
+      particle.x = localX + spawnOffset.x
+      particle.y = localY + spawnOffset.y
+      particle.dx = Math.cos(angle) * distance
+      particle.dy = Math.sin(angle) * distance
+      particle.rotate = Math.round((Math.random() - 0.5) * (isEmojiExplosion ? 1080 : isMega ? 720 : 540))
+      particle.scale = isEmojiExplosion
         ? 0.72 + Math.random() * 0.16
         : isMega
           ? 0.9 + Math.random() * 0.2
           : 0.9 + Math.random() * 0.58
+    }
+
     particle.symbol = isNormalConeDrop ? '🌰' : pickRandom(pool)
     particle.isMega = isMega
     particle.isEmojiExplosion = isEmojiExplosion
@@ -234,24 +242,30 @@ export function buildClickEffectPoints(buttonElement, event) {
   const burstRadiusBase = Math.min(rect.width, rect.height) * 0.28
   const burstRadius = burstRadiusBase + Math.random() * (burstRadiusBase * 0.42)
   const hasPointerCoords = Number.isFinite(event.clientX) && Number.isFinite(event.clientY)
+  const pointerX = hasPointerCoords ? event.clientX : centerX
+  const pointerY = hasPointerCoords ? event.clientY : centerY
 
   return {
+    pointerPoint: {
+      x: pointerX,
+      y: pointerY,
+    },
     particlePoint: {
       x: centerX + Math.cos(particleAngle) * burstRadius,
       y: centerY + Math.sin(particleAngle) * burstRadius,
     },
     burstPoint: {
-      x: centerX + Math.cos(burstAngle) * burstRadius,
-      y: centerY + Math.sin(burstAngle) * burstRadius,
+      x: hasPointerCoords ? pointerX + ((Math.random() - 0.5) * 20) : centerX + Math.cos(burstAngle) * burstRadius,
+      y: hasPointerCoords ? pointerY - 28 - (Math.random() * 8) : centerY + Math.sin(burstAngle) * burstRadius,
     },
     shockwavePoint: {
-      x: hasPointerCoords ? event.clientX : centerX,
-      y: hasPointerCoords ? event.clientY : centerY,
+      x: pointerX,
+      y: pointerY,
     },
   }
 }
 
-export function buildClickSpawnState({ result, particlePoint, burstPoint, shockwavePoint, config, now, pools }) {
+export function buildClickSpawnState({ result, pointerPoint, particlePoint, burstPoint, shockwavePoint, config, now, pools }) {
   const {
     visualEffectCaps: caps,
     visualEffectScaling: scaling,
@@ -273,6 +287,7 @@ export function buildClickSpawnState({ result, particlePoint, burstPoint, shockw
         ? Math.round(1 * scaling.coneSpawnScale)
         : 0,
   )
+  const spawnParticlePoint = result.isMega || result.isEmojiExplosion ? particlePoint : (pointerPoint ?? particlePoint)
 
   return {
     burst: !toggles.floatingNumbers || burstCap <= 0
@@ -294,8 +309,8 @@ export function buildClickSpawnState({ result, particlePoint, burstPoint, shockw
         },
     particles: toggles.particles
       ? createParticles(
-          particlePoint.x,
-          particlePoint.y,
+          spawnParticlePoint.x,
+          spawnParticlePoint.y,
           particleAmount,
           result.symbols,
           result.isMega,
@@ -307,8 +322,8 @@ export function buildClickSpawnState({ result, particlePoint, burstPoint, shockw
       : [],
     cones: toggles.coneSprites
       ? createConeSprites(
-          particlePoint.x,
-          particlePoint.y,
+          spawnParticlePoint.x,
+          spawnParticlePoint.y,
           coneBurstCount,
           result.isMega,
           caps.coneCap,

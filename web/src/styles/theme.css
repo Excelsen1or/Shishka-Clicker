@@ -89,6 +89,28 @@
   /* ── Layout ─────────────────────────────── */
   --content-max: 74rem;
   --nav-height: 5.35rem;
+  --ui-root-font-size: 16px;
+  --ui-app-gap: 0.82rem;
+  --ui-content-pad-top: 0.92rem;
+  --ui-content-pad-x: 0.96rem;
+  --ui-content-bottom-clearance: 1.35rem;
+  --ui-screen-padding: 1rem;
+  --ui-screen-header-gap: 0.5rem;
+  --ui-screen-header-margin: 1.05rem;
+  --ui-screen-header-pad-bottom: 0.68rem;
+  --ui-shop-grid-gap: 0.62rem;
+  --ui-shop-section-gap: 0.75rem;
+  --ui-shop-category-padding: 0.72rem;
+  --ui-shop-card-padding: 0.85rem;
+  --ui-shop-card-gap: 0.75rem;
+  --ui-shop-box-pad-y: 0.78rem;
+  --ui-shop-box-pad-x: 0.82rem;
+  --ui-nav-side-padding: 0.62rem;
+  --ui-nav-track-padding: 0.42rem;
+  --ui-nav-item-gap: 0.34rem;
+  --ui-nav-button-min-height: 3.35rem;
+  --ui-nav-button-pad-y: 0.5rem;
+  --ui-nav-button-pad-x: 0.34rem;
 
   /* ── Motion ─────────────────────────────── */
   --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
@@ -108,8 +130,67 @@
   --btn-accent-rgb: var(--accent-primary-rgb);
 }
 
+@media (max-width: 960px) {
+  :root {
+    --ui-root-font-size: 15px;
+    --nav-height: 5.45rem;
+    --ui-app-gap: 0.74rem;
+    --ui-content-pad-top: 0.82rem;
+    --ui-content-pad-x: 0.82rem;
+    --ui-content-bottom-clearance: 1.25rem;
+    --ui-screen-padding: 0.9rem;
+    --ui-screen-header-margin: 0.92rem;
+    --ui-shop-grid-gap: 0.56rem;
+    --ui-shop-section-gap: 0.68rem;
+    --ui-shop-category-padding: 0.66rem;
+    --ui-shop-card-padding: 0.78rem;
+    --ui-shop-card-gap: 0.66rem;
+    --ui-shop-box-pad-y: 0.7rem;
+    --ui-shop-box-pad-x: 0.74rem;
+  }
+}
+
 @media (max-width: 640px) {
   :root {
-    --nav-height: 5.95rem;
+    --ui-root-font-size: 14px;
+    --nav-height: 5.18rem;
+    --ui-app-gap: 0.64rem;
+    --ui-content-pad-top: 0.72rem;
+    --ui-content-pad-x: 0.68rem;
+    --ui-content-bottom-clearance: 1.55rem;
+    --ui-screen-padding: 0.72rem;
+    --ui-screen-header-gap: 0.42rem;
+    --ui-screen-header-margin: 0.82rem;
+    --ui-screen-header-pad-bottom: 0.58rem;
+    --ui-shop-grid-gap: 0.5rem;
+    --ui-shop-section-gap: 0.58rem;
+    --ui-shop-category-padding: 0.56rem;
+    --ui-shop-card-padding: 0.62rem;
+    --ui-shop-card-gap: 0.56rem;
+    --ui-shop-box-pad-y: 0.54rem;
+    --ui-shop-box-pad-x: 0.58rem;
+    --ui-nav-side-padding: 0.5rem;
+    --ui-nav-track-padding: 0.36rem;
+    --ui-nav-item-gap: 0.24rem;
+    --ui-nav-button-min-height: 3rem;
+    --ui-nav-button-pad-y: 0.42rem;
+    --ui-nav-button-pad-x: 0.22rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --content-max: 82rem;
+    --ui-app-gap: 0.88rem;
+    --ui-content-pad-x: 1.05rem;
+    --ui-screen-padding: 1rem;
+  }
+}
+
+@media (min-width: 1760px) {
+  :root {
+    --content-max: 86rem;
+    --ui-content-pad-x: 1.12rem;
+    --ui-screen-padding: 1.06rem;
   }
 }

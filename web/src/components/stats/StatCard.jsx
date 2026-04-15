@@ -48,6 +48,7 @@ export const StatCard = memo(function StatCard({
   label,
   value,
   hint,
+  reserveHintSpace = false,
   contributions,
   delay = 0,
   compact = false,
@@ -155,7 +156,7 @@ export const StatCard = memo(function StatCard({
         )}
       </div>
 
-      {hint && <div className={hintClasses}>{hint}</div>}
+      {(hint || reserveHintSpace) && <div className={hintClasses}>{hint ?? ''}</div>}
 
       {children}
 

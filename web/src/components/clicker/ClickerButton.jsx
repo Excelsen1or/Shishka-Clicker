@@ -407,7 +407,7 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay({ a
         const progress = clamp((now - particle.createdAt) / particle.lifetime, 0, 1)
         const move = particle.isNormalConeDrop ? progress : easeOutCubic(progress)
         const alpha = particle.isNormalConeDrop
-          ? Math.max(0, 1 - progress)
+          ? Math.max(0, 1 - (progress * 1.45))
           : particle.isEmojiExplosion
           ? (progress < 0.1 ? progress / 0.1 : progress > 0.48 ? 1 - easeOutQuad((progress - 0.48) / 0.52) : 1)
           : particle.isMega
@@ -417,11 +417,25 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay({ a
                 : progress > 0.72
                   ? 1 - ((progress - 0.72) / 0.28)
                   : 1
-        const x = particle.x + particle.dx * move
-        const y = particle.y + particle.dy * move
-        const rotation = (particle.rotate * move * Math.PI) / 180
+        const normalDrift = particle.isNormalConeDrop ? easeOutQuad(progress) : 0
+        const normalFall = particle.isNormalConeDrop ? (progress ** (particle.fallCurve ?? 1.65)) : 0
+        const normalArc = particle.isNormalConeDrop
+          ? Math.sin(progress * Math.PI * (particle.arcBias ?? 1)) * (particle.arcHeight ?? 0)
+          : 0
+        const normalWobble = particle.isNormalConeDrop
+          ? Math.sin((progress * Math.PI * (particle.wobbleTurns ?? 1)) + (particle.wobblePhase ?? 0)) * (particle.wobble ?? 0)
+          : 0
+        const x = particle.isNormalConeDrop
+          ? particle.x + (particle.dx * normalDrift) + normalWobble
+          : particle.x + particle.dx * move
+        const y = particle.isNormalConeDrop
+          ? particle.y + (particle.dy * normalFall) - normalArc
+          : particle.y + particle.dy * move
+        const rotation = particle.isNormalConeDrop
+          ? (particle.rotate * easeOutQuad(progress) * Math.PI) / 180
+          : (particle.rotate * move * Math.PI) / 180
         const scale = particle.isNormalConeDrop
-          ? particle.scale
+          ? particle.scale * (1 - progress * 0.08)
           : particle.scale * (particle.isEmojiExplosion ? 1 + 0.12 * (1 - progress) : 0.9 + 0.18 * (1 - progress))
         const fontSize = particle.isEmojiExplosion ? 22 : particle.isMega ? 25 : 20
 
@@ -506,12 +520,13 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay({ a
   }, [isVisible, scheduleDraw])
 
   useImperativeHandle(ref, () => ({
-    spawn({ result, particlePoint, burstPoint, shockwavePoint }) {
+    spawn({ result, pointerPoint, particlePoint, burstPoint, shockwavePoint }) {
       const now = Date.now()
       syncOverlayBounds()
 
       const nextEffects = buildClickSpawnState({
         result,
+        pointerPoint,
         particlePoint,
         burstPoint,
         shockwavePoint,
@@ -732,6 +747,19 @@ export const ClickerButton = observer(function ClickerButton() {
 
   return (
     <div className="clicker-wrap">
+      <div className="clicker-wrap__metrics" aria-label="Показатели клика">
+        {metricItems.map((item) => (
+          <div
+            key={item.label}
+            className="clicker-wrap__metric"
+          >
+            {item.streak > 0 && <span className="clicker-wrap__metric-streak">x{formatNumber(item.streak)}</span>}
+            <b>{item.value}</b>
+            <small>{item.label}</small>
+          </div>
+        ))}
+      </div>
+
       <button
         ref={buttonRef}
         type="button"
@@ -759,20 +787,6 @@ export const ClickerButton = observer(function ClickerButton() {
 
         <div className={`clicker-btn__content${isLabelShaking ? ' clicker-btn__content--shake' : ''}`}>
           <span className="clicker-btn__label">{clickerLabel}</span>
-        </div>
-
-        <div className="clicker-btn__metrics">
-          {metricItems.map((item) => (
-            <span
-              key={item.label}
-              className="clicker-btn__metric"
-              
-            >
-              {item.streak > 0 && <span className="clicker-btn__metric-streak">x{formatNumber(item.streak)}</span>}
-              <b>{item.value}</b>
-              <small>{item.label}</small>
-            </span>
-          ))}
         </div>
       </button>
 

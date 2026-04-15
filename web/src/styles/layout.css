@@ -20,16 +20,19 @@
 .app-content {
   width: min(100%, var(--content-max));
   margin-inline: auto;
-  padding: clamp(0.72rem, 1.6vw, 1.15rem) clamp(0.72rem, 1.8vw, 1.05rem) calc(var(--nav-height) + 1.35rem + env(safe-area-inset-bottom, 0px));
+  padding:
+    var(--ui-content-pad-top)
+    var(--ui-content-pad-x)
+    calc(var(--nav-height) + var(--ui-content-bottom-clearance) + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
-  gap: 0.82rem;
+  gap: var(--ui-app-gap);
 }
 
 .app-main {
   display: flex;
   flex-direction: column;
-  gap: 0.82rem;
+  gap: var(--ui-app-gap);
   min-width: 0;
 }
 
@@ -205,7 +208,7 @@
 .screen {
   overflow: hidden;
   min-height: 100%;
-  padding: clamp(0.8rem, 1.6vw, 1.15rem);
+  padding: var(--ui-screen-padding);
   --screen-accent-rgb: var(--accent-primary-rgb);
   --screen-accent-secondary-rgb: var(--white-rgb);
   background: linear-gradient(180deg, rgb(var(--surface-2-rgb)), rgb(var(--surface-1-rgb)));
@@ -244,9 +247,9 @@
 
 .screen__header {
   display: grid;
-  gap: 0.5rem;
-  margin-bottom: 1.05rem;
-  padding-bottom: 0.68rem;
+  gap: var(--ui-screen-header-gap);
+  margin-bottom: var(--ui-screen-header-margin);
+  padding-bottom: var(--ui-screen-header-pad-bottom);
   border-bottom: 1px solid rgb(var(--white-rgb) / 0.06);
 }
 
@@ -725,7 +728,7 @@
   inset-inline: 0;
   bottom: 0;
   z-index: 120;
-  padding: 0 0.62rem calc(0.55rem + env(safe-area-inset-bottom, 0px));
+  padding: 0 var(--ui-nav-side-padding) calc(0.42rem + env(safe-area-inset-bottom, 0px));
 }
 
 .bottom-nav__track {
@@ -733,8 +736,8 @@
   margin-inline: auto;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0.34rem;
-  padding: 0.42rem;
+  gap: var(--ui-nav-item-gap);
+  padding: var(--ui-nav-track-padding);
   border-radius: calc(var(--radius-xl) + 0.2rem);
   border: 1px solid var(--border-strong);
   background: rgb(var(--surface-strong-rgb) / 0.82);
@@ -747,8 +750,8 @@
   display: grid;
   place-items: center;
   gap: 0.24rem;
-  min-height: 3.35rem;
-  padding: 0.5rem 0.34rem;
+  min-height: var(--ui-nav-button-min-height);
+  padding: var(--ui-nav-button-pad-y) var(--ui-nav-button-pad-x);
   border-radius: var(--radius-lg);
   color: var(--text-muted);
   transition:
