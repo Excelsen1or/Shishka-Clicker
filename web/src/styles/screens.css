@@ -109,6 +109,7 @@
   inset: 12%;
   border-radius: 50%;
   background: radial-gradient(circle, rgb(var(--btn-accent-rgb) / 0.18), transparent 68%);
+  z-index: 0;
 }
 
 .clicker-btn__core {
@@ -124,6 +125,7 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
+  z-index: 1;
 }
 
 .clicker-btn__core-ring--outer {
@@ -145,7 +147,7 @@
   display: grid;
   place-items: center;
   border-radius: 50%;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid rgb(var(--btn-accent-rgb) / 0.38);
   background:
     radial-gradient(circle at 35% 28%, rgb(var(--white-rgb) / 0.15), transparent 35%),
@@ -154,6 +156,7 @@
     inset 0 1px 0 rgb(var(--white-rgb) / 0.1),
     0 20px 48px rgb(var(--black-rgb) / 0.32),
     0 0 0 4px rgb(var(--btn-accent-rgb) / 0.06);
+  z-index: 2;
 }
 
 .clicker-btn__hero-shell::before {
@@ -165,13 +168,17 @@
   animation: innerGlow 2.6s ease-in-out infinite;
   will-change: transform, opacity;
   contain: layout style;
+  z-index: 0;
 }
 
 .clicker-btn__hero {
-  width: 84%;
+  width: 122%;
   aspect-ratio: 1;
   object-fit: contain;
   filter: drop-shadow(0 12px 24px rgb(var(--black-rgb) / 0.3));
+  position: relative;
+  z-index: 1;
+  transform: translateY(-4%);
 }
 
 .clicker-btn__content {

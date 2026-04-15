@@ -15,7 +15,8 @@ import { useSettingsContext } from '../../context/SettingsContext'
 import { useNav } from '../../context/NavContext'
 import { useSound } from '../../hooks/useSound'
 import { formatNumber } from '../../lib/format'
-import discoImage from '../../assets/disco.gif'
+import racoonDefaultImage from '../../assets/racoon-default_128x128.png'
+import racoonAltImage from '../../assets/racoon-default_128x128_2.png'
 import coneImage from '../../assets/cone.png'
 import coneV2Image from '../../assets/conev2.png'
 import shishkaSound from '../../assets/audio/ui/shishka.mp3'
@@ -577,6 +578,7 @@ export const ClickerButton = observer(function ClickerButton() {
   const [visualState, setVisualState] = useState('idle')
   const [clickerLabel, setClickerLabel] = useState(() => pickRandom(GREETING_LABELS))
   const [isLabelShaking, setIsLabelShaking] = useState(false)
+  const [isAltHeroImage, setIsAltHeroImage] = useState(false)
 
   const visualTimeoutRef = useRef(null)
   const idleTimeoutRef = useRef(null)
@@ -614,7 +616,7 @@ export const ClickerButton = observer(function ClickerButton() {
   )
 
   const isCharged = visualEffectToggles.clickAnimations && visualState !== 'idle'
-  const heroImage = discoImage
+  const heroImage = isAltHeroImage ? racoonAltImage : racoonDefaultImage
 
   useEffect(() => {
     return () => {
@@ -709,6 +711,7 @@ export const ClickerButton = observer(function ClickerButton() {
       return
     }
 
+    setIsAltHeroImage((current) => !current)
     play()
 
     const result = mineShishki()
