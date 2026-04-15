@@ -3,10 +3,12 @@ import { AchievementToast } from '../ui/AchievementToast.jsx'
 import { DevConsole } from '../ui/DevConsole.jsx'
 import { StatsBar } from '../stats/StatsBar.jsx'
 import { memo, useEffect, useSyncExternalStore } from 'react'
+import { observer } from 'mobx-react-lite'
 import { Header } from '../header/Header.jsx'
 import { useNav } from '../../context/NavContext.jsx'
 import { useSettingsContext } from '../../context/SettingsContext.jsx'
 import { useDiscordActivity } from '../../context/DiscordActivityContext.jsx'
+import { useWebsocketStore } from '../../stores/StoresProvider.jsx'
 import { ScreenFallback } from './ScreenFallback.jsx'
 
 export const loadClickerScreen = () => import('../clicker/ClickerScreen')
@@ -141,11 +143,71 @@ const AppBackground = memo(function AppBackground({ visualEffectToggles }) {
   )
 })
 
-export const AppWrapper = memo(function AppWrapper() {
+function resolveBootProgress({ status, syncState, leaderboardState, leaderboardReady }) {
+  const sessionReady = status === 'ready'
+  const syncReady = syncState === 'synced' || syncState === 'offline'
+  const leaderboardLoaded = leaderboardReady || leaderboardState === 'READY' || leaderboardState === 'FAILURE'
+
+  const steps = [
+    {
+      id: 'session',
+      label: 'Сессия',
+      detail: sessionReady ? 'Профиль найден' : 'Проверяем вход и профиль игрока',
+      state: sessionReady ? 'done' : status === 'error' ? 'error' : status === 'connecting' ? 'active' : 'pending',
+    },
+    {
+      id: 'save',
+      label: 'Сейв',
+      detail: syncReady ? 'Прогресс готов' : syncState === 'syncing' ? 'Сверяем прогресс с облаком' : 'Поднимаем сохранение',
+      state: syncReady ? 'done' : syncState === 'error' ? 'error' : syncState === 'syncing' || syncState === 'loading' ? 'active' : 'pending',
+    },
+    {
+      id: 'leaderboard',
+      label: 'Топ-5',
+      detail: leaderboardLoaded
+        ? leaderboardState === 'FAILURE'
+          ? 'Не ответил, но интерфейс можно открыть'
+          : 'Таблица рейтинга готова'
+        : 'Подтягиваем лидеров по всем метрикам',
+      state: leaderboardLoaded ? (leaderboardState === 'FAILURE' ? 'error' : 'done') : leaderboardState === 'LOADING' ? 'active' : 'pending',
+    },
+  ]
+
+  const completedSteps = steps.filter((step) => step.state === 'done').length
+  const activeStep = steps.find((step) => step.state === 'active')
+  const progressTarget = Math.min(
+    96,
+    completedSteps * 32 + (activeStep ? 18 : 0),
+  )
+
+  if (completedSteps === steps.length) {
+    return {
+      phase: 'ready',
+      progressTarget: 100,
+      steps,
+    }
+  }
+
+  return {
+    phase: syncState === 'syncing' ? 'syncing' : status === 'connecting' ? 'connecting' : 'loading',
+    progressTarget,
+    steps,
+  }
+}
+
+export const AppWrapper = observer(function AppWrapper() {
   const { activeTab, transitionDirection } = useNav()
   const { visualEffectToggles } = useSettingsContext()
   const { saveReady, status, syncState, enterOfflineMode } = useDiscordActivity()
-  const showBootScreen = !saveReady
+  const websocketStore = useWebsocketStore()
+  const leaderboardReady = websocketStore.initialLoadComplete
+  const showBootScreen = !saveReady || !leaderboardReady
+  const bootProgress = resolveBootProgress({
+    status,
+    syncState,
+    leaderboardState: websocketStore.state,
+    leaderboardReady,
+  })
 
   useSyncExternalStore(subscribeToScreenRegistry, getScreenRegistrySnapshot, getScreenRegistrySnapshot)
 
@@ -189,7 +251,9 @@ export const AppWrapper = memo(function AppWrapper() {
               {showBootScreen ? (
                 <ScreenFallback
                   mode="boot"
-                  phase={syncState === 'syncing' ? 'syncing' : status === 'connecting' ? 'connecting' : 'loading'}
+                  phase={bootProgress.phase}
+                  progressTarget={bootProgress.progressTarget}
+                  steps={bootProgress.steps}
                   allowOffline
                   onSkipSync={enterOfflineMode}
                 />

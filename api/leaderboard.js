@@ -3,12 +3,9 @@ import { createServerSupabase } from './_lib/supabase.js'
 const PAGE_SIZE = 500
 const TOP_LIMIT = 5
 
-function isMissingLeaderboardRpc(error) {
-  return (
-    error?.code === 'PGRST202' ||
-    error?.code === '42883' ||
-    error?.message?.includes('get_player_leaderboard')
-  )
+function normalizeMetricValue(value) {
+  const parsed = Number(value ?? 0)
+  return Number.isFinite(parsed) ? Math.max(0, Math.round(parsed)) : 0
 }
 
 function getGameState(saveData) {
@@ -24,18 +21,17 @@ function getGameState(saveData) {
   return saveData
 }
 
-function getLifetimeShishki(gameState) {
-  if (!gameState || typeof gameState !== 'object') {
-    return 0
+function normalizePlayerName(value, index) {
+  if (typeof value === 'string' && value.trim()) {
+    return value.trim().replace(/#0+$/, '')
   }
 
-  const value = Number(gameState.lifetimeShishkiEarned ?? gameState.totalShishkiEarned ?? 0)
-  return Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0
+  return `Гость #${index + 1}`
 }
 
 function formatPlayerName(row, index) {
   if (typeof row.player_username === 'string' && row.player_username.trim()) {
-    return row.player_username.trim()
+    return normalizePlayerName(row.player_username, index)
   }
 
   if (typeof row.player_id === 'string' && row.player_id.startsWith('discord:')) {
@@ -43,6 +39,43 @@ function formatPlayerName(row, index) {
   }
 
   return `Гость #${index + 1}`
+}
+
+function buildMetricSnapshot(gameState) {
+  if (!gameState || typeof gameState !== 'object') {
+    return {
+      shishki: 0,
+      shards: 0,
+      clicks: 0,
+    }
+  }
+
+  return {
+    shishki: normalizeMetricValue(gameState.lifetimeShishkiEarned ?? gameState.totalShishkiEarned),
+    shards: normalizeMetricValue(gameState.totalPrestigeShardsEarned ?? gameState.prestigeShards),
+    clicks: normalizeMetricValue(gameState.manualClicks),
+  }
+}
+
+function sortLeaderboardRows(rows, metricKey) {
+  return [...rows]
+    .filter((row) => row[metricKey] > 0)
+    .sort((a, b) => {
+      if (b[metricKey] !== a[metricKey]) {
+        return b[metricKey] - a[metricKey]
+      }
+
+      return (Date.parse(b.updatedAt ?? '') || 0) - (Date.parse(a.updatedAt ?? '') || 0)
+    })
+    .slice(0, TOP_LIMIT)
+}
+
+function buildLeaderboards(rows) {
+  return {
+    shishki: sortLeaderboardRows(rows, 'shishki'),
+    shards: sortLeaderboardRows(rows, 'shards'),
+    clicks: sortLeaderboardRows(rows, 'clicks'),
+  }
 }
 
 async function loadLeaderboardRows(supabase) {
@@ -76,25 +109,6 @@ async function loadLeaderboardRows(supabase) {
   return rows
 }
 
-async function loadLeaderboardViaRpc(supabase) {
-  const { data, error } = await supabase
-    .rpc('get_player_leaderboard', {
-      p_limit: TOP_LIMIT,
-    })
-
-  if (error) {
-    throw error
-  }
-
-  return Array.isArray(data)
-    ? data.map((row, index) => ({
-        username: formatPlayerName(row, index),
-        shishki: Number(row.shishki ?? 0),
-        updatedAt: row.updated_at ?? null,
-      }))
-    : []
-}
-
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
     return res.status(405).json({
@@ -105,41 +119,23 @@ export default async function handler(req, res) {
 
   try {
     const supabase = createServerSupabase()
-    let leaderboard
+    const rows = await loadLeaderboardRows(supabase)
+    const normalizedRows = rows.map((row, index) => {
+      const metrics = buildMetricSnapshot(getGameState(row.save_data))
 
-    try {
-      leaderboard = await loadLeaderboardViaRpc(supabase)
-    } catch (error) {
-      if (!isMissingLeaderboardRpc(error)) {
-        throw error
+      return {
+        username: formatPlayerName(row, index),
+        ...metrics,
+        updatedAt: row.updated_at ?? null,
       }
-
-      const rows = await loadLeaderboardRows(supabase)
-
-      leaderboard = rows
-        .map((row, index) => {
-          const gameState = getGameState(row.save_data)
-
-          return {
-            username: formatPlayerName(row, index),
-            shishki: getLifetimeShishki(gameState),
-            updatedAt: row.updated_at ?? null,
-          }
-        })
-        .filter((row) => row.shishki > 0)
-        .sort((a, b) => {
-          if (b.shishki !== a.shishki) {
-            return b.shishki - a.shishki
-          }
-
-          return (Date.parse(b.updatedAt ?? '') || 0) - (Date.parse(a.updatedAt ?? '') || 0)
-        })
-        .slice(0, TOP_LIMIT)
-    }
+    })
+    const leaderboards = buildLeaderboards(normalizedRows)
 
     return res.status(200).json({
       ok: true,
-      leaderboard,
+      leaderboard: leaderboards.shishki,
+      leaderboards,
+      updatedAt: new Date().toISOString(),
     })
   } catch (error) {
     return res.status(500).json({

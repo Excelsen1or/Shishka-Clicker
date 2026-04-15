@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useDiscordActivity } from '../../context/DiscordActivityContext.jsx'
+import { getPreferredDiscordName } from '../../lib/playerName.js'
 
 const STATUS_LABELS = {
   idle: 'ожидание',
@@ -87,8 +88,8 @@ export function SettingsDiscordCard() {
         {offlineMode
           ? 'Сейчас включён офлайн-режим. Облачная синхронизация приостановлена, игра работает локально в памяти.'
           : isActivity
-          ? `Игрок: ${user?.username ?? 'unknown'}${user?.discriminator ? `#${user.discriminator}` : ''}`
-          : 'Приложение открыто вне Discord Activity. Для сейва используется облачный профиль этого устройства.'}
+            ? `Игрок: ${getPreferredDiscordName(user)}`
+            : 'Приложение открыто вне Discord Activity. Для сейва используется облачный профиль этого устройства.'}
       </p>
 
       <p className="settings-card__hint settings-card__hint--block">

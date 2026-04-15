@@ -11,22 +11,28 @@ export const WEBSOCKET_STATE = {
 export default class WebsocketStore {
   user = null
   data = []
+  leaderboards = {
+    shishki: [],
+    shards: [],
+    clicks: [],
+  }
   state = WEBSOCKET_STATE.LOADING
+  started = false
+  initialLoadComplete = false
   rootStore
   refreshIntervalId = null
 
   constructor(rootStore) {
     this.rootStore = rootStore
     makeAutoObservable(this, { rootStore: false, refreshIntervalId: false }, { autoBind: true })
-    this.init()
   }
 
-  init() {
-    if (typeof window === 'undefined') {
+  start() {
+    if (this.started || typeof window === 'undefined') {
       return
     }
 
-    void this.refreshLeaderboard()
+    this.started = true
     this.refreshIntervalId = window.setInterval(() => {
       void this.refreshLeaderboard()
     }, LEADERBOARD_REFRESH_MS)
@@ -48,15 +54,26 @@ export default class WebsocketStore {
       }
 
       const payload = await response.json()
-      const leaderboard = Array.isArray(payload?.leaderboard) ? payload.leaderboard : []
+      const leaderboards = {
+        shishki: Array.isArray(payload?.leaderboards?.shishki)
+          ? payload.leaderboards.shishki
+          : Array.isArray(payload?.leaderboard)
+            ? payload.leaderboard
+            : [],
+        shards: Array.isArray(payload?.leaderboards?.shards) ? payload.leaderboards.shards : [],
+        clicks: Array.isArray(payload?.leaderboards?.clicks) ? payload.leaderboards.clicks : [],
+      }
 
       runInAction(() => {
-        this.data = leaderboard
+        this.data = leaderboards.shishki
+        this.leaderboards = leaderboards
         this.state = WEBSOCKET_STATE.READY
+        this.initialLoadComplete = true
       })
     } catch {
       runInAction(() => {
         this.state = WEBSOCKET_STATE.FAILURE
+        this.initialLoadComplete = true
       })
     }
   }

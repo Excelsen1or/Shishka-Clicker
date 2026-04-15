@@ -121,6 +121,8 @@ export function DiscordActivityProvider({ children }) {
 
   const enterOfflineMode = useCallback(() => {
     offlineModeRef.current = true
+    websocketStore.start()
+    void websocketStore.refreshLeaderboard()
 
     setState((current) => ({
       ...current,
@@ -132,7 +134,7 @@ export function DiscordActivityProvider({ children }) {
       syncError: null,
       lastSyncedAt: null,
     }))
-  }, [])
+  }, [websocketStore])
 
   const getLocalSnapshot = useCallback(() => {
     const meta = gameStore.getSaveMeta()
@@ -446,6 +448,7 @@ export function DiscordActivityProvider({ children }) {
         discordSdkRef.current = session?.discordSdk ?? null
         lastPresenceSignatureRef.current = ''
         websocketStore.setUser(isActivity ? session.user : null)
+        websocketStore.start()
 
         setState((current) => ({
           ...current,
@@ -461,9 +464,12 @@ export function DiscordActivityProvider({ children }) {
           presenceError: null,
         }))
 
-        await synchronizeNow({
+        const leaderboardPromise = websocketStore.refreshLeaderboard()
+        const syncPromise = synchronizeNow({
           allowLegacyMigration: true,
         })
+
+        await Promise.allSettled([syncPromise, leaderboardPromise])
 
         if (cancelled || offlineModeRef.current) return
 

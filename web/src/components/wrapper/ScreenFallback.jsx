@@ -28,26 +28,46 @@ function resolveLoadingCopy(phase, mode) {
   switch (phase) {
     case 'connecting':
       return {
-        kicker: 'Загрузка',
-        title: 'Подключаем профиль',
-        desc: 'Проверяем сессию и готовим доступ к облачному сохранению.',
-        label: 'Подключение',
+        kicker: 'Подключение',
+        title: 'Готовим профиль игрока',
+        desc: 'Проверяем сессию, авторизацию и доступ к облачному сохранению.',
+        label: 'Сессия',
       }
     case 'syncing':
       return {
         kicker: 'Синхронизация',
-        title: 'Сверяем прогресс',
-        desc: 'Обновляем игровой снимок и выравниваем текущее состояние.',
-        label: 'Синхронизация',
+        title: 'Сверяем прогресс с облаком',
+        desc: 'Поднимаем актуальный сейв, фиксируем версию и добираем данные интерфейса.',
+        label: 'Облачный сейв',
+      }
+    case 'ready':
+      return {
+        kicker: 'Финиш',
+        title: 'Запуск почти завершён',
+        desc: 'Последние штрихи перед входом в игру.',
+        label: 'Финализация',
       }
     case 'loading':
     default:
       return {
         kicker: 'Загрузка',
-        title: 'Загружаем облачный сейв',
-        desc: 'Еще чуть-чуть: поднимаем профиль игрока и восстанавливаем прогресс.',
-        label: 'Облачный профиль',
+        title: 'Собираем стартовый экран',
+        desc: 'Ждём, пока подтянутся профиль, сейв и рейтинг, чтобы интерфейс открылся уже с данными.',
+        label: 'Старт',
       }
+  }
+}
+
+function resolveStepStateLabel(state) {
+  switch (state) {
+    case 'done':
+      return 'Готово'
+    case 'active':
+      return 'В работе'
+    case 'error':
+      return 'С ошибкой'
+    default:
+      return 'Ожидание'
   }
 }
 
@@ -55,6 +75,7 @@ export const ScreenFallback = ({
   mode = 'screen',
   phase = 'idle',
   progressTarget = null,
+  steps = [],
   allowOffline = false,
   onSkipSync = null,
 }) => {
@@ -78,17 +99,35 @@ export const ScreenFallback = ({
         <div className="boot-loading-meter">
           <div className="boot-loading-meter__head">
             <div className="settings-card__label">{copy.label}</div>
+            <div className="boot-loading-meter__value">{progress}%</div>
           </div>
 
           <div className="unlock-progress">
             <div className="unlock-progress__row">
-              <span>Прогресс загрузки</span>
+              <span>Общий прогресс</span>
               <span>{progress}%</span>
             </div>
             <div className="unlock-progress__track">
               <div className="unlock-progress__fill unlock-progress__fill--alt" style={{ width: `${progress}%` }} />
             </div>
           </div>
+
+          {steps.length ? (
+            <div className="boot-loading-steps">
+              {steps.map((step) => (
+                <div key={step.id} className={`boot-loading-step boot-loading-step--${step.state}`.trim()}>
+                  <div className="boot-loading-step__marker" aria-hidden="true" />
+                  <div className="boot-loading-step__body">
+                    <div className="boot-loading-step__head">
+                      <strong>{step.label}</strong>
+                      <span>{resolveStepStateLabel(step.state)}</span>
+                    </div>
+                    <p>{step.detail}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         {allowOffline ? (
