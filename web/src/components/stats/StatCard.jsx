@@ -1,29 +1,36 @@
 import { isValidElement, memo, useEffect, useMemo, useRef } from 'react'
-import { PxlKitIcon } from '@pxlkit/core'
-import { Coin, Gem, Lightning, Scroll, Trophy } from '@pxlkit/gamification'
-import { Community } from '@pxlkit/social'
-import { Robot } from '@pxlkit/ui'
+import { Coin, Gem, Lightning, PxlKitIcon, Scroll, Sword, Trophy, Community, Robot } from '../../lib/pxlkit'
 import { formatNumber } from '../../lib/format'
 import { ContributionBar } from './ContributionBar.jsx'
 import { ConeIcon } from '../ui/ConeIcon'
-import { MoneyIcon, KnowledgeIcon, PowerIcon, RobotIcon, PrizeIcon } from '../ui/GameIcon'
+
+const renderPxlIcon = (icon, label, size = 18) => (
+  <PxlKitIcon
+    icon={icon}
+    size={size}
+    colorful
+    className="stat-card__pixel-icon"
+    aria-label={label}
+  />
+)
 
 const ICON_MAP = {
   cone: <ConeIcon />,
-  money: <MoneyIcon />,
-  knowledge: <KnowledgeIcon />,
-  power: <PowerIcon />,
-  robot: <RobotIcon />,
-  prize: <PrizeIcon />,
-  mega: '⚡',
-  rebirth: '♻️',
-  shards: '💎',
-  reward: '🔮',
+  money: renderPxlIcon(Coin, 'money'),
+  knowledge: renderPxlIcon(Scroll, 'knowledge'),
+  power: renderPxlIcon(Sword, 'power'),
+  robot: renderPxlIcon(Robot, 'robot'),
+  prize: renderPxlIcon(Trophy, 'prize'),
+  mega: renderPxlIcon(Lightning, 'mega'),
+  rebirth: renderPxlIcon(Community, 'rebirth'),
+  shards: renderPxlIcon(Gem, 'shards'),
+  reward: renderPxlIcon(Trophy, 'reward'),
 }
 
 const PIXEL_ICON_MAP = {
   money: Coin,
   knowledge: Scroll,
+  power: Sword,
   mega: Lightning,
   prize: Trophy,
   rebirth: Community,
@@ -164,10 +171,7 @@ export const StatCard = memo(function StatCard({
         </div>
       )}
 
-      <div
-        className={valueClasses}
-        
-      >
+      <div className={valueClasses}>
         {shouldAnimateValue ? (
           <span ref={valueTrackRef} className="stat-card__value-track" aria-hidden="true">
             {animatedDigits.map((entry) => (
@@ -194,13 +198,11 @@ export const StatCard = memo(function StatCard({
             <div
               key={entry.id}
               className="stat-card__top-contrib-row"
-              
             >
               <span>#{index + 1}</span>
               <b>{entry.title}</b>
               <span
                 className="stat-card__top-contrib-val"
-                
               >
                 {formatNumber(entry.value)}
               </span>

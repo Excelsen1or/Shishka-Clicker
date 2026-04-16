@@ -1,6 +1,10 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { PxlKitIcon, Trophy, Scroll, Community, Settings } from '../lib/pxlkit'
 import { ConeIcon } from '../components/ui/ConeIcon'
-import { PrizeIcon } from '../components/ui/GameIcon'
+
+const PixelNavIcon = ({ icon, label }) => (
+  <PxlKitIcon icon={icon} size={20} colorful className="pixel-inline-icon" aria-label={label} />
+)
 
 export const TABS = [
   {
@@ -11,25 +15,25 @@ export const TABS = [
   },
   {
     id: 'subscriptions',
-    icon: '🧠',
+    icon: <PixelNavIcon icon={Community} label="Подписки" />,
     label: 'Подписки',
     description: 'AI-сервисы для пассивного дохода',
   },
   {
     id: 'upgrades',
-    icon: '⚙️',
+    icon: <PixelNavIcon icon={Scroll} label="Апгрейды" />,
     label: 'Апгрейды',
     description: 'Инвестиции, автоматизация и мемы',
   },
   {
     id: 'meta',
-    icon: <PrizeIcon />,
+    icon: <PixelNavIcon icon={Trophy} label="Мета" />,
     label: 'Мета',
     description: 'Достижения, ребёрс и престиж',
   },
   {
     id: 'settings',
-    icon: '🔊',
+    icon: <PixelNavIcon icon={Settings} label="Настройки" />,
     label: 'Настройки',
     description: 'Звук, музыка и управление сохранением',
   },
@@ -41,6 +45,7 @@ export function NavProvider({ children }) {
   const [activeTab, setActiveTab] = useState('clicker')
   const [transitionDirection, setTransitionDirection] = useState('forward')
   const currentTab = TABS.find((t) => t.id === activeTab) ?? TABS[0]
+
   const setActiveTabWithDirection = useCallback((nextTab) => {
     setActiveTab((currentTabId) => {
       if (currentTabId === nextTab) return currentTabId

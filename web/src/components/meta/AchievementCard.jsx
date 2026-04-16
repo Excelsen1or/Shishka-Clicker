@@ -1,8 +1,25 @@
-import { PrizeIcon } from '../ui/GameIcon'
+import { Coin, Gem, Lightning, PxlKitIcon, Scroll, Trophy, Community } from '../../lib/pxlkit'
+
+const TONE_ICON_MAP = {
+  amber: Lightning,
+  emerald: Trophy,
+  cyan: Coin,
+  violet: Scroll,
+  fuchsia: Gem,
+  rose: Community,
+  slate: Trophy,
+}
 
 function getCardToneClass(achievement) {
   const tone = achievement.theme?.tone ?? 'slate'
   return `achievement-card--tone-${tone}`
+}
+
+function renderToneIcon(achievement) {
+  const tone = achievement.theme?.tone ?? 'slate'
+  const icon = TONE_ICON_MAP[tone] ?? Trophy
+
+  return <PxlKitIcon icon={icon} size={18} colorful className="pixel-inline-icon" aria-label={achievement.category} />
 }
 
 function renderStatus(achievement) {
@@ -10,28 +27,48 @@ function renderStatus(achievement) {
     if (achievement.currentLevel >= achievement.maxLevel) {
       return (
         <>
-          <PrizeIcon /> Макс.
+          <PxlKitIcon icon={Trophy} size={16} colorful className="pixel-inline-icon" /> Макс.
         </>
       )
     }
 
     if (achievement.currentLevel > 0) {
-      return <>Прогресс {achievement.currentLevel}/{achievement.maxLevel}</>
+      return (
+        <>
+          <PxlKitIcon icon={Lightning} size={16} colorful className="pixel-inline-icon" /> Прогресс {achievement.currentLevel}/{achievement.maxLevel}
+        </>
+      )
     }
 
-    return achievement.secret ? '🕶️ Скрыто' : '🔒 Не начато'
+    return achievement.secret ? (
+      <>
+        <PxlKitIcon icon={Community} size={16} colorful className="pixel-inline-icon" /> Скрыто
+      </>
+    ) : (
+      <>
+        <PxlKitIcon icon={Gem} size={16} colorful className="pixel-inline-icon" /> Не начато
+      </>
+    )
   }
 
   return achievement.unlocked ? (
     <>
-      <PrizeIcon /> Открыто
+      <PxlKitIcon icon={Trophy} size={16} colorful className="pixel-inline-icon" /> Открыто
     </>
-  ) : achievement.secret ? '🕶️ Скрыто' : '🔒 В процессе'
+  ) : achievement.secret ? (
+    <>
+      <PxlKitIcon icon={Community} size={16} colorful className="pixel-inline-icon" /> Скрыто
+    </>
+  ) : (
+    <>
+      <PxlKitIcon icon={Lightning} size={16} colorful className="pixel-inline-icon" /> В процессе
+    </>
+  )
 }
 
 export const AchievementCard = ({ achievement }) => {
   const toneClass = getCardToneClass(achievement)
-  const icon = achievement.theme?.icon ?? '✦'
+  const icon = renderToneIcon(achievement)
 
   if (achievement.kind === 'group') {
     const isDone = achievement.currentLevel >= achievement.maxLevel

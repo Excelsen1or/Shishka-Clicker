@@ -746,14 +746,14 @@ export const ClickerButton = observer(function ClickerButton() {
   }
 
   return (
-    <div className="clicker-wrap">
+    <div className="clicker-wrap clicker-wrap--pixel">
       <div className="clicker-wrap__metrics" aria-label="Показатели клика">
         {metricItems.map((item) => (
           <div
             key={item.label}
-            className="clicker-wrap__metric"
+            className="clicker-wrap__metric clicker-wrap__metric--pixel"
           >
-            {item.streak > 0 && <span className="clicker-wrap__metric-streak">x{formatNumber(item.streak)}</span>}
+            {item.streak > 0 && <span className="clicker-wrap__metric-streak pixel-badge">x{formatNumber(item.streak)}</span>}
             <b>{item.value}</b>
             <small>{item.label}</small>
           </div>
@@ -763,13 +763,17 @@ export const ClickerButton = observer(function ClickerButton() {
       <button
         ref={buttonRef}
         type="button"
-        className={`clicker-btn ${isCharged ? 'clicker-btn--charged' : ''} ${visualState !== 'idle' ? `clicker-btn--${visualState}` : ''}`.trim()}
+        className={`clicker-btn clicker-btn--pixel ${isCharged ? 'clicker-btn--charged' : ''} ${visualState !== 'idle' ? `clicker-btn--${visualState}` : ''}`.trim()}
         data-buff-state={visualState}
         onClick={handleClick}
         onKeyDown={blockKeyboardActivation}
         onKeyUp={blockKeyboardActivation}
         aria-label="Добыть шишки"
       >
+        <span className="clicker-btn__pixel-corner clicker-btn__pixel-corner--tl" aria-hidden="true" />
+        <span className="clicker-btn__pixel-corner clicker-btn__pixel-corner--tr" aria-hidden="true" />
+        <span className="clicker-btn__pixel-corner clicker-btn__pixel-corner--bl" aria-hidden="true" />
+        <span className="clicker-btn__pixel-corner clicker-btn__pixel-corner--br" aria-hidden="true" />
         {visualEffectToggles.clickAnimations && <span className="clicker-btn__aura" />}
 
         <div className="clicker-btn__core">

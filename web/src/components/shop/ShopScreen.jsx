@@ -1,7 +1,12 @@
 import { memo, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { observer } from 'mobx-react-lite'
+import { Coin, Gem, MagicWand, PxlKitIcon, Scroll, SocialStar, Target, Trophy, Community, Package } from '../../lib/pxlkit'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { ShopCard } from './ShopCard'
+
+const pxl = (icon, label, size = 18) => (
+  <PxlKitIcon icon={icon} size={size} colorful className="pixel-inline-icon" aria-label={label} />
+)
 
 const SCREEN_META = {
   subscriptions: {
@@ -9,25 +14,25 @@ const SCREEN_META = {
     title: 'Подписки',
     desc: 'Подписки ускоряют добычу денег и знаний.',
     accent: 'orange',
-    emptyText: 'Подписки загружаются…',
+    emptyText: 'Подписки загружаются...',
     categories: [
-      { id: 'starter', title: 'Стартовые ассистенты', desc: 'Ранние сервисы для первого снежного кома и мягкого входа в AI-экономику.' },
-      { id: 'production', title: 'Рабочие модели', desc: 'Основной производственный слой середины игры: стабильный доход, наука и поддержка билда.' },
-      { id: 'research', title: 'Исследовательские сервисы', desc: 'Сервисы, которые сильнее всего толкают знания и помогают готовить престиж.' },
-      { id: 'frontier', title: 'Фронтир-кластеры', desc: 'Дорогие late-game модели для глубокой меты и финального разгона.' },
+      { id: 'starter', title: 'Стартовые ассистенты', desc: 'Ранние сервисы для первого разгона и мягкого входа в AI-экономику.', icon: Community },
+      { id: 'production', title: 'Рабочие модели', desc: 'Основной производственный слой: стабильный доход, наука и поддержка билда.', icon: Scroll },
+      { id: 'research', title: 'Исследовательские сервисы', desc: 'Сервисы, которые сильнее всего толкают знания и помогают готовить престиж.', icon: Gem },
+      { id: 'frontier', title: 'Фронтир-кластеры', desc: 'Дорогие late-game модели для глубокой меты и финального разгона.', icon: SocialStar },
     ],
   },
   upgrades: {
     kicker: 'Магазин',
     title: 'Апгрейды',
-    desc: 'Апгрейды дают бонусы к добыче. Инвестиции открывают новые возможности для прогрессии.',
+    desc: 'Апгрейды дают бонусы к добыче и открывают новые контуры прогрессии.',
     accent: 'orange',
-    emptyText: 'Апгрейды загружаются…',
+    emptyText: 'Апгрейды загружаются...',
     categories: [
-      { id: 'manual', title: 'Ручной темп', desc: 'Апгрейды для клика, ранней стабильности и активной игры.' },
-      { id: 'industry', title: 'Производство и логистика', desc: 'Контур шишек, денег и инфраструктуры для ровной средней игры.' },
-      { id: 'research', title: 'Обучение и исследования', desc: 'Знаниевая ветка, усиливающая AI, науку и стратегические решения.' },
-      { id: 'capital', title: 'Рост и капитал', desc: 'Поздние ускорители экономики, престижной подготовки и длинной дистанции.' },
+      { id: 'manual', title: 'Ручной темп', desc: 'Клик, ранняя стабильность и активная игра.', icon: Target },
+      { id: 'industry', title: 'Производство и логистика', desc: 'Контур шишек, денег и инфраструктуры для ровной средней игры.', icon: Package },
+      { id: 'research', title: 'Обучение и исследования', desc: 'Ветка, усиливающая AI, науку и стратегические решения.', icon: Scroll },
+      { id: 'capital', title: 'Рост и капитал', desc: 'Поздние ускорители экономики, престижа и длинной дистанции.', icon: Coin },
     ],
   },
 }
@@ -102,7 +107,7 @@ const ShopCategory = memo(function ShopCategory({
         setHasRendered(true)
         observer.disconnect()
       },
-      { rootMargin: '280px 0px' }
+      { rootMargin: '280px 0px' },
     )
 
     observer.observe(node)
@@ -112,11 +117,14 @@ const ShopCategory = memo(function ShopCategory({
   return (
     <section
       ref={sectionRef}
-      className={`shop-category ${isLockedGroup ? 'shop-category--virtualized-locked' : 'shop-category--virtualized'}`}
+      className={`shop-category pixel-surface ${isLockedGroup ? 'shop-category--virtualized-locked' : 'shop-category--virtualized'}`}
       style={{ '--shop-placeholder-count': Math.min(Math.max(category.items.length, 1), 4) }}
     >
       <div className="shop-category__head">
-        <h4 className="shop-category__title">{category.title}</h4>
+        <h4 className="shop-category__title">
+          <span className="shop-category__icon">{pxl(category.icon, category.title)}</span>
+          {category.title}
+        </h4>
         <p className="shop-category__desc">{category.desc}</p>
       </div>
 
@@ -210,7 +218,7 @@ export const ShopScreen = observer(function ShopScreen({ type }) {
   }, [items, markShopItemsSeen])
 
   return (
-    <section className={`screen shop-screen--${meta.accent}`}>
+    <section className={`screen shop-screen shop-screen--${meta.accent}`}>
       <div className="screen__header">
         <span className="screen__kicker">{meta.kicker}</span>
         <h2 className="screen__title">{meta.title}</h2>
@@ -223,7 +231,9 @@ export const ShopScreen = observer(function ShopScreen({ type }) {
         <section className="shop-group shop-group--active">
           {lockedItems.length > 0 ? (
             <div className="shop-group__head">
-              <span className="shop-group__eyebrow">Доступно сейчас</span>
+              <span className="shop-group__eyebrow">
+                {pxl(MagicWand, 'available now', 16)} Доступно сейчас
+              </span>
               <h3 className="shop-group__title">Разблокированные</h3>
               <p className="shop-group__desc">Выбирай с умом, выстраивай свою стратегию и просчитывай следующий шаг.</p>
             </div>
@@ -244,7 +254,9 @@ export const ShopScreen = observer(function ShopScreen({ type }) {
       {lockedItems.length > 0 ? (
         <section className="shop-group shop-group--locked">
           <div className="shop-group__head">
-            <span className="shop-group__eyebrow">Следующие цели</span>
+            <span className="shop-group__eyebrow">
+              {pxl(Trophy, 'next goals', 16)} Следующие цели
+            </span>
             <h3 className="shop-group__title">Заблокированные</h3>
             <p className="shop-group__desc">Эти товары откроются по мере твоего прогресса.</p>
           </div>

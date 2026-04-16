@@ -1,8 +1,8 @@
 import { memo } from 'react'
+import { PxlKitIcon, Scroll } from '../../lib/pxlkit'
 import { formatNumber } from '../../lib/format.js'
 import { StatCard } from '../stats/StatCard.jsx'
 import { ConeIcon } from '../ui/ConeIcon'
-import { KnowledgeIcon } from '../ui/GameIcon'
 
 function areUnlockItemsEqual(previousItem, nextItem) {
   if (previousItem === nextItem) return true
@@ -17,15 +17,26 @@ function areUnlockItemsEqual(previousItem, nextItem) {
     && previousItem.unlockProgress?.knowledge === nextItem.unlockProgress?.knowledge
 }
 
+const knowledgeIcon = (
+  <PxlKitIcon
+    icon={Scroll}
+    size={16}
+    colorful
+    className="pixel-inline-icon"
+    aria-label="знания"
+  />
+)
+
 export const UnlockCard = memo(function UnlockCard({ title, item, accentClass }) {
   if (!item) {
     return (
       <StatCard
+        variant="pixel"
         label={title}
-        value="✓ Всё открыто"
+        value="Все открыто"
         hint="Фокус на прокачке уровней и престиже."
         formatValue={false}
-        className="stat-card--shop-surface stat-card--unlock"
+        className="stat-card--shop-surface stat-card--unlock pixel-surface"
         valueClassName="stat-card__value--done"
       />
     )
@@ -36,11 +47,12 @@ export const UnlockCard = memo(function UnlockCard({ title, item, accentClass })
 
   return (
     <StatCard
+      variant="pixel"
       label={title}
       value={item.title}
       hint={item.unlockText}
       formatValue={false}
-      className="stat-card--shop-surface stat-card--unlock"
+      className="stat-card--shop-surface stat-card--unlock pixel-surface"
       valueClassName={accentClass}
     >
       <div className="unlock-progress">
@@ -53,7 +65,7 @@ export const UnlockCard = memo(function UnlockCard({ title, item, accentClass })
         </div>
 
         <div className="unlock-progress__row">
-          <span><KnowledgeIcon /> Знания</span>
+          <span>{knowledgeIcon} Знания</span>
           <span>{formatNumber(item.unlockProgress.knowledge)} / {formatNumber(item.unlockRule.knowledge)}</span>
         </div>
         <div className="unlock-progress__track">

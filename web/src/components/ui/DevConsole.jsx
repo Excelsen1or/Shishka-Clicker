@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Coin, Gem, Lightning, PxlKitIcon, Scroll } from '../../lib/pxlkit'
 import { observer } from 'mobx-react-lite'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { formatNumber } from '../../lib/format'
 import wrongImg from '../../assets/wrong.png'
-import {useSound} from "../../hooks/useSound.js"
+import { useSound } from '../../hooks/useSound.js'
 import denySound from '../../assets/audio/ui/wpn_denyselect.mp3'
-
+import { ConeIcon } from './ConeIcon.jsx'
 
 const RESOURCES = [
-  { key: 'shishki', label: 'Шишки', icon: '🌰' },
-  { key: 'money', label: 'Деньги', icon: '💵' },
-  { key: 'knowledge', label: 'Знания', icon: '📚' },
-  { key: 'prestigeShards', label: 'Осколки', icon: '💎' },
+  { key: 'shishki', label: 'Шишки', icon: <ConeIcon /> },
+  { key: 'money', label: 'Деньги', icon: <PxlKitIcon icon={Coin} size={16} colorful className="pixel-inline-icon" /> },
+  { key: 'knowledge', label: 'Знания', icon: <PxlKitIcon icon={Scroll} size={16} colorful className="pixel-inline-icon" /> },
+  { key: 'prestigeShards', label: 'Осколки', icon: <PxlKitIcon icon={Gem} size={16} colorful className="pixel-inline-icon" /> },
 ]
 
 const PRESETS = [1e3, 1e4, 100e3, 1e6, 1e9]
@@ -28,31 +29,31 @@ const DevConsolePanel = observer(function DevConsolePanel() {
   const { play } = useSound(denySound, { volume: 0.1 })
 
   const commandsDesc = {
-    "date": "показывает текущую дату",
-    "clear": "очищает консоль"
-  }
-
-  const commands = {
-    "date": () => pushLog(new Date().toLocaleString()),
-    "sv.cheats true": () => {
-      setCheatsEnabled(true)
-      pushLog('Читы активированы. Админ-панель открыта.', 'success')
-    },
-    "help": () => {
-      const divider = "============================"
-
-      pushLog(divider)
-      for (const [key, value] of Object.entries(commandsDesc)) {
-        pushLog(`${key} - ${value}`, "info")
-      }
-      pushLog(divider)
-    },
-    "clear": () => setLog([])
+    date: 'показывает текущую дату',
+    clear: 'очищает консоль',
   }
 
   const pushLog = useCallback((text, type = 'info') => {
     setLog((prev) => [...prev.slice(-49), { text, type, ts: Date.now() }])
   }, [])
+
+  const commands = {
+    date: () => pushLog(new Date().toLocaleString()),
+    'sv.cheats true': () => {
+      setCheatsEnabled(true)
+      pushLog('Читы активированы. Админ-панель открыта.', 'success')
+    },
+    help: () => {
+      const divider = '============================'
+
+      pushLog(divider)
+      for (const [key, value] of Object.entries(commandsDesc)) {
+        pushLog(`${key} - ${value}`, 'info')
+      }
+      pushLog(divider)
+    },
+    clear: () => setLog([]),
+  }
 
   useEffect(() => {
     window.setTimeout(() => inputRef.current?.focus(), 50)
@@ -61,7 +62,7 @@ const DevConsolePanel = observer(function DevConsolePanel() {
 
   useEffect(() => {
     footerRef.current?.scrollIntoView({
-      behavior: "smooth"
+      behavior: 'smooth',
     })
   }, [log])
 
@@ -74,13 +75,11 @@ const DevConsolePanel = observer(function DevConsolePanel() {
     pushLog(`> ${cmd}`, 'cmd')
 
     if (!cheatsEnabled) {
-      // если в командах есть текущая команда, выполняем
       if (cmd in commands) {
         commands[cmd]()
         return
       }
 
-      // если команды нет
       pushLog('Не угадал, такого нет.', 'error')
       setShowWrongOverlay(true)
       clearTimeout(overlayTimerRef.current)
@@ -155,7 +154,7 @@ const DevConsolePanel = observer(function DevConsolePanel() {
   return (
     <div className="dev-console">
       <div className="dev-console__header">
-        <span>🖥 Консоль</span>
+        <span><PxlKitIcon icon={Lightning} size={16} colorful className="pixel-inline-icon" /> Консоль</span>
       </div>
 
       <div className="dev-console__log">
@@ -166,9 +165,7 @@ const DevConsolePanel = observer(function DevConsolePanel() {
                 ? 'Введите help для списка команд'
                 : 'Введите секретную команду для активации читов…'}
             </div>
-            {!cheatsEnabled && <div className="dev-console__hint">
-              или help для списка команд
-            </div>}
+            {!cheatsEnabled && <div className="dev-console__hint">или help для списка команд</div>}
           </>
         )}
         {log.map((entry) => (
@@ -200,7 +197,7 @@ const DevConsolePanel = observer(function DevConsolePanel() {
 
       {cheatsEnabled && (
         <div className="dev-admin">
-          <div className="dev-admin__title">⚡ Админ-панель</div>
+          <div className="dev-admin__title"><PxlKitIcon icon={Lightning} size={16} colorful className="pixel-inline-icon" /> Админ-панель</div>
           <div className="dev-admin__grid">
             {RESOURCES.map((resource) => (
               <div key={resource.key} className="dev-admin__card">
@@ -258,7 +255,7 @@ export function DevConsole() {
   return (
     <div className="dev-console-overlay">
       <div className="dev-console-shell">
-        <button type="button" className="dev-console__close" onClick={() => setConsoleOpen(false)}>✕</button>
+        <button type="button" className="dev-console__close" onClick={() => setConsoleOpen(false)}>×</button>
         <DevConsolePanel />
       </div>
     </div>

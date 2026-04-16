@@ -1,10 +1,10 @@
 import { memo, useMemo } from 'react'
+import { Gem, PxlKitIcon, Scroll } from '../../lib/pxlkit'
 import { observer } from 'mobx-react-lite'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { StatCard } from '../stats/StatCard.jsx'
 import { UnlockCard } from './UnlockCard.jsx'
 import { ConeIcon } from '../ui/ConeIcon'
-import { KnowledgeIcon } from '../ui/GameIcon'
 
 const SideKpiGrid = memo(function SideKpiGrid({ items, reserveHintSpace = false }) {
   return (
@@ -14,6 +14,7 @@ const SideKpiGrid = memo(function SideKpiGrid({ items, reserveHintSpace = false 
           key={item.label}
           {...item}
           delay={index}
+          variant="pixel"
           className="side-kpi-card"
           formatValue={false}
           reserveHintSpace={reserveHintSpace}
@@ -27,7 +28,7 @@ const MetaSummarySection = memo(function MetaSummarySection({ items }) {
   return (
     <section className="stats-bar stats-bar--shop meta-lifetime-grid progress-overview__mini-grid">
       {items.map((item) => (
-        <StatCard key={item.label} {...item} formatValue={false} />
+        <StatCard key={item.label} {...item} formatValue={false} variant="pixel" />
       ))}
     </section>
   )
@@ -64,8 +65,8 @@ function useMetaSummaryItems() {
   return useMemo(() => ([
     { iconKey: 'prize', label: 'Достижения', value: `${unlockedAchievements}/${achievementsTotal}`, hint: 'открыто сейчас' },
     { iconKey: 'rebirth', label: 'Ребёрсы', value: rebirthsText, hint: 'завершённых циклов' },
-    { iconKey: 'shards', label: 'Осколки', value: prestige.isUnlocked ? `${prestigeShardsText} 💎` : 'закрыто', hint: 'баланс престижа' },
-    { iconKey: 'reward', label: 'След. награда', value: prestige.isUnlocked ? `${projectedShardsText} 💎` : 'закрыто', hint: 'если ребёрс сейчас' },
+    { iconKey: 'shards', label: 'Осколки', value: prestige.isUnlocked ? prestigeShardsText : 'закрыто', hint: 'баланс престижа' },
+    { iconKey: 'reward', label: 'След. награда', value: prestige.isUnlocked ? projectedShardsText : 'закрыто', hint: 'если ребёрс сейчас' },
   ]), [achievementsTotal, projectedShardsText, prestige.isUnlocked, prestigeShardsText, rebirthsText, unlockedAchievements])
 }
 
@@ -79,7 +80,8 @@ const PrestigeOverviewCard = memo(function PrestigeOverviewCard({
 }) {
   return (
     <StatCard
-      className="stat-card--shop-surface stat-card--unlock prestige-overview-card"
+      variant="pixel"
+      className="stat-card--shop-surface stat-card--unlock prestige-overview-card pixel-surface"
       label="Следующий ребёрс"
       value={prestigeLabel}
       hint={prestige.isUnlocked
@@ -101,7 +103,7 @@ const PrestigeOverviewCard = memo(function PrestigeOverviewCard({
           </div>
 
           <div className="unlock-progress__row">
-            <span><KnowledgeIcon /> Знания цикла</span>
+            <span><PxlKitIcon icon={Scroll} size={16} colorful className="pixel-inline-icon" /> Знания цикла</span>
             <span>
               {cycleKnowledgeText} / {cycleKnowledgeGoalText}
             </span>

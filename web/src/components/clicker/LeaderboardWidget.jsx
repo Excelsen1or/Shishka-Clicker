@@ -4,9 +4,9 @@ import { useWebsocketStore } from '../../stores/StoresProvider.jsx'
 import { formatNumber } from '../../lib/format.js'
 
 const LEADERBOARD_TABS = [
-  { id: 'shishki', label: 'шишки', valueLabel: 'за всё время' },
-  { id: 'shards', label: 'осколки', valueLabel: 'всего получено' },
-  { id: 'clicks', label: 'клики', valueLabel: 'за всё время' },
+  { id: 'shishki', label: 'шишки', valueLabel: 'мне лень' },
+  { id: 'shards', label: 'осколки', valueLabel: 'мне лень' },
+  { id: 'clicks', label: 'клики', valueLabel: 'мне лень' },
 ]
 
 function getStateCopy(state) {
@@ -35,7 +35,7 @@ export const LeaderboardWidget = observer(function LeaderboardWidget() {
     <aside className={`leaderboard-widget ${isOpen ? 'leaderboard-widget--open' : 'leaderboard-widget--collapsed'}`.trim()}>
       <button
         type="button"
-        className="leaderboard-widget__toggle"
+        className="leaderboard-widget__toggle leaderboard-widget__toggle--pixel pixel-badge"
         onClick={() => setIsOpen((current) => !current)}
         aria-expanded={isOpen}
         aria-label={isOpen ? 'Свернуть рейтинг' : 'Развернуть рейтинг'}
@@ -44,12 +44,12 @@ export const LeaderboardWidget = observer(function LeaderboardWidget() {
       </button>
 
       {isOpen ? (
-        <div className="leaderboard-widget__panel">
+        <div className="leaderboard-widget__panel pixel-surface">
           <div className="leaderboard-widget__head">
             <div>
-              <div className="leaderboard-widget__kicker">Рейтинг</div>
+              <div className="leaderboard-widget__kicker">Потом переделаю</div>
             </div>
-            <div className="leaderboard-widget__summary">
+            <div className="leaderboard-widget__summary pixel-badge">
               <span>{activeMeta.label}</span>
               <span>{activeMeta.valueLabel}</span>
             </div>
@@ -61,7 +61,7 @@ export const LeaderboardWidget = observer(function LeaderboardWidget() {
                 key={tab.id}
                 type="button"
                 role="tab"
-                className={`leaderboard-widget__tab ${tab.id === activeTab ? 'leaderboard-widget__tab--active' : ''}`.trim()}
+                className={`leaderboard-widget__tab pixel-badge ${tab.id === activeTab ? 'leaderboard-widget__tab--active' : ''}`.trim()}
                 aria-selected={tab.id === activeTab}
                 onClick={() => setActiveTab(tab.id)}
               >
@@ -75,7 +75,7 @@ export const LeaderboardWidget = observer(function LeaderboardWidget() {
               <div className="leaderboard-widget__empty">{getStateCopy(websocketStore.state)}</div>
             ) : (
               entries.map((entry, index) => (
-                <div key={`${activeTab}-${entry.username}-${index}`} className="leaderboard-widget__row">
+                <div key={`${activeTab}-${entry.username}-${index}`} className="leaderboard-widget__row pixel-surface">
                   <div className="leaderboard-widget__player">
                     <span className="leaderboard-widget__rank">#{index + 1}</span>
                     <span className="leaderboard-widget__name">{entry.username}</span>

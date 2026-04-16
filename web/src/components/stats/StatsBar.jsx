@@ -12,6 +12,7 @@ export const StatsBar = observer(function StatsBar({ className = '' }) {
           key={item.label}
           {...item}
           iconKey={item.icon}
+          variant="pixel"
           delay={index}
           formatValue={false}
         />

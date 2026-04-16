@@ -7,7 +7,7 @@ import switchSound from '../../assets/audio/ui/wpn_select.mp3'
 import { isTabScreenLoaded, preloadTabScreen } from '../wrapper/AppWrapper.jsx'
 
 function getButtonClassName(isActive) {
-  return `bottom-nav__btn ${isActive ? 'bottom-nav__btn--active' : ''}`
+  return `bottom-nav__btn bottom-nav__btn--pixel ${isActive ? 'bottom-nav__btn--active' : ''}`
 }
 
 export const BottomNav = observer(function BottomNav() {
@@ -27,8 +27,8 @@ export const BottomNav = observer(function BottomNav() {
   }, [activeTab, play, setActiveTab])
 
   return (
-    <nav className="bottom-nav" aria-label="Разделы игры">
-      <div className="bottom-nav__track">
+    <nav className="bottom-nav bottom-nav--pixel" aria-label="Разделы игры">
+      <div className="bottom-nav__track bottom-nav__track--pixel">
         {tabs.map((tab) => {
           const isActive = tab.id === activeTab
           const alert = bottomNavAlerts[tab.id]
@@ -48,7 +48,7 @@ export const BottomNav = observer(function BottomNav() {
               <span className="bottom-nav__label">{tab.label}</span>
               {alert?.count > 0 ? (
                 <span
-                  className={`bottom-nav__alert ${alert.hasReady ? 'bottom-nav__alert--ready' : 'bottom-nav__alert--new'}`}
+                  className={`bottom-nav__alert bottom-nav__alert--pixel ${alert.hasReady ? 'bottom-nav__alert--ready' : 'bottom-nav__alert--new'}`}
                   aria-hidden="true"
                 >
                   {alert.count > 9 ? '9+' : alert.count}

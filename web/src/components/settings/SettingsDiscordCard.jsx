@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Community, PxlKitIcon, Robot, Trophy } from '../../lib/pxlkit'
 import { useDiscordActivity } from '../../context/DiscordActivityContext.jsx'
 import { getPreferredDiscordName } from '../../lib/playerName.js'
 
@@ -80,6 +81,12 @@ export function SettingsDiscordCard() {
       <div className="settings-card__head">
         <h3 className="settings-card__title">Discord Activity</h3>
         <span className="settings-chip">
+          <PxlKitIcon
+            icon={offlineMode ? Trophy : isActivity ? Community : Robot}
+            size={16}
+            colorful
+            className="pixel-inline-icon"
+          />
           {offlineMode ? 'Offline' : isActivity ? 'Connected' : 'Cloud Profile'}
         </span>
       </div>
@@ -123,6 +130,7 @@ export function SettingsDiscordCard() {
         onClick={handleSync}
         disabled={isSyncing}
       >
+        <PxlKitIcon icon={Community} size={16} colorful className="pixel-inline-icon" />
         {isSyncing ? 'Синхронизация...' : offlineMode ? 'Включить синхронизацию' : 'Синхронизировать сейчас'}
       </button>
     </article>

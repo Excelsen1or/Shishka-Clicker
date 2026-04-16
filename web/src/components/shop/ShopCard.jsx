@@ -1,48 +1,70 @@
 import { memo, useEffect, useRef } from 'react'
+import {
+  Arrow,
+  Chest,
+  Coin,
+  Gem,
+  Lightning,
+  MagicWand,
+  PxlKitIcon,
+  QuestCompass,
+  Scroll,
+  SocialStar,
+  Staff,
+  Target,
+  Community,
+  Package,
+  Palette,
+  Pencil,
+  Search,
+  Robot,
+} from '../../lib/pxlkit'
 import { formatNumber } from '../../lib/format'
 import { useSound } from '../../hooks/useSound'
 import buySound from '../../assets/audio/ui/blip1.mp3'
 import denySound from '../../assets/audio/ui/wpn_denyselect.mp3'
-import {LockBadge} from "./LockBadge.jsx"
+import { LockBadge } from './LockBadge.jsx'
 import { ConeIcon } from '../ui/ConeIcon'
-import { MoneyIcon, KnowledgeIcon } from '../ui/GameIcon'
 
+const pxl = (icon, label, size = 22) => (
+  <PxlKitIcon icon={icon} size={size} colorful className="pixel-inline-icon" aria-label={label} />
+)
 
 const CURRENCY_META = {
-  money: { icon: <MoneyIcon />, label: 'деньги' },
+  money: { icon: pxl(Coin, 'money', 18), label: 'деньги' },
   shishki: { icon: <ConeIcon />, label: 'шишки' },
-  knowledge: { icon: <KnowledgeIcon />, label: 'знания' },
+  knowledge: { icon: pxl(Scroll, 'knowledge', 18), label: 'знания' },
 }
 
-const ITEM_EMOJI = {
-  gigachat: '🪄',
-  yandex_alisa: '🎙️',
-  gpt: '🧠',
-  claude: '🧾',
-  perplexity: '🔎',
-  copilot: '🛠️',
-  gemini: '🌌',
-  deepseek: '🚀',
-  mistral: '🌪️',
-  textbooks: '📘',
-  coffee: '☕',
-  internship: '📦',
-  studyGroup: '🧑‍🏫',
-  promptEngineering: '⌨️',
-  researchLab: '🧪',
-  autoClicker: '🖱️',
-  focusMode: '🎯',
-  memeMarketing: '📣',
-  logisticsHub: '🚚',
-  serverRack: '🖥️',
-  coneSorting: '🧺',
-  resinWorkshop: '🧴',
-  campusExchange: '🏫',
-  grantProgram: '📝',
-  brandStudio: '🎨',
-  franchiseNetwork: '🏪',
-  ventureFund: '💼',
-  quantFund: '📈',
+const ITEM_ICONS = {
+  gigachat: pxl(Robot, 'gigachat'),
+  yandex_alisa: pxl(Community, 'alisa'),
+  gpt: pxl(Scroll, 'gpt'),
+  claude: pxl(MagicWand, 'claude'),
+  perplexity: pxl(Search, 'perplexity'),
+  copilot: pxl(Staff, 'copilot'),
+  gemini: pxl(SocialStar, 'gemini'),
+  deepseek: pxl(Arrow, 'deepseek'),
+  mistral: pxl(QuestCompass, 'mistral'),
+  textbooks: pxl(Scroll, 'textbooks'),
+  coffee: pxl(Lightning, 'coffee'),
+  internship: pxl(Package, 'internship'),
+  studyGroup: pxl(Community, 'study-group'),
+  promptEngineering: pxl(Pencil, 'prompt-engineering'),
+  researchLab: pxl(Gem, 'research-lab'),
+  autoClicker: pxl(Robot, 'auto-clicker'),
+  focusMode: pxl(Target, 'focus-mode'),
+  memeMarketing: pxl(Community, 'meme-marketing'),
+  logisticsHub: pxl(Chest, 'logistics-hub'),
+  serverRack: pxl(Robot, 'server-rack'),
+  coneSorting: pxl(Arrow, 'cone-sorting'),
+  resinWorkshop: pxl(MagicWand, 'resin-workshop'),
+  campusExchange: pxl(Coin, 'campus-exchange'),
+  grantProgram: pxl(Scroll, 'grant-program'),
+  brandStudio: pxl(Palette, 'brand-studio'),
+  franchiseNetwork: pxl(Community, 'franchise-network'),
+  ventureFund: pxl(Coin, 'venture-fund'),
+  quantFund: pxl(Gem, 'quant-fund'),
 }
 
 function splitEffectLines(text, stripNextPrefix = false) {
@@ -138,8 +160,8 @@ function areShopCardPropsEqual(previousProps, nextProps) {
 export const ShopCard = memo(function ShopCard({ itemId, item, canBuy, balance = 0, onBuy, onInspect }) {
   const isLocked = !item.unlocked
   const showDetails = !isLocked
-  const currency = CURRENCY_META[item.currency] ?? { icon: '✨', label: 'ресурс' }
-  const itemEmoji = ITEM_EMOJI[item.id] ?? '✨'
+  const currency = CURRENCY_META[item.currency] ?? { icon: pxl(SocialStar, 'resource', 18), label: 'ресурс' }
+  const itemIcon = ITEM_ICONS[item.id] ?? pxl(SocialStar, item.id)
   const { play: playBuySound } = useSound(buySound, { volume: 0.2 })
   const { play: playDenySound } = useSound(denySound, { volume: 0.26 })
   const cardRef = useRef(null)
@@ -263,19 +285,19 @@ export const ShopCard = memo(function ShopCard({ itemId, item, canBuy, balance =
       <div className="shop-card__head">
         <div className="shop-card__meta">
           <div className="shop-card__badge-wrap">
-            <span className="shop-card__emoji" aria-hidden="true">{itemEmoji}</span>
+            <span className="shop-card__emoji" aria-hidden="true">{itemIcon}</span>
             <div>
               <h3 className="shop-card__title">{item.title}</h3>
-              {showDetails && <p className="shop-card__desc">{item.description}</p>}
+              {showDetails ? <p className="shop-card__desc">{item.description}</p> : null}
             </div>
           </div>
         </div>
 
         <div className="shop-card__chips">
-          {item.isNew && <span className="shop-card__new-badge">новое</span>}
-          {item.isBuyableNew && <span className="shop-card__new-badge shop-card__new-badge--ready">можно взять</span>}
+          {item.isNew ? <span className="shop-card__new-badge">новое</span> : null}
+          {item.isBuyableNew ? <span className="shop-card__new-badge shop-card__new-badge--ready">можно взять</span> : null}
           <span className="shop-card__tier">тир {item.tier}</span>
-          {!isLocked && <span className="shop-card__level">ур. {item.level}</span>}
+          {!isLocked ? <span className="shop-card__level">ур. {item.level}</span> : null}
         </div>
       </div>
 
@@ -308,17 +330,17 @@ export const ShopCard = memo(function ShopCard({ itemId, item, canBuy, balance =
                 <span className="shop-card__price-num">{formatNumber(item.cost)}</span>
                 <span className="shop-card__price-icon">{currency.icon}</span>
               </div>
-              {!canBuy && (
+              {!canBuy ? (
                 <div className="shop-card__shortage">
                   Нужно ещё <strong>{formatNumber(missingAmount)}</strong>
                 </div>
-              )}
+              ) : null}
             </div>
           </>
         )}
       </div>
 
-      {showDetails && (
+      {showDetails ? (
         <div className="shop-card__footer">
           <button
             ref={buyButtonRef}
@@ -334,7 +356,7 @@ export const ShopCard = memo(function ShopCard({ itemId, item, canBuy, balance =
             </span>
           </button>
         </div>
-      )}
+      ) : null}
     </article>
   )
 }, areShopCardPropsEqual)

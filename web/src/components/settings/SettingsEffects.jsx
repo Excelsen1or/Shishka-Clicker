@@ -1,3 +1,4 @@
+import { Lightning, PxlKitIcon } from '../../lib/pxlkit'
 import { RangeRow } from './RangeRow.jsx'
 import { ToggleRow } from './ToggleRow.jsx'
 
@@ -25,7 +26,9 @@ export const SettingsEffects = ({
     <article className="settings-card">
       <div className="settings-card__head">
         <h3 className="settings-card__title">Визуальные эффекты</h3>
-        <span className="settings-chip">{enabledCount}/{EFFECT_TOGGLES.length} вкл.</span>
+        <span className="settings-chip">
+          <PxlKitIcon icon={Lightning} size={16} colorful className="pixel-inline-icon" /> {enabledCount}/{EFFECT_TOGGLES.length} вкл.
+        </span>
       </div>
 
       <RangeRow

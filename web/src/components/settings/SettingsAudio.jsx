@@ -1,3 +1,4 @@
+import { PxlKitIcon, Scroll } from '../../lib/pxlkit'
 import { ToggleRow } from './ToggleRow.jsx'
 import { RangeRow } from './RangeRow.jsx'
 
@@ -11,7 +12,9 @@ export const SettingsAudio = ({
     <article className="settings-card">
       <div className="settings-card__head">
         <h3 className="settings-card__title">Аудио</h3>
-        <span className="settings-chip">Основное</span>
+        <span className="settings-chip">
+          <PxlKitIcon icon={Scroll} size={16} colorful className="pixel-inline-icon" /> Основное
+        </span>
       </div>
 
       <div className="settings-stack">

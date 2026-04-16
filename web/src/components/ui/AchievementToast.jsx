@@ -1,10 +1,10 @@
 import { memo, useEffect, useRef, useState } from 'react'
+import { PxlKitIcon, Trophy, Community } from '../../lib/pxlkit'
 import { observer } from 'mobx-react-lite'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { useSettingsContext } from '../../context/SettingsContext'
 import { useSound } from '../../hooks/useSound'
 import achievementSound from '../../assets/audio/ui/achiv.mp3'
-import { PrizeIcon } from './GameIcon'
 
 const DISPLAY_DURATION = 3400
 const EXIT_DURATION = 500
@@ -56,7 +56,9 @@ const ActiveAchievementToast = memo(function ActiveAchievementToast({ current, d
   return (
     <div className={`achievement-toast ${current.secret ? 'achievement-toast--secret' : ''} ${leaving ? 'achievement-toast--leaving' : ''}`} role="status" aria-live="polite">
       <div className="achievement-toast__steam">{current.secret ? 'SECRET ACHIEVEMENT' : 'ACHIEVEMENT UNLOCKED'}</div>
-      <div className="achievement-toast__icon">{current.secret ? '🕵️' : <PrizeIcon />}</div>
+      <div className="achievement-toast__icon">
+        <PxlKitIcon icon={current.secret ? Community : Trophy} size={28} colorful className="pixel-inline-icon" />
+      </div>
       <div className="achievement-toast__body">
         <div className="achievement-toast__label">
           {current.category ?? 'Достижение'} · ур. {current.tier ?? 1}
