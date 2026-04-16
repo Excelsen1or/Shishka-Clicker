@@ -1,9 +1,21 @@
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from 'react'
 import { PxlKitIcon, Trophy, Scroll, Community, Settings } from '../lib/pxlkit'
 import { ConeIcon } from '../components/ui/ConeIcon'
 
 const PixelNavIcon = ({ icon, label }) => (
-  <PxlKitIcon icon={icon} size={20} colorful className="pixel-inline-icon" aria-label={label} />
+  <PxlKitIcon
+    icon={icon}
+    size={20}
+    colorful
+    className="pixel-inline-icon"
+    aria-label={label}
+  />
 )
 
 export const TABS = [
@@ -58,15 +70,17 @@ export function NavProvider({ children }) {
   }, [])
 
   const value = useMemo(
-    () => ({ activeTab, setActiveTab: setActiveTabWithDirection, currentTab, tabs: TABS, transitionDirection }),
+    () => ({
+      activeTab,
+      setActiveTab: setActiveTabWithDirection,
+      currentTab,
+      tabs: TABS,
+      transitionDirection,
+    }),
     [activeTab, currentTab, setActiveTabWithDirection, transitionDirection],
   )
 
-  return (
-    <NavContext.Provider value={value}>
-      {children}
-    </NavContext.Provider>
-  )
+  return <NavContext.Provider value={value}>{children}</NavContext.Provider>
 }
 
 export function useNav() {

@@ -24,7 +24,11 @@ export default class WebsocketStore {
 
   constructor(rootStore) {
     this.rootStore = rootStore
-    makeAutoObservable(this, { rootStore: false, refreshIntervalId: false }, { autoBind: true })
+    makeAutoObservable(
+      this,
+      { rootStore: false, refreshIntervalId: false },
+      { autoBind: true },
+    )
   }
 
   start() {
@@ -60,8 +64,12 @@ export default class WebsocketStore {
           : Array.isArray(payload?.leaderboard)
             ? payload.leaderboard
             : [],
-        shards: Array.isArray(payload?.leaderboards?.shards) ? payload.leaderboards.shards : [],
-        clicks: Array.isArray(payload?.leaderboards?.clicks) ? payload.leaderboards.clicks : [],
+        shards: Array.isArray(payload?.leaderboards?.shards)
+          ? payload.leaderboards.shards
+          : [],
+        clicks: Array.isArray(payload?.leaderboards?.clicks)
+          ? payload.leaderboards.clicks
+          : [],
       }
 
       runInAction(() => {

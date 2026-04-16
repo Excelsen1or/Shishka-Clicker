@@ -21,7 +21,10 @@ function sumLevels(map) {
 function countUnlockedAchievements(achievements) {
   if (!achievements || typeof achievements !== 'object') return 0
 
-  return Object.values(achievements).reduce((total, value) => total + (value ? 1 : 0), 0)
+  return Object.values(achievements).reduce(
+    (total, value) => total + (value ? 1 : 0),
+    0,
+  )
 }
 
 function buildPresenceState(activeTab, gameState, economy) {
@@ -37,7 +40,9 @@ function buildPresenceState(activeTab, gameState, economy) {
   const partsByTab = {
     clicker: [
       `Шишки/с: ${formatNumber(shishkiPerSecond)}`,
-      aiMultiplier > 1 ? `AI x${formatNumber(aiMultiplier)}` : `Ачивок: ${formatNumber(achievementCount)}`,
+      aiMultiplier > 1
+        ? `AI x${formatNumber(aiMultiplier)}`
+        : `Ачивок: ${formatNumber(achievementCount)}`,
     ],
     subscriptions: [
       `Подписок: ${formatNumber(subscriptionLevels)}`,
@@ -51,16 +56,15 @@ function buildPresenceState(activeTab, gameState, economy) {
       `Ребёрсы: ${formatNumber(rebirths)}`,
       `Шарды: ${formatNumber(prestigeShards)}`,
     ],
-    settings: [
-      `Ачивок: ${formatNumber(achievementCount)}`,
-      `v${APP_VERSION}`,
-    ],
+    settings: [`Ачивок: ${formatNumber(achievementCount)}`, `v${APP_VERSION}`],
   }
 
-  return (partsByTab[activeTab] ?? [
-    `Шишки/с: ${formatNumber(shishkiPerSecond)}`,
-    `Ачивок: ${formatNumber(achievementCount)}`,
-  ])
+  return (
+    partsByTab[activeTab] ?? [
+      `Шишки/с: ${formatNumber(shishkiPerSecond)}`,
+      `Ачивок: ${formatNumber(achievementCount)}`,
+    ]
+  )
     .filter(Boolean)
     .slice(0, 2)
     .join(' • ')
@@ -77,16 +81,27 @@ function getExternalPresenceImageUrl() {
   }
 
   const hostname = window.location.hostname
-  const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.local')
+  const isLocalHost =
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname.endsWith('.local')
 
   if (isLocalHost) {
     return null
   }
 
-  return new URL('/discord-rich-presence.png', window.location.origin).toString()
+  return new URL(
+    '/discord-rich-presence.png',
+    window.location.origin,
+  ).toString()
 }
 
-export function buildDiscordRichPresence({ activeTab, gameState, economy, startedAt }) {
+export function buildDiscordRichPresence({
+  activeTab,
+  gameState,
+  economy,
+  startedAt,
+}) {
   const activity = {
     type: 0,
     details: PRESENCE_DETAILS_BY_TAB[activeTab] ?? 'Играет в Shishka Clicker',

@@ -31,7 +31,8 @@ export const PRESTIGE_UPGRADES = [
   {
     id: 'rebirthCore',
     title: 'Ядро ребёрсов',
-    description: 'Даёт постоянный множитель ко всей экономике поверх обычного престижа.',
+    description:
+      'Даёт постоянный множитель ко всей экономике поверх обычного престижа.',
     baseCost: 3,
     costScale: 2.62,
     costRamp: 1.15,
@@ -40,7 +41,8 @@ export const PRESTIGE_UPGRADES = [
   {
     id: 'shardRefinery',
     title: 'Очистка осколков',
-    description: 'Увеличивает количество осколков, которое выдаётся за выполненную квоту.',
+    description:
+      'Увеличивает количество осколков, которое выдаётся за выполненную квоту.',
     baseCost: 5,
     costScale: 2.85,
     costRamp: 1.2,
@@ -75,7 +77,15 @@ export function getPrestigeUpgradeCost(item, level) {
   const ramp = Number(item?.costRamp ?? 1)
   const linearPenalty = 1 + level * (0.082 * ramp)
   const quadraticPenalty = 1 + level * level * (0.01 * ramp)
-  return Math.max(1, Math.floor(item.baseCost * Math.pow(item.costScale, level) * linearPenalty * quadraticPenalty))
+  return Math.max(
+    1,
+    Math.floor(
+      item.baseCost *
+        Math.pow(item.costScale, level) *
+        linearPenalty *
+        quadraticPenalty,
+    ),
+  )
 }
 
 export function getPrestigeBonuses(state = {}) {
@@ -86,10 +96,28 @@ export function getPrestigeBonuses(state = {}) {
   const shardRefinery = getUpgradeLevel(state, 'shardRefinery')
   const overflowDoctrine = getUpgradeLevel(state, 'overflowDoctrine')
 
-  const shishkiQuotaReduction = getReductionFromLevel(coneTheory, 0.042, 0.943, 0.46)
-  const knowledgeQuotaReduction = getReductionFromLevel(archiveIndex, 0.04, 0.945, 0.44)
-  const achievementQuotaReduction = Math.min(14, Math.floor(trophyRoute * 0.9 + Math.max(0, trophyRoute - 3) * 0.45))
-  const permanentMultiplierBonus = getReductionFromLevel(rebirthCore, 0.06, 0.956, 0.68)
+  const shishkiQuotaReduction = getReductionFromLevel(
+    coneTheory,
+    0.042,
+    0.943,
+    0.46,
+  )
+  const knowledgeQuotaReduction = getReductionFromLevel(
+    archiveIndex,
+    0.04,
+    0.945,
+    0.44,
+  )
+  const achievementQuotaReduction = Math.min(
+    14,
+    Math.floor(trophyRoute * 0.9 + Math.max(0, trophyRoute - 3) * 0.45),
+  )
+  const permanentMultiplierBonus = getReductionFromLevel(
+    rebirthCore,
+    0.06,
+    0.956,
+    0.68,
+  )
   const shardMultiplier = 1 + geometricGain(shardRefinery, 0.08, 0.97)
   const overflowMultiplier = 1 + geometricGain(overflowDoctrine, 0.085, 0.971)
 
@@ -113,21 +141,41 @@ function getRawQuota(rebirths = 0) {
   }
 }
 
-export function getRebirthQuota(state = {}, _unlockedAchievements = 0, rebirthsOverride = null) {
-  const rebirths = typeof rebirthsOverride === 'number' ? rebirthsOverride : Number(state?.rebirths ?? 0)
+export function getRebirthQuota(
+  state = {},
+  _unlockedAchievements = 0,
+  rebirthsOverride = null,
+) {
+  const rebirths =
+    typeof rebirthsOverride === 'number'
+      ? rebirthsOverride
+      : Number(state?.rebirths ?? 0)
   const raw = getRawQuota(rebirths)
   const bonuses = getPrestigeBonuses(state)
 
   return {
     cycle: rebirths + 1,
     raw,
-    shishki: Math.max(95_000, Math.floor(raw.shishki * (1 - bonuses.shishkiQuotaReduction))),
-    knowledge: Math.max(2_400, Math.floor(raw.knowledge * (1 - bonuses.knowledgeQuotaReduction))),
-    achievements: Math.max(14, raw.achievements - bonuses.achievementQuotaReduction),
+    shishki: Math.max(
+      95_000,
+      Math.floor(raw.shishki * (1 - bonuses.shishkiQuotaReduction)),
+    ),
+    knowledge: Math.max(
+      2_400,
+      Math.floor(raw.knowledge * (1 - bonuses.knowledgeQuotaReduction)),
+    ),
+    achievements: Math.max(
+      14,
+      raw.achievements - bonuses.achievementQuotaReduction,
+    ),
   }
 }
 
-export function getShardPreview(state = {}, unlockedAchievements = 0, quota = null) {
+export function getShardPreview(
+  state = {},
+  unlockedAchievements = 0,
+  quota = null,
+) {
   const targetQuota = quota ?? getRebirthQuota(state, unlockedAchievements)
   const bonuses = getPrestigeBonuses(state)
   const progress = {
@@ -162,8 +210,11 @@ export function getShardPreview(state = {}, unlockedAchievements = 0, quota = nu
     ratios.achievements * 0.44 +
     overflowScore
 
-  const rawShards = Math.pow(Math.max(0, quotaScore - 2.04), 2.25) * bonuses.shardMultiplier
-  const projectedShards = canRebirth ? Math.max(1, Math.floor(rawShards)) : Math.floor(rawShards)
+  const rawShards =
+    Math.pow(Math.max(0, quotaScore - 2.04), 2.25) * bonuses.shardMultiplier
+  const projectedShards = canRebirth
+    ? Math.max(1, Math.floor(rawShards))
+    : Math.floor(rawShards)
 
   return {
     progress,
@@ -182,7 +233,10 @@ function getMetricValue(id, level) {
     case 'archiveIndex':
       return getReductionFromLevel(level, 0.04, 0.945, 0.44)
     case 'trophyRoute':
-      return Math.min(14, Math.floor(level * 0.9 + Math.max(0, level - 3) * 0.45))
+      return Math.min(
+        14,
+        Math.floor(level * 0.9 + Math.max(0, level - 3) * 0.45),
+      )
     case 'rebirthCore':
       return getReductionFromLevel(level, 0.06, 0.956, 0.68)
     case 'shardRefinery':
@@ -225,7 +279,8 @@ export function getPrestigeUpgradeCards(state = {}) {
       level,
       cost: getPrestigeUpgradeCost(item, level),
       effectPreview: {
-        currentText: level > 0 ? formatMetric(item.id, current) : 'Пока не изучено',
+        currentText:
+          level > 0 ? formatMetric(item.id, current) : 'Пока не изучено',
         nextText: `След. ур.: ${formatMetric(item.id, next)}${delta > 0 ? ` · +${formatMetric(item.id, delta).replace(/^[-+x]?/, '')}` : ''}`,
       },
     }

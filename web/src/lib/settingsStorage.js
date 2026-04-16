@@ -27,18 +27,35 @@ export function normalizeSettings(settings) {
 
   return {
     soundEnabled: input.soundEnabled ?? DEFAULT_SETTINGS.soundEnabled,
-    masterVolume: clampPercent(input.masterVolume, DEFAULT_SETTINGS.masterVolume),
-    effectsVolume: clampPercent(input.effectsVolume, DEFAULT_SETTINGS.effectsVolume),
-    visualEffectsDensity: clampPercent(input.visualEffectsDensity, DEFAULT_SETTINGS.visualEffectsDensity, 20, 200),
-    showAmbientEffects: input.showAmbientEffects ?? DEFAULT_SETTINGS.showAmbientEffects,
-    showNoiseOverlay: input.showNoiseOverlay ?? DEFAULT_SETTINGS.showNoiseOverlay,
-    showRevealAnimations: input.showRevealAnimations ?? DEFAULT_SETTINGS.showRevealAnimations,
-    showClickAnimations: input.showClickAnimations ?? DEFAULT_SETTINGS.showClickAnimations,
+    masterVolume: clampPercent(
+      input.masterVolume,
+      DEFAULT_SETTINGS.masterVolume,
+    ),
+    effectsVolume: clampPercent(
+      input.effectsVolume,
+      DEFAULT_SETTINGS.effectsVolume,
+    ),
+    visualEffectsDensity: clampPercent(
+      input.visualEffectsDensity,
+      DEFAULT_SETTINGS.visualEffectsDensity,
+      20,
+      200,
+    ),
+    showAmbientEffects:
+      input.showAmbientEffects ?? DEFAULT_SETTINGS.showAmbientEffects,
+    showNoiseOverlay:
+      input.showNoiseOverlay ?? DEFAULT_SETTINGS.showNoiseOverlay,
+    showRevealAnimations:
+      input.showRevealAnimations ?? DEFAULT_SETTINGS.showRevealAnimations,
+    showClickAnimations:
+      input.showClickAnimations ?? DEFAULT_SETTINGS.showClickAnimations,
     showParticles: input.showParticles ?? DEFAULT_SETTINGS.showParticles,
-    showFloatingNumbers: input.showFloatingNumbers ?? DEFAULT_SETTINGS.showFloatingNumbers,
+    showFloatingNumbers:
+      input.showFloatingNumbers ?? DEFAULT_SETTINGS.showFloatingNumbers,
     showConeSprites: input.showConeSprites ?? DEFAULT_SETTINGS.showConeSprites,
     showShockwaves: input.showShockwaves ?? DEFAULT_SETTINGS.showShockwaves,
-    showAchievementToasts: input.showAchievementToasts ?? DEFAULT_SETTINGS.showAchievementToasts,
+    showAchievementToasts:
+      input.showAchievementToasts ?? DEFAULT_SETTINGS.showAchievementToasts,
   }
 }
 
@@ -58,7 +75,10 @@ export function saveSettings(settings) {
   if (typeof window === 'undefined') return
 
   try {
-    window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(normalizeSettings(settings)))
+    window.localStorage.setItem(
+      SETTINGS_KEY,
+      JSON.stringify(normalizeSettings(settings)),
+    )
   } catch (error) {
     console.warn('Failed to save settings:', error)
   }

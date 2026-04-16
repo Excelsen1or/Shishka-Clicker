@@ -11,7 +11,7 @@ import {
 import { observer } from 'mobx-react-lite'
 import { createPortal } from 'react-dom'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
-import { useSettingsContext } from '../../context/SettingsContext'
+import { useSettingsVisuals } from '../../context/SettingsContext'
 import { useNav } from '../../context/NavContext'
 import { useSound } from '../../hooks/useSound'
 import { formatNumber } from '../../lib/format'
@@ -20,6 +20,7 @@ import racoonAltImage from '../../assets/racoon-default_128x128_2.png'
 import coneImage from '../../assets/cone.png'
 import coneV2Image from '../../assets/conev2.png'
 import shishkaSound from '../../assets/audio/ui/shishka.mp3'
+import { Lightning, PxlKitIcon, SparkleSmall } from '../../lib/pxlkit'
 import { ConeIcon } from '../ui/ConeIcon'
 import {
   appendWithCapInPlace,
@@ -78,6 +79,43 @@ function getTextSprite(cache, symbol, fontSize, fillStyle, fontWeight) {
   return sprite
 }
 
+function getPxlIconSprite(cache, iconData, targetSize) {
+  const key = `${iconData.name}::${targetSize}`
+  const cached = cache.get(key)
+  if (cached) return cached
+
+  const pixelSize = Math.max(1, Math.round(targetSize / iconData.size))
+  const size = iconData.size * pixelSize
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+
+  const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    const fallback = { canvas, size }
+    cache.set(key, fallback)
+    return fallback
+  }
+
+  ctx.imageSmoothingEnabled = false
+
+  for (let y = 0; y < iconData.grid.length; y += 1) {
+    const row = iconData.grid[y]
+    for (let x = 0; x < row.length; x += 1) {
+      const symbol = row[x]
+      if (symbol === '.') continue
+      const color = iconData.palette[symbol]
+      if (!color) continue
+      ctx.fillStyle = color
+      ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize)
+    }
+  }
+
+  const sprite = { canvas, size }
+  cache.set(key, sprite)
+  return sprite
+}
+
 const TAP_SPEED_WINDOW = 2000
 const IDLE_TIMEOUT = 4500
 const EFFECTS_VIEWPORT_PADDING = 420
@@ -91,7 +129,12 @@ const VISUAL_DURATIONS = {
 const TAP_SPEED_TIERS = [
   {
     minTps: 0,
-    labels: ['Че так медленно', 'Давай, тапай побыстрее', 'Расход: 150 шишечек', 'Хомяк отдыхает'],
+    labels: [
+      'Че так медленно',
+      'Давай, тапай побыстрее',
+      'Расход: 150 шишечек',
+      'Хомяк отдыхает',
+    ],
   },
   {
     minTps: 2,
@@ -110,11 +153,21 @@ const TAP_SPEED_TIERS = [
   },
   {
     minTps: 7,
-    labels: ['ЕБАНУТЫЙ РАЗГОН НАХУЙ', 'ЕБАТЬ ТЫ ЖМЯКАЕШЬ', 'ЧУВАААААК', 'МАШИНА КЛИКОВ!!!'],
+    labels: [
+      'ЕБАНУТЫЙ РАЗГОН НАХУЙ',
+      'ЕБАТЬ ТЫ ЖМЯКАЕШЬ',
+      'ЧУВАААААК',
+      'МАШИНА КЛИКОВ!!!',
+    ],
   },
   {
     minTps: 11,
-    labels: ['АВТОКЛИКЕР?!', 'ТЫ ВООБЩЕ ЧЕЛОВЕК?!', 'НЕРЕАЛЬНАЯ СКОРОСТЬ', 'БОГА ТАПА ПРИЗВАЛИ'],
+    labels: [
+      'АВТОКЛИКЕР?!',
+      'ТЫ ВООБЩЕ ЧЕЛОВЕК?!',
+      'НЕРЕАЛЬНАЯ СКОРОСТЬ',
+      'БОГА ТАПА ПРИЗВАЛИ',
+    ],
   },
 ]
 
@@ -166,14 +219,17 @@ function getTierForTps(tps) {
   return TAP_SPEED_TIERS[0]
 }
 
-const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay({ anchorRef }, ref) {
+const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay(
+  { anchorRef },
+  ref,
+) {
   const [isVisible, setIsVisible] = useState(false)
   const {
     visualEffectCaps,
     visualEffectScaling,
     visualEffectToggles,
     visualEffectsFactor,
-  } = useSettingsContext()
+  } = useSettingsVisuals()
 
   const canvasRef = useRef(null)
   const burstsLayerRef = useRef(null)
@@ -207,7 +263,12 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay({ a
       visualEffectToggles,
       visualEffectsFactor,
     }
-  }, [visualEffectCaps, visualEffectScaling, visualEffectToggles, visualEffectsFactor])
+  }, [
+    visualEffectCaps,
+    visualEffectScaling,
+    visualEffectToggles,
+    visualEffectsFactor,
+  ])
 
   useEffect(() => {
     visibilityRef.current = isVisible
@@ -227,8 +288,14 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay({ a
     const rect = anchor.getBoundingClientRect()
     const left = Math.max(0, Math.floor(rect.left - EFFECTS_VIEWPORT_PADDING))
     const top = Math.max(0, Math.floor(rect.top - EFFECTS_VIEWPORT_PADDING))
-    const right = Math.min(window.innerWidth, Math.ceil(rect.right + EFFECTS_VIEWPORT_PADDING))
-    const bottom = Math.min(window.innerHeight, Math.ceil(rect.bottom + EFFECTS_VIEWPORT_PADDING))
+    const right = Math.min(
+      window.innerWidth,
+      Math.ceil(rect.right + EFFECTS_VIEWPORT_PADDING),
+    )
+    const bottom = Math.min(
+      window.innerHeight,
+      Math.ceil(rect.bottom + EFFECTS_VIEWPORT_PADDING),
+    )
     const width = Math.max(1, right - left)
     const height = Math.max(1, bottom - top)
     const dpr = Math.min(window.devicePixelRatio || 1, MAX_CANVAS_DPR)
@@ -265,22 +332,25 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay({ a
     poolsRef.current.bursts.push(node)
   }, [])
 
-  const pruneBursts = useCallback((now = Date.now()) => {
-    const active = activeBurstsRef.current
-    if (!active.length) return
+  const pruneBursts = useCallback(
+    (now = Date.now()) => {
+      const active = activeBurstsRef.current
+      if (!active.length) return
 
-    let writeIndex = 0
-    for (let index = 0; index < active.length; index += 1) {
-      const burst = active[index]
-      if (burst.expiresAt > now && burst.node.isConnected) {
-        active[writeIndex] = burst
-        writeIndex += 1
-      } else {
-        releaseBurstNode(burst.node)
+      let writeIndex = 0
+      for (let index = 0; index < active.length; index += 1) {
+        const burst = active[index]
+        if (burst.expiresAt > now && burst.node.isConnected) {
+          active[writeIndex] = burst
+          writeIndex += 1
+        } else {
+          releaseBurstNode(burst.node)
+        }
       }
-    }
-    active.length = writeIndex
-  }, [releaseBurstNode])
+      active.length = writeIndex
+    },
+    [releaseBurstNode],
+  )
 
   const scheduleBurstCleanup = useCallback(() => {
     if (burstCleanupTimeoutRef.current) {
@@ -306,49 +376,57 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay({ a
       nextExpiresAt = Math.min(nextExpiresAt, active[index].expiresAt)
     }
 
-    burstCleanupTimeoutRef.current = window.setTimeout(() => {
-      pruneBursts()
-      scheduleBurstCleanupRef.current()
-    }, Math.max(16, nextExpiresAt - Date.now() + 24))
+    burstCleanupTimeoutRef.current = window.setTimeout(
+      () => {
+        pruneBursts()
+        scheduleBurstCleanupRef.current()
+      },
+      Math.max(16, nextExpiresAt - Date.now() + 24),
+    )
   }, [pruneBursts])
 
   useEffect(() => {
     scheduleBurstCleanupRef.current = scheduleBurstCleanup
   }, [scheduleBurstCleanup])
 
-  const spawnBurstNode = useCallback((burst, cap) => {
-    const layer = burstsLayerRef.current
-    if (!layer || cap <= 0) return
+  const spawnBurstNode = useCallback(
+    (burst, cap) => {
+      const layer = burstsLayerRef.current
+      if (!layer || cap <= 0) return
 
-    pruneBursts()
+      pruneBursts()
 
-    while (activeBurstsRef.current.length >= cap) {
-      const oldest = activeBurstsRef.current.shift()
-      releaseBurstNode(oldest?.node)
-    }
+      while (activeBurstsRef.current.length >= cap) {
+        const oldest = activeBurstsRef.current.shift()
+        releaseBurstNode(oldest?.node)
+      }
 
-    const node = poolsRef.current.bursts.pop() ?? document.createElement('span')
-    node.hidden = false
-    node.className = `click-burst click-burst--${burst.type || 'normal'}`
-    node.style.left = `${burst.x - sizeRef.current.left}px`
-    node.style.top = `${burst.y - sizeRef.current.top}px`
+      const node =
+        poolsRef.current.bursts.pop() ?? document.createElement('span')
+      node.hidden = false
+      node.className = `click-burst click-burst--${burst.type || 'normal'}`
+      node.style.left = `${burst.x - sizeRef.current.left}px`
+      node.style.top = `${burst.y - sizeRef.current.top}px`
 
-    if (burst.type === 'mega' || burst.type === 'emoji') {
-      const badge = document.createElement('span')
-      badge.className = 'click-burst__badge'
-      badge.textContent = burst.type === 'emoji' ? 'ЭМОДЗИ' : 'МЕГА'
-      node.appendChild(badge)
-    }
+      if (burst.type === 'mega' || burst.type === 'emoji') {
+        const badge = document.createElement('span')
+        badge.className = 'click-burst__badge'
+        badge.textContent = burst.type === 'emoji' ? 'ЭМОДЗИ' : 'МЕГА'
+        node.appendChild(badge)
+      }
 
-    const amount = document.createElement('span')
-    amount.className = 'click-burst__amount'
-    amount.textContent = String(burst.value).match(/\+\S+/)?.[0] ?? burst.value
-    node.appendChild(amount)
+      const amount = document.createElement('span')
+      amount.className = 'click-burst__amount'
+      amount.textContent =
+        String(burst.value).match(/\+\S+/)?.[0] ?? burst.value
+      node.appendChild(amount)
 
-    layer.appendChild(node)
-    activeBurstsRef.current.push({ node, expiresAt: burst.expiresAt })
-    scheduleBurstCleanup()
-  }, [pruneBursts, releaseBurstNode, scheduleBurstCleanup])
+      layer.appendChild(node)
+      activeBurstsRef.current.push({ node, expiresAt: burst.expiresAt })
+      scheduleBurstCleanup()
+    },
+    [pruneBursts, releaseBurstNode, scheduleBurstCleanup],
+  )
 
   useEffect(() => {
     if (!isVisible) return undefined
@@ -380,9 +458,21 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay({ a
       ctx.clearRect(left, top, width, height)
 
       const activeEffects = effectsRef.current
-      pruneExpiredInPlace(activeEffects.particles, now, poolsRef.current.particles)
-      pruneExpiredInPlace(activeEffects.coneSprites, now, poolsRef.current.coneSprites)
-      pruneExpiredInPlace(activeEffects.shockwaves, now, poolsRef.current.shockwaves)
+      pruneExpiredInPlace(
+        activeEffects.particles,
+        now,
+        poolsRef.current.particles,
+      )
+      pruneExpiredInPlace(
+        activeEffects.coneSprites,
+        now,
+        poolsRef.current.coneSprites,
+      )
+      pruneExpiredInPlace(
+        activeEffects.shockwaves,
+        now,
+        poolsRef.current.shockwaves,
+      )
       pruneBursts(now)
 
       for (const wave of activeEffects.shockwaves) {
@@ -404,40 +494,69 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay({ a
       }
 
       for (const particle of activeEffects.particles) {
-        const progress = clamp((now - particle.createdAt) / particle.lifetime, 0, 1)
-        const move = particle.isNormalConeDrop ? progress : easeOutCubic(progress)
+        const progress = clamp(
+          (now - particle.createdAt) / particle.lifetime,
+          0,
+          1,
+        )
+        const move = particle.isNormalConeDrop
+          ? progress
+          : easeOutCubic(progress)
         const alpha = particle.isNormalConeDrop
-          ? Math.max(0, 1 - (progress * 1.45))
+          ? Math.max(0, 1 - progress * 1.45)
           : particle.isEmojiExplosion
-          ? (progress < 0.1 ? progress / 0.1 : progress > 0.48 ? 1 - easeOutQuad((progress - 0.48) / 0.52) : 1)
-          : particle.isMega
-            ? (progress < 0.12 ? progress / 0.12 : progress > 0.52 ? 1 - easeOutQuad((progress - 0.52) / 0.48) : 1)
-            : progress < 0.12
-              ? progress / 0.12
-                : progress > 0.72
-                  ? 1 - ((progress - 0.72) / 0.28)
+            ? progress < 0.1
+              ? progress / 0.1
+              : progress > 0.48
+                ? 1 - easeOutQuad((progress - 0.48) / 0.52)
+                : 1
+            : particle.isMega
+              ? progress < 0.12
+                ? progress / 0.12
+                : progress > 0.52
+                  ? 1 - easeOutQuad((progress - 0.52) / 0.48)
                   : 1
-        const normalDrift = particle.isNormalConeDrop ? easeOutQuad(progress) : 0
-        const normalFall = particle.isNormalConeDrop ? (progress ** (particle.fallCurve ?? 1.65)) : 0
+              : progress < 0.12
+                ? progress / 0.12
+                : progress > 0.72
+                  ? 1 - (progress - 0.72) / 0.28
+                  : 1
+        const normalDrift = particle.isNormalConeDrop
+          ? easeOutQuad(progress)
+          : 0
+        const normalFall = particle.isNormalConeDrop
+          ? progress ** (particle.fallCurve ?? 1.65)
+          : 0
         const normalArc = particle.isNormalConeDrop
-          ? Math.sin(progress * Math.PI * (particle.arcBias ?? 1)) * (particle.arcHeight ?? 0)
+          ? Math.sin(progress * Math.PI * (particle.arcBias ?? 1)) *
+            (particle.arcHeight ?? 0)
           : 0
         const normalWobble = particle.isNormalConeDrop
-          ? Math.sin((progress * Math.PI * (particle.wobbleTurns ?? 1)) + (particle.wobblePhase ?? 0)) * (particle.wobble ?? 0)
+          ? Math.sin(
+              progress * Math.PI * (particle.wobbleTurns ?? 1) +
+                (particle.wobblePhase ?? 0),
+            ) * (particle.wobble ?? 0)
           : 0
         const x = particle.isNormalConeDrop
-          ? particle.x + (particle.dx * normalDrift) + normalWobble
+          ? particle.x + particle.dx * normalDrift + normalWobble
           : particle.x + particle.dx * move
         const y = particle.isNormalConeDrop
-          ? particle.y + (particle.dy * normalFall) - normalArc
+          ? particle.y + particle.dy * normalFall - normalArc
           : particle.y + particle.dy * move
         const rotation = particle.isNormalConeDrop
           ? (particle.rotate * easeOutQuad(progress) * Math.PI) / 180
           : (particle.rotate * move * Math.PI) / 180
         const scale = particle.isNormalConeDrop
           ? particle.scale * (1 - progress * 0.08)
-          : particle.scale * (particle.isEmojiExplosion ? 1 + 0.12 * (1 - progress) : 0.9 + 0.18 * (1 - progress))
-        const fontSize = particle.isEmojiExplosion ? 22 : particle.isMega ? 25 : 20
+          : particle.scale *
+            (particle.isEmojiExplosion
+              ? 1 + 0.12 * (1 - progress)
+              : 0.9 + 0.18 * (1 - progress))
+        const fontSize = particle.isEmojiExplosion
+          ? 22
+          : particle.isMega
+            ? 25
+            : 20
 
         ctx.save()
         ctx.translate(x, y)
@@ -445,13 +564,49 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay({ a
         ctx.scale(scale, scale)
         ctx.globalAlpha = clamp(alpha, 0, 1)
 
-        if (particle.symbol === '🌰' && imagesRef.current.altCone?.complete) {
+        if (
+          particle.symbol === 'shishka' &&
+          imagesRef.current.altCone?.complete
+        ) {
           ctx.drawImage(imagesRef.current.altCone, -10, -10, 20, 20)
+        } else if (particle.iconData) {
+          const targetSize = particle.isEmojiExplosion
+            ? 24
+            : particle.isMega
+              ? 22
+              : 20
+          const sprite = getPxlIconSprite(
+            textSpriteCacheRef.current,
+            particle.iconData,
+            targetSize,
+          )
+          ctx.drawImage(
+            sprite.canvas,
+            -sprite.size / 2,
+            -sprite.size / 2,
+            sprite.size,
+            sprite.size,
+          )
         } else {
-          const fillStyle = particle.isMega ? 'rgba(255,255,255,0.96)' : '#ffc85c'
-          const fontWeight = particle.isEmojiExplosion || particle.isMega ? 900 : 800
-          const sprite = getTextSprite(textSpriteCacheRef.current, particle.symbol, fontSize, fillStyle, fontWeight)
-          ctx.drawImage(sprite.canvas, -sprite.size / 2, -sprite.size / 2, sprite.size, sprite.size)
+          const fillStyle = particle.isMega
+            ? 'rgba(255,255,255,0.96)'
+            : '#ffc85c'
+          const fontWeight =
+            particle.isEmojiExplosion || particle.isMega ? 900 : 800
+          const sprite = getTextSprite(
+            textSpriteCacheRef.current,
+            particle.symbol,
+            fontSize,
+            fillStyle,
+            fontWeight,
+          )
+          ctx.drawImage(
+            sprite.canvas,
+            -sprite.size / 2,
+            -sprite.size / 2,
+            sprite.size,
+            sprite.size,
+          )
         }
 
         ctx.restore()
@@ -462,7 +617,11 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay({ a
         const move = easeOutCubic(progress)
         const x = sprite.x + sprite.dx * move
         const y = sprite.y + sprite.dy * move
-        const rotation = ((sprite.rotateStart + (sprite.rotateEnd - sprite.rotateStart) * move) * Math.PI) / 180
+        const rotation =
+          ((sprite.rotateStart +
+            (sprite.rotateEnd - sprite.rotateStart) * move) *
+            Math.PI) /
+          180
         const scale = sprite.scale * (1 - progress * 0.12)
         const alpha = progress < 0.12 ? progress / 0.12 : 1 - progress
         const baseSize = sprite.isMega ? 24 : 18
@@ -474,7 +633,13 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay({ a
         ctx.rotate(rotation)
         ctx.scale(scale, scale)
         ctx.globalAlpha = clamp(alpha, 0, 1)
-        ctx.drawImage(imagesRef.current.cone, -baseSize / 2, -baseSize / 2, baseSize, baseSize)
+        ctx.drawImage(
+          imagesRef.current.cone,
+          -baseSize / 2,
+          -baseSize / 2,
+          baseSize,
+          baseSize,
+        )
         ctx.restore()
       }
 
@@ -498,7 +663,8 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay({ a
 
     return () => {
       if (rafRef.current) window.cancelAnimationFrame(rafRef.current)
-      if (burstCleanupTimeoutRef.current) window.clearTimeout(burstCleanupTimeoutRef.current)
+      if (burstCleanupTimeoutRef.current)
+        window.clearTimeout(burstCleanupTimeoutRef.current)
       for (const burst of activeBursts) {
         releaseBurstNode(burst.node)
       }
@@ -519,68 +685,87 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay({ a
     }
   }, [isVisible, scheduleDraw])
 
-  useImperativeHandle(ref, () => ({
-    spawn({ result, pointerPoint, particlePoint, burstPoint, shockwavePoint }) {
-      const now = Date.now()
-      syncOverlayBounds()
-
-      const nextEffects = buildClickSpawnState({
+  useImperativeHandle(
+    ref,
+    () => ({
+      spawn({
         result,
         pointerPoint,
         particlePoint,
         burstPoint,
         shockwavePoint,
-        config: configRef.current,
-        now,
-        pools: poolsRef.current,
-      })
+      }) {
+        const now = Date.now()
+        syncOverlayBounds()
 
-      if (!visibilityRef.current) {
-        setIsVisible(true)
-      }
+        const nextEffects = buildClickSpawnState({
+          result,
+          pointerPoint,
+          particlePoint,
+          burstPoint,
+          shockwavePoint,
+          config: configRef.current,
+          now,
+          pools: poolsRef.current,
+        })
 
-      if (nextEffects.burst) {
-        spawnBurstNode(nextEffects.burst.entry, nextEffects.burst.cap)
-      }
+        if (!visibilityRef.current) {
+          setIsVisible(true)
+        }
 
-      if (nextEffects.particles.length) {
-        appendWithCapInPlace(
-          effectsRef.current.particles,
-          nextEffects.particles,
-          configRef.current.visualEffectCaps.particleCap,
-          poolsRef.current.particles,
-        )
-      }
+        if (nextEffects.burst) {
+          spawnBurstNode(nextEffects.burst.entry, nextEffects.burst.cap)
+        }
 
-      if (nextEffects.cones.length) {
-        appendWithCapInPlace(
-          effectsRef.current.coneSprites,
-          nextEffects.cones,
-          configRef.current.visualEffectCaps.coneCap,
-          poolsRef.current.coneSprites,
-        )
-      }
+        if (nextEffects.particles.length) {
+          appendWithCapInPlace(
+            effectsRef.current.particles,
+            nextEffects.particles,
+            configRef.current.visualEffectCaps.particleCap,
+            poolsRef.current.particles,
+          )
+        }
 
-      if (nextEffects.shockwaves.length) {
-        appendWithCapInPlace(effectsRef.current.shockwaves, nextEffects.shockwaves, 8, poolsRef.current.shockwaves)
-      }
+        if (nextEffects.cones.length) {
+          appendWithCapInPlace(
+            effectsRef.current.coneSprites,
+            nextEffects.cones,
+            configRef.current.visualEffectCaps.coneCap,
+            poolsRef.current.coneSprites,
+          )
+        }
 
-      const hasCanvasEffects =
-        effectsRef.current.particles.length > 0 ||
-        effectsRef.current.coneSprites.length > 0 ||
-        effectsRef.current.shockwaves.length > 0
+        if (nextEffects.shockwaves.length) {
+          appendWithCapInPlace(
+            effectsRef.current.shockwaves,
+            nextEffects.shockwaves,
+            8,
+            poolsRef.current.shockwaves,
+          )
+        }
 
-      if (hasCanvasEffects) {
-        scheduleDraw()
-      }
-    },
-  }), [scheduleDraw, spawnBurstNode, syncOverlayBounds])
+        const hasCanvasEffects =
+          effectsRef.current.particles.length > 0 ||
+          effectsRef.current.coneSprites.length > 0 ||
+          effectsRef.current.shockwaves.length > 0
+
+        if (hasCanvasEffects) {
+          scheduleDraw()
+        }
+      },
+    }),
+    [scheduleDraw, spawnBurstNode, syncOverlayBounds],
+  )
 
   if (!isVisible) return null
 
   return createPortal(
     <>
-      <canvas ref={canvasRef} className="clicker-particles clicker-effects-canvas" aria-hidden="true" />
+      <canvas
+        ref={canvasRef}
+        className="clicker-particles clicker-effects-canvas"
+        aria-hidden="true"
+      />
       <div ref={burstsLayerRef} className="bursts-layer" aria-hidden="true" />
     </>,
     document.body,
@@ -591,7 +776,9 @@ const ClickerEffectsOverlay = memo(ClickerEffectsOverlayInner)
 
 export const ClickerButton = observer(function ClickerButton() {
   const [visualState, setVisualState] = useState('idle')
-  const [clickerLabel, setClickerLabel] = useState(() => pickRandom(GREETING_LABELS))
+  const [clickerLabel, setClickerLabel] = useState(() =>
+    pickRandom(GREETING_LABELS),
+  )
   const [isLabelShaking, setIsLabelShaking] = useState(false)
   const [isAltHeroImage, setIsAltHeroImage] = useState(false)
 
@@ -604,38 +791,67 @@ export const ClickerButton = observer(function ClickerButton() {
   const buttonRef = useRef(null)
 
   const { clickerMetrics, mineShishki, markAutoClicker } = useGameStore()
-  const { visualEffectToggles } = useSettingsContext()
+  const { visualEffectToggles } = useSettingsVisuals()
   const { activeTab } = useNav()
-  const { play } = useSound(shishkaSound, { volume: 0.42, randomPitch: [-3.9, 5.8] })
+  const { play } = useSound(shishkaSound, {
+    volume: 0.42,
+    randomPitch: [-3.9, 5.8],
+  })
 
   const prevTabRef = useRef(activeTab)
 
   const metricItems = useMemo(
     () => [
       {
-        label: 'за клик',
-        value: <><span>+{clickerMetrics.clickPowerText}</span> <ConeIcon /></>,
+        label: 'Сила клика',
+        value: (
+          <>
+            <span>+{clickerMetrics.clickPowerText}</span> <ConeIcon />
+          </>
+        ),
       },
       {
-        label: 'мега-шанс',
-        value: clickerMetrics.megaClickChanceText,
+        label: 'Мега-клик',
+        value: (
+          <>
+            <PxlKitIcon
+              icon={Lightning}
+              size={16}
+              colorful
+              className="pixel-inline-icon"
+            />
+            <span>{clickerMetrics.megaClickChanceText}</span>
+          </>
+        ),
         streak: clickerMetrics.megaClickStreak,
       },
       {
-        label: 'эмодзи',
-        value: clickerMetrics.emojiMegaChanceText,
+        label: 'Эмодзи',
+        value: (
+          <>
+            <PxlKitIcon
+              icon={SparkleSmall}
+              size={16}
+              colorful
+              className="pixel-inline-icon"
+            />
+            <span>{clickerMetrics.emojiMegaChanceText}</span>
+          </>
+        ),
         streak: clickerMetrics.emojiBurstStreak,
       },
     ],
     [clickerMetrics],
   )
 
-  const isCharged = visualEffectToggles.clickAnimations && visualState !== 'idle'
+  const isCharged =
+    visualEffectToggles.clickAnimations && visualState !== 'idle'
   const heroImage = isAltHeroImage ? racoonAltImage : racoonDefaultImage
 
   useEffect(() => {
     return () => {
-      if (visualTimeoutRef.current) window.clearTimeout(visualTimeoutRef.current)
+      if (visualTimeoutRef.current)
+        window.clearTimeout(visualTimeoutRef.current)
       if (idleTimeoutRef.current) window.clearTimeout(idleTimeoutRef.current)
     }
   }, [])
@@ -658,7 +874,8 @@ export const ClickerButton = observer(function ClickerButton() {
     requestAnimationFrame(() => {
       setVisualState(nextState)
 
-      if (visualTimeoutRef.current) window.clearTimeout(visualTimeoutRef.current)
+      if (visualTimeoutRef.current)
+        window.clearTimeout(visualTimeoutRef.current)
       visualTimeoutRef.current = window.setTimeout(() => {
         setVisualState('idle')
       }, VISUAL_DURATIONS[nextState])
@@ -683,12 +900,15 @@ export const ClickerButton = observer(function ClickerButton() {
   function rotateClickerLabel() {
     const now = Date.now()
     tapTimestampsRef.current.push(now)
-    tapTimestampsRef.current = tapTimestampsRef.current.filter((timestamp) => now - timestamp <= TAP_SPEED_WINDOW)
+    tapTimestampsRef.current = tapTimestampsRef.current.filter(
+      (timestamp) => now - timestamp <= TAP_SPEED_WINDOW,
+    )
 
     scheduleIdleLabel()
 
     const elapsed = (now - tapTimestampsRef.current[0]) / 1000
-    const tps = elapsed > 0 ? (tapTimestampsRef.current.length - 1) / elapsed : 0
+    const tps =
+      elapsed > 0 ? (tapTimestampsRef.current.length - 1) / elapsed : 0
 
     setIsLabelShaking(tps >= 7)
 
@@ -730,7 +950,11 @@ export const ClickerButton = observer(function ClickerButton() {
     play()
 
     const result = mineShishki()
-    const nextVisualState = result.isEmojiExplosion ? 'prism' : result.isMega ? 'mega' : 'tap'
+    const nextVisualState = result.isEmojiExplosion
+      ? 'prism'
+      : result.isMega
+        ? 'mega'
+        : 'tap'
 
     if (visualEffectToggles.clickAnimations) {
       armVisualState(nextVisualState)
@@ -753,7 +977,11 @@ export const ClickerButton = observer(function ClickerButton() {
             key={item.label}
             className="clicker-wrap__metric clicker-wrap__metric--pixel"
           >
-            {item.streak > 0 && <span className="clicker-wrap__metric-streak pixel-badge">x{formatNumber(item.streak)}</span>}
+            {item.streak > 0 && (
+              <span className="clicker-wrap__metric-streak pixel-badge">
+                x{formatNumber(item.streak)}
+              </span>
+            )}
             <b>{item.value}</b>
             <small>{item.label}</small>
           </div>
@@ -770,15 +998,33 @@ export const ClickerButton = observer(function ClickerButton() {
         onKeyUp={blockKeyboardActivation}
         aria-label="Добыть шишки"
       >
-        <span className="clicker-btn__pixel-corner clicker-btn__pixel-corner--tl" aria-hidden="true" />
-        <span className="clicker-btn__pixel-corner clicker-btn__pixel-corner--tr" aria-hidden="true" />
-        <span className="clicker-btn__pixel-corner clicker-btn__pixel-corner--bl" aria-hidden="true" />
-        <span className="clicker-btn__pixel-corner clicker-btn__pixel-corner--br" aria-hidden="true" />
-        {visualEffectToggles.clickAnimations && <span className="clicker-btn__aura" />}
+        <span
+          className="clicker-btn__pixel-corner clicker-btn__pixel-corner--tl"
+          aria-hidden="true"
+        />
+        <span
+          className="clicker-btn__pixel-corner clicker-btn__pixel-corner--tr"
+          aria-hidden="true"
+        />
+        <span
+          className="clicker-btn__pixel-corner clicker-btn__pixel-corner--bl"
+          aria-hidden="true"
+        />
+        <span
+          className="clicker-btn__pixel-corner clicker-btn__pixel-corner--br"
+          aria-hidden="true"
+        />
+        {visualEffectToggles.clickAnimations && (
+          <span className="clicker-btn__aura" />
+        )}
 
         <div className="clicker-btn__core">
-          {visualEffectToggles.clickAnimations && <span className="clicker-btn__core-ring clicker-btn__core-ring--outer" />}
-          {visualEffectToggles.clickAnimations && <span className="clicker-btn__core-ring clicker-btn__core-ring--inner" />}
+          {visualEffectToggles.clickAnimations && (
+            <span className="clicker-btn__core-ring clicker-btn__core-ring--outer" />
+          )}
+          {visualEffectToggles.clickAnimations && (
+            <span className="clicker-btn__core-ring clicker-btn__core-ring--inner" />
+          )}
           <div className="clicker-btn__hero-shell">
             <img
               src={heroImage}
@@ -789,7 +1035,9 @@ export const ClickerButton = observer(function ClickerButton() {
           </div>
         </div>
 
-        <div className={`clicker-btn__content${isLabelShaking ? ' clicker-btn__content--shake' : ''}`}>
+        <div
+          className={`clicker-btn__content${isLabelShaking ? ' clicker-btn__content--shake' : ''}`}
+        >
           <span className="clicker-btn__label">{clickerLabel}</span>
         </div>
       </button>

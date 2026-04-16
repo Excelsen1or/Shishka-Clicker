@@ -1,7 +1,9 @@
 const formatter = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 })
-const fullFormatter = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 })
+const fullFormatter = new Intl.NumberFormat('ru-RU', {
+  maximumFractionDigits: 2,
+})
 
-const NUMBER_SUFFIXES = ["", "K", "M", "B", "T", "QD", "QN", "SX", "SP"]
+const NUMBER_SUFFIXES = ['', 'K', 'M', 'B', 'T', 'QD', 'QN', 'SX', 'SP']
 
 export function formatNumber(number) {
   if (number < 1000) return formatter.format(number)

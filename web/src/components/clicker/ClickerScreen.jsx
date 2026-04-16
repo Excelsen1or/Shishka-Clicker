@@ -1,6 +1,9 @@
 import { ClickerButton } from './ClickerButton'
-import { ProgressMetaPanel, ProgressOverview, ProgressStatsPanel } from './ProgressOverview'
-import { LeaderboardWidget } from './LeaderboardWidget.jsx'
+import {
+  ProgressMetaPanel,
+  ProgressOverview,
+  ProgressStatsPanel,
+} from './ProgressOverview'
 
 export function ClickerScreen() {
   return (
@@ -17,8 +20,6 @@ export function ClickerScreen() {
         <div className="clicker-layout__meta">
           <ProgressMetaPanel />
         </div>
-
-        <LeaderboardWidget />
       </div>
 
       <div className="clicker-below">

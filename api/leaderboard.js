@@ -14,7 +14,11 @@ function getGameState(saveData) {
   }
 
   const payloadGame = saveData.payload?.game
-  if (payloadGame && typeof payloadGame === 'object' && !Array.isArray(payloadGame)) {
+  if (
+    payloadGame &&
+    typeof payloadGame === 'object' &&
+    !Array.isArray(payloadGame)
+  ) {
     return payloadGame
   }
 
@@ -34,7 +38,10 @@ function formatPlayerName(row, index) {
     return normalizePlayerName(row.player_username, index)
   }
 
-  if (typeof row.player_id === 'string' && row.player_id.startsWith('discord:')) {
+  if (
+    typeof row.player_id === 'string' &&
+    row.player_id.startsWith('discord:')
+  ) {
     return `Discord ${row.player_id.slice('discord:'.length, 'discord:'.length + 6)}`
   }
 
@@ -51,8 +58,12 @@ function buildMetricSnapshot(gameState) {
   }
 
   return {
-    shishki: normalizeMetricValue(gameState.lifetimeShishkiEarned ?? gameState.totalShishkiEarned),
-    shards: normalizeMetricValue(gameState.totalPrestigeShardsEarned ?? gameState.prestigeShards),
+    shishki: normalizeMetricValue(
+      gameState.lifetimeShishkiEarned ?? gameState.totalShishkiEarned,
+    ),
+    shards: normalizeMetricValue(
+      gameState.totalPrestigeShardsEarned ?? gameState.prestigeShards,
+    ),
     clicks: normalizeMetricValue(gameState.manualClicks),
   }
 }
@@ -65,7 +76,10 @@ function sortLeaderboardRows(rows, metricKey) {
         return b[metricKey] - a[metricKey]
       }
 
-      return (Date.parse(b.updatedAt ?? '') || 0) - (Date.parse(a.updatedAt ?? '') || 0)
+      return (
+        (Date.parse(b.updatedAt ?? '') || 0) -
+        (Date.parse(a.updatedAt ?? '') || 0)
+      )
     })
     .slice(0, TOP_LIMIT)
 }

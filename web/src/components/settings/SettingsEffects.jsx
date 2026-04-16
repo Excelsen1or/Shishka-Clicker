@@ -1,33 +1,83 @@
+import { memo, useMemo } from 'react'
 import { Lightning, PxlKitIcon } from '../../lib/pxlkit'
 import { RangeRow } from './RangeRow.jsx'
 import { ToggleRow } from './ToggleRow.jsx'
 
 const EFFECT_TOGGLES = [
-  { key: 'showAmbientEffects', label: 'Фоновое свечение', hint: 'Плавающие цветные пятна на фоне приложения.' },
-  { key: 'showNoiseOverlay', label: 'Шумовая текстура', hint: 'Лёгкая зернистость поверх фона.' },
-  { key: 'showRevealAnimations', label: 'Появление карточек', hint: 'Анимации входа у панелей, карточек и экранов.' },
-  { key: 'showClickAnimations', label: 'Анимация кликера', hint: 'Пульсации, вращение колец и отклик главной кнопки.' },
-  { key: 'showParticles', label: 'Частицы', hint: 'Эмодзи и искры после клика.' },
-  { key: 'showFloatingNumbers', label: 'Всплывающие числа', hint: 'Текст с прибавкой ресурса над кликом.' },
-  { key: 'showConeSprites', label: 'Спрайты шишек', hint: 'Дополнительные вылетающие изображения шишек.' },
-  { key: 'showShockwaves', label: 'Ударные волны', hint: 'Кольца и вспышки при мощных кликах.' },
-  { key: 'showAchievementToasts', label: 'Тосты достижений', hint: 'Всплывающее окно при открытии достижения.' },
+  {
+    key: 'showAmbientEffects',
+    label: 'Фоновое свечение',
+    hint: 'Плавающие цветные пятна на фоне приложения.',
+  },
+  {
+    key: 'showNoiseOverlay',
+    label: 'Шумовая текстура',
+    hint: 'Лёгкая зернистость поверх фона.',
+  },
+  {
+    key: 'showRevealAnimations',
+    label: 'Появление карточек',
+    hint: 'Анимации входа у панелей, карточек и экранов.',
+  },
+  {
+    key: 'showClickAnimations',
+    label: 'Анимация кликера',
+    hint: 'Пульсации, вращение колец и отклик главной кнопки.',
+  },
+  {
+    key: 'showParticles',
+    label: 'Частицы',
+    hint: 'Эмодзи и искры после клика.',
+  },
+  {
+    key: 'showFloatingNumbers',
+    label: 'Всплывающие числа',
+    hint: 'Текст с прибавкой ресурса над кликом.',
+  },
+  {
+    key: 'showConeSprites',
+    label: 'Спрайты шишек',
+    hint: 'Дополнительные вылетающие изображения шишек.',
+  },
+  {
+    key: 'showShockwaves',
+    label: 'Ударные волны',
+    hint: 'Кольца и вспышки при мощных кликах.',
+  },
+  {
+    key: 'showAchievementToasts',
+    label: 'Тосты достижений',
+    hint: 'Всплывающее окно при открытии достижения.',
+  },
 ]
 
-export const SettingsEffects = ({
+export const SettingsEffects = memo(function SettingsEffects({
   settings,
   setVolume,
   visualEffectCaps,
   toggle,
-}) => {
-  const enabledCount = EFFECT_TOGGLES.filter(({ key }) => settings[key]).length
+}) {
+  const enabledCount = useMemo(
+    () =>
+      EFFECT_TOGGLES.reduce(
+        (count, { key }) => count + (settings[key] ? 1 : 0),
+        0,
+      ),
+    [settings],
+  )
 
   return (
     <article className="settings-card">
       <div className="settings-card__head">
         <h3 className="settings-card__title">Визуальные эффекты</h3>
         <span className="settings-chip">
-          <PxlKitIcon icon={Lightning} size={16} colorful className="pixel-inline-icon" /> {enabledCount}/{EFFECT_TOGGLES.length} вкл.
+          <PxlKitIcon
+            icon={Lightning}
+            size={16}
+            colorful
+            className="pixel-inline-icon"
+          />{' '}
+          {enabledCount}/{EFFECT_TOGGLES.length} вкл.
         </span>
       </div>
 
@@ -63,7 +113,7 @@ export const SettingsEffects = ({
         </div>
       </div>
 
-      <div className="settings-stack">
+      <div className="settings-stack settings-stack--toggles">
         {EFFECT_TOGGLES.map((item) => (
           <ToggleRow
             key={item.key}
@@ -76,4 +126,4 @@ export const SettingsEffects = ({
       </div>
     </article>
   )
-}
+})

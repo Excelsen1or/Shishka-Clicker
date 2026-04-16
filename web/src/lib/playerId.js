@@ -20,5 +20,7 @@ function getOrCreatePlayerId() {
 }
 
 export function resolvePlayerId(discordUserId) {
-  return discordUserId ? buildDiscordPlayerId(discordUserId) : getOrCreatePlayerId()
+  return discordUserId
+    ? buildDiscordPlayerId(discordUserId)
+    : getOrCreatePlayerId()
 }

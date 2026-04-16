@@ -88,9 +88,13 @@ export const ScreenFallback = ({
   }, [target])
 
   return (
-    <section className={`screen settings-screen ${mode === 'boot' ? 'screen--boot-loading' : ''}`.trim()}>
+    <section
+      className={`screen settings-screen ${mode === 'boot' ? 'screen--boot-loading' : ''}`.trim()}
+    >
       <div className={`${mode === 'boot' ? 'boot-loading-shell' : ''}`.trim()}>
-        <div className={`screen__header ${mode === 'boot' ? 'screen__header--boot' : ''}`.trim()}>
+        <div
+          className={`screen__header ${mode === 'boot' ? 'screen__header--boot' : ''}`.trim()}
+        >
           <span className="screen__kicker">{copy.kicker}</span>
           <h2 className="screen__title">{copy.title}</h2>
           <p className="screen__desc">{copy.desc}</p>
@@ -103,18 +107,26 @@ export const ScreenFallback = ({
           </div>
 
           <div className="unlock-progress">
-            <div className="unlock-progress__row">
-            </div>
+            <div className="unlock-progress__row"></div>
             <div className="unlock-progress__track">
-              <div className="unlock-progress__fill unlock-progress__fill--alt" style={{ width: `${progress}%` }} />
+              <div
+                className="unlock-progress__fill unlock-progress__fill--alt"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
 
           {steps.length ? (
             <div className="boot-loading-steps">
               {steps.map((step) => (
-                <div key={step.id} className={`boot-loading-step boot-loading-step--${step.state}`.trim()}>
-                  <div className="boot-loading-step__marker" aria-hidden="true" />
+                <div
+                  key={step.id}
+                  className={`boot-loading-step boot-loading-step--${step.state}`.trim()}
+                >
+                  <div
+                    className="boot-loading-step__marker"
+                    aria-hidden="true"
+                  />
                   <div className="boot-loading-step__body">
                     <div className="boot-loading-step__head">
                       <strong>{step.label}</strong>
@@ -130,11 +142,16 @@ export const ScreenFallback = ({
 
         {allowOffline ? (
           <div className="boot-loading-actions">
-            <button type="button" className="settings-ghost-btn" onClick={onSkipSync}>
+            <button
+              type="button"
+              className="settings-ghost-btn"
+              onClick={onSkipSync}
+            >
               Пропустить синхронизацию
             </button>
             <p className="boot-loading-actions__hint">
-              Пропуск нужен только для отладки и разработки. Онлайн не будет работать, если её пропустить.
+              Пропуск нужен только для отладки и разработки. Онлайн не будет
+              работать, если её пропустить.
             </p>
           </div>
         ) : null}

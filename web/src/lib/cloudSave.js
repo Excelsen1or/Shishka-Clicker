@@ -1,8 +1,15 @@
 const CLOUD_SAVE_TIMEOUT_MS = 12000
 
-async function fetchWithTimeout(url, options = {}, timeoutMs = CLOUD_SAVE_TIMEOUT_MS) {
+async function fetchWithTimeout(
+  url,
+  options = {},
+  timeoutMs = CLOUD_SAVE_TIMEOUT_MS,
+) {
   const controller = new AbortController()
-  const timeoutId = window.setTimeout(() => controller.abort('timeout'), timeoutMs)
+  const timeoutId = window.setTimeout(
+    () => controller.abort('timeout'),
+    timeoutMs,
+  )
 
   try {
     return await fetch(url, {
@@ -37,7 +44,12 @@ export async function initializeCloudSession() {
   return response.json()
 }
 
-export async function uploadCloudSave({ appVersion, save, expectedVersion = null, force = false }) {
+export async function uploadCloudSave({
+  appVersion,
+  save,
+  expectedVersion = null,
+  force = false,
+}) {
   const response = await fetchWithTimeout('/api/save', {
     method: 'POST',
     headers: {

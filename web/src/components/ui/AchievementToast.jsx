@@ -2,14 +2,17 @@ import { memo, useEffect, useRef, useState } from 'react'
 import { PxlKitIcon, Trophy, Community } from '../../lib/pxlkit'
 import { observer } from 'mobx-react-lite'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
-import { useSettingsContext } from '../../context/SettingsContext'
+import { useSettingsVisuals } from '../../context/SettingsContext'
 import { useSound } from '../../hooks/useSound'
 import achievementSound from '../../assets/audio/ui/achiv.mp3'
 
 const DISPLAY_DURATION = 3400
 const EXIT_DURATION = 500
 
-const ActiveAchievementToast = memo(function ActiveAchievementToast({ current, dismissAchievement }) {
+const ActiveAchievementToast = memo(function ActiveAchievementToast({
+  current,
+  dismissAchievement,
+}) {
   const [leaving, setLeaving] = useState(false)
   const { play } = useSound(achievementSound, { volume: 0.65 })
   const replayRef = useRef(false)
@@ -54,10 +57,21 @@ const ActiveAchievementToast = memo(function ActiveAchievementToast({ current, d
   }, [dismissAchievement, play])
 
   return (
-    <div className={`achievement-toast ${current.secret ? 'achievement-toast--secret' : ''} ${leaving ? 'achievement-toast--leaving' : ''}`} role="status" aria-live="polite">
-      <div className="achievement-toast__steam">{current.secret ? 'SECRET ACHIEVEMENT' : 'ACHIEVEMENT UNLOCKED'}</div>
+    <div
+      className={`achievement-toast ${current.secret ? 'achievement-toast--secret' : ''} ${leaving ? 'achievement-toast--leaving' : ''}`}
+      role="status"
+      aria-live="polite"
+    >
+      <div className="achievement-toast__steam">
+        {current.secret ? 'SECRET ACHIEVEMENT' : 'ACHIEVEMENT UNLOCKED'}
+      </div>
       <div className="achievement-toast__icon">
-        <PxlKitIcon icon={current.secret ? Community : Trophy} size={28} colorful className="pixel-inline-icon" />
+        <PxlKitIcon
+          icon={current.secret ? Community : Trophy}
+          size={28}
+          colorful
+          className="pixel-inline-icon"
+        />
       </div>
       <div className="achievement-toast__body">
         <div className="achievement-toast__label">
@@ -72,7 +86,7 @@ const ActiveAchievementToast = memo(function ActiveAchievementToast({ current, d
 
 export const AchievementToast = observer(function AchievementToast() {
   const { achievementQueue, dismissAchievement } = useGameStore()
-  const { visualEffectToggles } = useSettingsContext()
+  const { visualEffectToggles } = useSettingsVisuals()
   const current = achievementQueue[0]
 
   useEffect(() => {
@@ -84,5 +98,11 @@ export const AchievementToast = observer(function AchievementToast() {
   if (!current) return null
   if (!visualEffectToggles.achievementToasts) return null
 
-  return <ActiveAchievementToast key={current.id} current={current} dismissAchievement={dismissAchievement} />
+  return (
+    <ActiveAchievementToast
+      key={current.id}
+      current={current}
+      dismissAchievement={dismissAchievement}
+    />
+  )
 })

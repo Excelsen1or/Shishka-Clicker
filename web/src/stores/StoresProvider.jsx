@@ -18,8 +18,6 @@ export function useWebsocketStore() {
 
 export const StoresProvider = ({ children }) => {
   return (
-    <StoresContext.Provider value={stores}>
-      {children}
-    </StoresContext.Provider>
+    <StoresContext.Provider value={stores}>{children}</StoresContext.Provider>
   )
 }

@@ -1,4 +1,11 @@
-import { memo, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  memo,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { AchievementCard } from './AchievementCard.jsx'
 
 const ACHIEVEMENT_FILTER_KEY = 'shishka-clicker-achievements-filter-v1'
@@ -55,7 +62,7 @@ const AchievementCategorySection = memo(function AchievementCategorySection({
         setHasRendered(true)
         observer.disconnect()
       },
-      { rootMargin: '320px 0px' }
+      { rootMargin: '320px 0px' },
     )
 
     observer.observe(node)
@@ -66,7 +73,11 @@ const AchievementCategorySection = memo(function AchievementCategorySection({
     <article
       ref={containerRef}
       className="achievement-category achievement-category--virtualized"
-      style={{ '--achievement-placeholder-rows': estimatePlaceholderRows(group.items.length) }}
+      style={{
+        '--achievement-placeholder-rows': estimatePlaceholderRows(
+          group.items.length,
+        ),
+      }}
     >
       <button
         type="button"
@@ -97,8 +108,13 @@ const AchievementCategorySection = memo(function AchievementCategorySection({
           ))}
         </div>
       ) : (
-        <div className="achievement-grid achievement-grid--deferred" aria-hidden="true">
-          <div className="achievement-grid__placeholder">Секция будет отрисована при прокрутке.</div>
+        <div
+          className="achievement-grid achievement-grid--deferred"
+          aria-hidden="true"
+        >
+          <div className="achievement-grid__placeholder">
+            Секция будет отрисована при прокрутке.
+          </div>
         </div>
       )}
     </article>
@@ -122,7 +138,9 @@ export const AchievementsGrid = ({ grouped }) => {
   const visibleGroups = useMemo(() => {
     return deferredGrouped
       .map((group) => {
-        const items = group.items.filter((item) => isVisibleByFilter(item, filter))
+        const items = group.items.filter((item) =>
+          isVisibleByFilter(item, filter),
+        )
 
         if (items.length === 0) {
           return null
@@ -148,7 +166,7 @@ export const AchievementsGrid = ({ grouped }) => {
 
   const totalVisibleItems = useMemo(
     () => visibleGroups.reduce((sum, group) => sum + group.visibleTotal, 0),
-    [visibleGroups]
+    [visibleGroups],
   )
 
   const toggleCategory = (category) => {
@@ -171,7 +189,11 @@ export const AchievementsGrid = ({ grouped }) => {
   return (
     <div className="achievement-category-grid">
       <div className="achievement-toolbar">
-        <div className="achievement-toolbar__filters" role="tablist" aria-label="Фильтр достижений">
+        <div
+          className="achievement-toolbar__filters"
+          role="tablist"
+          aria-label="Фильтр достижений"
+        >
           {FILTERS.map((item) => (
             <button
               key={item.id}
@@ -191,7 +213,9 @@ export const AchievementsGrid = ({ grouped }) => {
       </div>
 
       {visibleGroups.length === 0 ? (
-        <div className="achievement-empty">По текущему фильтру ничего не найдено.</div>
+        <div className="achievement-empty">
+          По текущему фильтру ничего не найдено.
+        </div>
       ) : (
         visibleGroups.map((group, index) => (
           <AchievementCategorySection

@@ -8,10 +8,15 @@ function normalizeStoredGame(rawValue) {
     }
   }
 
-  if ('state' in rawValue && rawValue.state && typeof rawValue.state === 'object') {
+  if (
+    'state' in rawValue &&
+    rawValue.state &&
+    typeof rawValue.state === 'object'
+  ) {
     return {
       state: rawValue.state,
-      updatedAt: typeof rawValue.updatedAt === 'string' ? rawValue.updatedAt : null,
+      updatedAt:
+        typeof rawValue.updatedAt === 'string' ? rawValue.updatedAt : null,
     }
   }
 

@@ -7,7 +7,9 @@
   color-scheme: dark;
 
   /* ── Typography ─────────────────────────── */
-  --font-body: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body:
+    'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
   --font-display: 'Unbounded', 'Inter', system-ui, sans-serif;
   --font-mono: 'Space Mono', 'SFMono-Regular', ui-monospace, monospace;
 

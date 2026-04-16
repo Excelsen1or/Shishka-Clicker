@@ -1,4 +1,8 @@
-import { getPrestigeBonuses, getRebirthQuota, getShardPreview } from './metaConfig'
+import {
+  getPrestigeBonuses,
+  getRebirthQuota,
+  getShardPreview,
+} from './metaConfig'
 
 export const BALANCE = {
   start: {
@@ -85,17 +89,55 @@ export const BALANCE = {
       powerMultiplier: 4,
       emojiChance: 0.16,
       emojiChancePerMeme: 0.035,
-      pool: ['🤡', '🌸', '🤖', '👾', '💥', '🛸', '🎉', '🦄', '🪩', '⚡', '🔥', '🌟', '🌈', '💫', '✨', '💎', '🍄', '🐿️', '🧠', '🎊', '🎆', '🫧', '🍀', '🌻', '🍓', '🦊', '🐸', '🛹', '🎮', '💜', '💚', '🧨', '🥳', '🦖', '🐣', '🌙'],
+      pool: [
+        '🤡',
+        '🌸',
+        '🤖',
+        '👾',
+        '💥',
+        '🛸',
+        '🎉',
+        '🦄',
+        '🪩',
+        '⚡',
+        '🔥',
+        '🌟',
+        '🌈',
+        '💫',
+        '✨',
+        '💎',
+        '🍄',
+        '🐿️',
+        '🧠',
+        '🎊',
+        '🎆',
+        '🫧',
+        '🍀',
+        '🌻',
+        '🍓',
+        '🦊',
+        '🐸',
+        '🛹',
+        '🎮',
+        '💜',
+        '💚',
+        '🧨',
+        '🥳',
+        '🦖',
+        '🐣',
+        '🌙',
+      ],
     },
   },
-    prestige: {
-      unlock: {
-        shishki: 65000,
-        knowledge: 1800,
-        achievements: 24,
-      },
+  prestige: {
+    unlock: {
+      shishki: 65000,
+      knowledge: 1800,
+      achievements: 24,
+    },
     rebirth: {
-      explanation: 'После открытия престижа каждая новая жизнь требует закрыть отдельную квоту текущего цикла.',
+      explanation:
+        'После открытия престижа каждая новая жизнь требует закрыть отдельную квоту текущего цикла.',
     },
   },
   softcaps: {
@@ -109,7 +151,8 @@ export const BALANCE = {
     gigachat: {
       id: 'gigachat',
       title: 'ГигаЧат «Братишка, выручи»',
-      description: 'Бюджетный ИИ формата «и из-за этой хуйни дорожает оперативка?» работает, слава богу и ладно.',
+      description:
+        'Бюджетный ИИ формата «и из-за этой хуйни дорожает оперативка?» работает, слава богу и ладно.',
       baseCost: 50,
       costScale: 1.78,
       tier: 1,
@@ -117,14 +160,25 @@ export const BALANCE = {
       unlock: { shishki: 0, knowledge: 0 },
       aiPowerWeight: 1.1,
       effects: [
-        { stat: 'shishkiPerSecond', firstGain: 0.95, decay: 0.962, aiScaled: true },
-        { stat: 'knowledgePerSecond', firstGain: 0.08, decay: 0.976, aiScaled: true },
+        {
+          stat: 'shishkiPerSecond',
+          firstGain: 0.95,
+          decay: 0.962,
+          aiScaled: true,
+        },
+        {
+          stat: 'knowledgePerSecond',
+          firstGain: 0.08,
+          decay: 0.976,
+          aiScaled: true,
+        },
       ],
     },
     yandex_alisa: {
       id: 'yandex_alisa',
       title: 'Алиса, включи режим взрослого',
-      description: 'Универсал с вайбом «такси уже подъехало»: и по делу, и с характером, и в целом без сюрпризов.',
+      description:
+        'Универсал с вайбом «такси уже подъехало»: и по делу, и с характером, и в целом без сюрпризов.',
       baseCost: 150,
       costScale: 1.76,
       tier: 2,
@@ -132,15 +186,31 @@ export const BALANCE = {
       unlock: { shishki: 180, knowledge: 12 },
       aiPowerWeight: 2,
       effects: [
-        { stat: 'shishkiPerSecond', firstGain: 1.75, decay: 0.956, aiScaled: true },
-        { stat: 'moneyPerSecond', firstGain: 0.22, decay: 0.968, aiScaled: true },
-        { stat: 'knowledgePerSecond', firstGain: 0.14, decay: 0.972, aiScaled: true },
+        {
+          stat: 'shishkiPerSecond',
+          firstGain: 1.75,
+          decay: 0.956,
+          aiScaled: true,
+        },
+        {
+          stat: 'moneyPerSecond',
+          firstGain: 0.22,
+          decay: 0.968,
+          aiScaled: true,
+        },
+        {
+          stat: 'knowledgePerSecond',
+          firstGain: 0.14,
+          decay: 0.972,
+          aiScaled: true,
+        },
       ],
     },
     gpt: {
       id: 'gpt',
       title: 'Чат ГПТ помоги',
-      description: 'Режим «открыл чат, а закрыл с дипломом»: стабильно генерит пользу и лёгкую экзистенцию.',
+      description:
+        'Режим «открыл чат, а закрыл с дипломом»: стабильно генерит пользу и лёгкую экзистенцию.',
       baseCost: 380,
       costScale: 1.79,
       tier: 3,
@@ -148,15 +218,31 @@ export const BALANCE = {
       unlock: { shishki: 560, knowledge: 55 },
       aiPowerWeight: 3.2,
       effects: [
-        { stat: 'shishkiPerSecond', firstGain: 3.2, decay: 0.95, aiScaled: true },
-        { stat: 'moneyPerSecond', firstGain: 0.38, decay: 0.965, aiScaled: true },
-        { stat: 'knowledgePerSecond', firstGain: 0.34, decay: 0.96, aiScaled: true },
+        {
+          stat: 'shishkiPerSecond',
+          firstGain: 3.2,
+          decay: 0.95,
+          aiScaled: true,
+        },
+        {
+          stat: 'moneyPerSecond',
+          firstGain: 0.38,
+          decay: 0.965,
+          aiScaled: true,
+        },
+        {
+          stat: 'knowledgePerSecond',
+          firstGain: 0.34,
+          decay: 0.96,
+          aiScaled: true,
+        },
       ],
     },
     claude: {
       id: 'claude',
       title: 'Клод «Я вас услышал»',
-      description: 'Включает эстетику «вежливо, дорого, непонятно, но прибыльно». Тихо качает кэш и мозги.',
+      description:
+        'Включает эстетику «вежливо, дорого, непонятно, но прибыльно». Тихо качает кэш и мозги.',
       baseCost: 900,
       costScale: 1.84,
       tier: 4,
@@ -164,15 +250,31 @@ export const BALANCE = {
       unlock: { shishki: 1500, knowledge: 160 },
       aiPowerWeight: 4.6,
       effects: [
-        { stat: 'shishkiPerSecond', firstGain: 3.8, decay: 0.946, aiScaled: true },
-        { stat: 'moneyPerSecond', firstGain: 0.72, decay: 0.958, aiScaled: true },
-        { stat: 'knowledgePerSecond', firstGain: 0.82, decay: 0.954, aiScaled: true },
+        {
+          stat: 'shishkiPerSecond',
+          firstGain: 3.8,
+          decay: 0.946,
+          aiScaled: true,
+        },
+        {
+          stat: 'moneyPerSecond',
+          firstGain: 0.72,
+          decay: 0.958,
+          aiScaled: true,
+        },
+        {
+          stat: 'knowledgePerSecond',
+          firstGain: 0.82,
+          decay: 0.954,
+          aiScaled: true,
+        },
       ],
     },
     perplexity: {
       id: 'perplexity',
       title: 'Perplexity «А пруф?»',
-      description: 'Исследовательский режим «а пруфы будут?»: знания летят вверх быстрее, чем цены на оперативку.',
+      description:
+        'Исследовательский режим «а пруфы будут?»: знания летят вверх быстрее, чем цены на оперативку.',
       baseCost: 1650,
       costScale: 1.88,
       tier: 5,
@@ -180,14 +282,25 @@ export const BALANCE = {
       unlock: { shishki: 3200, knowledge: 360 },
       aiPowerWeight: 5.8,
       effects: [
-        { stat: 'knowledgePerSecond', firstGain: 1.4, decay: 0.95, aiScaled: true },
-        { stat: 'moneyPerSecond', firstGain: 1.05, decay: 0.954, aiScaled: true },
+        {
+          stat: 'knowledgePerSecond',
+          firstGain: 1.4,
+          decay: 0.95,
+          aiScaled: true,
+        },
+        {
+          stat: 'moneyPerSecond',
+          firstGain: 1.05,
+          decay: 0.954,
+          aiScaled: true,
+        },
       ],
     },
     copilot: {
       id: 'copilot',
       title: 'Копилот «Ща накодим»',
-      description: 'Превращает хаос в релиз: как будто дедлайн завтра, а ты внезапно всё успеваешь.',
+      description:
+        'Превращает хаос в релиз: как будто дедлайн завтра, а ты внезапно всё успеваешь.',
       baseCost: 3100,
       costScale: 1.91,
       tier: 6,
@@ -195,15 +308,31 @@ export const BALANCE = {
       unlock: { shishki: 6200, knowledge: 700 },
       aiPowerWeight: 7.2,
       effects: [
-        { stat: 'shishkiPerSecond', firstGain: 6.7, decay: 0.946, aiScaled: true },
-        { stat: 'moneyPerSecond', firstGain: 1.35, decay: 0.952, aiScaled: true },
-        { stat: 'knowledgePerSecond', firstGain: 0.5, decay: 0.958, aiScaled: true },
+        {
+          stat: 'shishkiPerSecond',
+          firstGain: 6.7,
+          decay: 0.946,
+          aiScaled: true,
+        },
+        {
+          stat: 'moneyPerSecond',
+          firstGain: 1.35,
+          decay: 0.952,
+          aiScaled: true,
+        },
+        {
+          stat: 'knowledgePerSecond',
+          firstGain: 0.5,
+          decay: 0.958,
+          aiScaled: true,
+        },
       ],
     },
     gemini: {
       id: 'gemini',
       title: 'Gemini «И умный и красивый»',
-      description: 'Гибрид - и умный, и при деньгах. Тот самый случай, когда и cashback есть, и саморазвитие присутствует.',
+      description:
+        'Гибрид - и умный, и при деньгах. Тот самый случай, когда и cashback есть, и саморазвитие присутствует.',
       baseCost: 5200,
       costScale: 1.95,
       tier: 7,
@@ -211,15 +340,26 @@ export const BALANCE = {
       unlock: { shishki: 10500, knowledge: 1200 },
       aiPowerWeight: 8.8,
       effects: [
-        { stat: 'shishkiPerSecond', firstGain: 4.8, decay: 0.948, aiScaled: true },
+        {
+          stat: 'shishkiPerSecond',
+          firstGain: 4.8,
+          decay: 0.948,
+          aiScaled: true,
+        },
         { stat: 'moneyPerSecond', firstGain: 2.0, decay: 0.95, aiScaled: true },
-        { stat: 'knowledgePerSecond', firstGain: 1.25, decay: 0.952, aiScaled: true },
+        {
+          stat: 'knowledgePerSecond',
+          firstGain: 1.25,
+          decay: 0.952,
+          aiScaled: true,
+        },
       ],
     },
     deepseek: {
       id: 'deepseek',
       title: 'DeepSeek «Ипотека Edition»',
-      description: 'Премиум-режим «ипотека на нейросеть»: дорого, пафосно, зато ощущается каждый вложенный рубль.',
+      description:
+        'Премиум-режим «ипотека на нейросеть»: дорого, пафосно, зато ощущается каждый вложенный рубль.',
       baseCost: 8200,
       costScale: 1.99,
       tier: 8,
@@ -227,15 +367,31 @@ export const BALANCE = {
       unlock: { shishki: 16500, knowledge: 1900 },
       aiPowerWeight: 10.8,
       effects: [
-        { stat: 'shishkiPerSecond', firstGain: 10.4, decay: 0.944, aiScaled: true },
-        { stat: 'knowledgePerSecond', firstGain: 1.8, decay: 0.95, aiScaled: true },
-        { stat: 'moneyPerSecond', firstGain: 2.45, decay: 0.95, aiScaled: true },
+        {
+          stat: 'shishkiPerSecond',
+          firstGain: 10.4,
+          decay: 0.944,
+          aiScaled: true,
+        },
+        {
+          stat: 'knowledgePerSecond',
+          firstGain: 1.8,
+          decay: 0.95,
+          aiScaled: true,
+        },
+        {
+          stat: 'moneyPerSecond',
+          firstGain: 2.45,
+          decay: 0.95,
+          aiScaled: true,
+        },
       ],
     },
     mistral: {
       id: 'mistral',
       title: 'Mistral «Финальный вайб»',
-      description: 'Финальный босс оптимизации: после него сборка звучит как «я просто случайно всё просчитал».',
+      description:
+        'Финальный босс оптимизации: после него сборка звучит как «я просто случайно всё просчитал».',
       baseCost: 12800,
       costScale: 2.03,
       tier: 9,
@@ -243,9 +399,24 @@ export const BALANCE = {
       unlock: { shishki: 26000, knowledge: 3000 },
       aiPowerWeight: 13,
       effects: [
-        { stat: 'shishkiPerSecond', firstGain: 12.2, decay: 0.944, aiScaled: true },
-        { stat: 'knowledgePerSecond', firstGain: 2.6, decay: 0.948, aiScaled: true },
-        { stat: 'moneyPerSecond', firstGain: 3.1, decay: 0.948, aiScaled: true },
+        {
+          stat: 'shishkiPerSecond',
+          firstGain: 12.2,
+          decay: 0.944,
+          aiScaled: true,
+        },
+        {
+          stat: 'knowledgePerSecond',
+          firstGain: 2.6,
+          decay: 0.948,
+          aiScaled: true,
+        },
+        {
+          stat: 'moneyPerSecond',
+          firstGain: 3.1,
+          decay: 0.948,
+          aiScaled: true,
+        },
       ],
     },
   },
@@ -253,7 +424,8 @@ export const BALANCE = {
     textbooks: {
       id: 'textbooks',
       title: 'Методичка 2007 без ответов',
-      description: 'Классика жанра: купил методичку, открыл на странице 3 и уже чувствуешь себя отличником.',
+      description:
+        'Классика жанра: купил методичку, открыл на странице 3 и уже чувствуешь себя отличником.',
       currency: 'money',
       baseCost: 35,
       costScale: 1.76,
@@ -268,7 +440,8 @@ export const BALANCE = {
     coffee: {
       id: 'coffee',
       title: 'Кофе 3-в-1 и паника',
-      description: 'Комбо «эспрессо плюс паника»: пальцы кликают быстрее, а продуктивность выглядит убедительно.',
+      description:
+        'Комбо «эспрессо плюс паника»: пальцы кликают быстрее, а продуктивность выглядит убедительно.',
       currency: 'money',
       baseCost: 70,
       costScale: 1.58,
@@ -283,7 +456,8 @@ export const BALANCE = {
     internship: {
       id: 'internship',
       title: 'Склад OZON 12ч',
-      description: 'Первый серьёзный кэшфлоу: смена прошла, ноги болят, зато бюджет на апгрейды появился.',
+      description:
+        'Первый серьёзный кэшфлоу: смена прошла, ноги болят, зато бюджет на апгрейды появился.',
       currency: 'shishki',
       baseCost: 120,
       costScale: 1.54,
@@ -298,7 +472,8 @@ export const BALANCE = {
     pickupPointShift: {
       id: 'pickupPointShift',
       title: 'ПВЗ WB: вечная очередь',
-      description: 'Смена на выдаче: сканер пищит, очередь не кончается, а баланс денег всё-таки растёт.',
+      description:
+        'Смена на выдаче: сканер пищит, очередь не кончается, а баланс денег всё-таки растёт.',
       currency: 'shishki',
       baseCost: 180,
       costScale: 1.57,
@@ -313,7 +488,8 @@ export const BALANCE = {
     courierRush: {
       id: 'courierRush',
       title: 'Курьер: 30 до дождя',
-      description: 'Темп как в пятницу вечером: лифт занят, самокат пищит, зато зарплата капает стабильнее.',
+      description:
+        'Темп как в пятницу вечером: лифт занят, самокат пищит, зато зарплата капает стабильнее.',
       currency: 'shishki',
       baseCost: 260,
       costScale: 1.6,
@@ -328,7 +504,8 @@ export const BALANCE = {
     studyGroup: {
       id: 'studyGroup',
       title: 'Учебный чат «кто скинет?»',
-      description: 'Чат на 42 человека, где реально пишут двое, но именно они и тащат вас к прогрессу.',
+      description:
+        'Чат на 42 человека, где реально пишут двое, но именно они и тащат вас к прогрессу.',
       currency: 'knowledge',
       baseCost: 55,
       costScale: 1.64,
@@ -344,7 +521,8 @@ export const BALANCE = {
     promptEngineering: {
       id: 'promptEngineering',
       title: 'Промпт «сделай нормально»',
-      description: 'Один нормальный промпт и вместо «иди нахуй даун» появляется результат, который не стыдно показать тимлиду.',
+      description:
+        'Один нормальный промпт и вместо «иди нахуй даун» появляется результат, который не стыдно показать тимлиду.',
       currency: 'knowledge',
       baseCost: 95,
       costScale: 1.68,
@@ -359,7 +537,8 @@ export const BALANCE = {
     researchLab: {
       id: 'researchLab',
       title: 'Лаба + научрук в офлайне',
-      description: 'Научрук редко в сети, но когда отвечает «интересно», экономика сразу идёт в плюс.',
+      description:
+        'Научрук редко в сети, но когда отвечает «интересно», экономика сразу идёт в плюс.',
       currency: 'knowledge',
       baseCost: 180,
       costScale: 1.84,
@@ -375,7 +554,8 @@ export const BALANCE = {
     autoClicker: {
       id: 'autoClicker',
       title: 'Автокликер под партой',
-      description: 'Ты вроде на лекции, а прогресс будто работает в две смены и без перекуров.',
+      description:
+        'Ты вроде на лекции, а прогресс будто работает в две смены и без перекуров.',
       currency: 'money',
       baseCost: 260,
       costScale: 1.74,
@@ -390,7 +570,8 @@ export const BALANCE = {
     focusMode: {
       id: 'focusMode',
       title: 'Фокус: уведомления в бан',
-      description: 'Режим «не отвлекаюсь»: выключил уведомления, открыл таск и за 40 минут сделал как за неделю.',
+      description:
+        'Режим «не отвлекаюсь»: выключил уведомления, открыл таск и за 40 минут сделал как за неделю.',
       currency: 'knowledge',
       baseCost: 240,
       costScale: 1.72,
@@ -405,7 +586,8 @@ export const BALANCE = {
     memeMarketing: {
       id: 'memeMarketing',
       title: 'Меммаркетинг и охваты',
-      description: 'Один удачный мем, и вот уже даже бухгалтерия лайкает: охваты растут, касса тоже.',
+      description:
+        'Один удачный мем, и вот уже даже бухгалтерия лайкает: охваты растут, касса тоже.',
       currency: 'money',
       baseCost: 920,
       costScale: 1.88,
@@ -420,7 +602,8 @@ export const BALANCE = {
     coneSorting: {
       id: 'coneSorting',
       title: 'Шишки по пакетам',
-      description: 'Сначала бардак как на складе после распродажи, потом порядок как в Excel у завхоза и всё внезапно летит.',
+      description:
+        'Сначала бардак как на складе после распродажи, потом порядок как в Excel у завхоза и всё внезапно летит.',
       currency: 'shishki',
       baseCost: 220,
       costScale: 1.56,
@@ -435,7 +618,8 @@ export const BALANCE = {
     resinWorkshop: {
       id: 'resinWorkshop',
       title: 'Смоляной гараж-цех',
-      description: 'Мини-завод формата «гараж-стайл»: пахнет смолой, шумит как маршрутка, но прибыль капает.',
+      description:
+        'Мини-завод формата «гараж-стайл»: пахнет смолой, шумит как маршрутка, но прибыль капает.',
       currency: 'shishki',
       baseCost: 640,
       costScale: 1.66,
@@ -450,7 +634,8 @@ export const BALANCE = {
     logisticsHub: {
       id: 'logisticsHub',
       title: 'Логистика через Госуслуги',
-      description: 'Как удачно поймать окно на МФЦ: незаметно, но резко ускоряет всё сразу и спасает нервы.',
+      description:
+        'Как удачно поймать окно на МФЦ: незаметно, но резко ускоряет всё сразу и спасает нервы.',
       currency: 'shishki',
       baseCost: 1280,
       costScale: 1.71,
@@ -466,7 +651,8 @@ export const BALANCE = {
     serverRack: {
       id: 'serverRack',
       title: 'Стойка, что шумит как поезд',
-      description: 'Железо гудит, лампочки мигают, соседи думают майнинг, а ты просто строишь светлое будущее.',
+      description:
+        'Железо гудит, лампочки мигают, соседи думают майнинг, а ты просто строишь светлое будущее.',
       currency: 'money',
       baseCost: 2100,
       costScale: 1.95,
@@ -482,7 +668,8 @@ export const BALANCE = {
     campusExchange: {
       id: 'campusExchange',
       title: 'Биржа общаги 24/7',
-      description: 'Локальная биржа по правилам общаги: меняем всё на всё, лишь бы курс был в твою пользу.',
+      description:
+        'Локальная биржа по правилам общаги: меняем всё на всё, лишь бы курс был в твою пользу.',
       currency: 'shishki',
       baseCost: 2100,
       costScale: 1.74,
@@ -498,7 +685,8 @@ export const BALANCE = {
     grantProgram: {
       id: 'grantProgram',
       title: 'Грант: дедлайн был вчера',
-      description: 'Три ночи на заявку, пять правок шрифта, один шанс: зато потом экономика дышит свободнее.',
+      description:
+        'Три ночи на заявку, пять правок шрифта, один шанс: зато потом экономика дышит свободнее.',
       currency: 'knowledge',
       baseCost: 560,
       costScale: 1.82,
@@ -513,7 +701,8 @@ export const BALANCE = {
     brandStudio: {
       id: 'brandStudio',
       title: 'Бренд-студия «дорого-богато»',
-      description: 'Добавляет проекту «дорого-богато»: те же шишки, но теперь в фирменной упаковке и с наценкой.',
+      description:
+        'Добавляет проекту «дорого-богато»: те же шишки, но теперь в фирменной упаковке и с наценкой.',
       currency: 'money',
       baseCost: 1850,
       costScale: 1.9,
@@ -529,7 +718,8 @@ export const BALANCE = {
     franchiseNetwork: {
       id: 'franchiseNetwork',
       title: 'Франшиза «точка на точке»',
-      description: 'Масштабирование по-русски: открыл точку, вторую, третью, и уже сам не понял, кто тут головной офис.',
+      description:
+        'Масштабирование по-русски: открыл точку, вторую, третью, и уже сам не понял, кто тут головной офис.',
       currency: 'shishki',
       baseCost: 3600,
       costScale: 1.86,
@@ -545,7 +735,8 @@ export const BALANCE = {
     ventureFund: {
       id: 'ventureFund',
       title: 'Фонд кафедры и риски',
-      description: 'Ставка на будущее, как покупка валюты в тревожный вечер: нервно, но иногда очень вовремя.',
+      description:
+        'Ставка на будущее, как покупка валюты в тревожный вечер: нервно, но иногда очень вовремя.',
       currency: 'knowledge',
       baseCost: 980,
       costScale: 1.92,
@@ -561,7 +752,8 @@ export const BALANCE = {
     quantFund: {
       id: 'quantFund',
       title: 'Квант-фонд на трёх мониторах',
-      description: 'Финансовая алхимия уровня «таблица в три монитора»: выглядит страшно, а приносит стабильно.',
+      description:
+        'Финансовая алхимия уровня «таблица в три монитора»: выглядит страшно, а приносит стабильно.',
       currency: 'knowledge',
       baseCost: 1550,
       costScale: 1.95,
@@ -584,12 +776,19 @@ export const UPGRADES = Object.values(BALANCE.upgrades)
 const achievementNumber = new Intl.NumberFormat('ru-RU')
 
 function totalLevels(collection) {
-  return Object.values(collection ?? {}).reduce((sum, value) => sum + Number(value ?? 0), 0)
+  return Object.values(collection ?? {}).reduce(
+    (sum, value) => sum + Number(value ?? 0),
+    0,
+  )
 }
 
 function ownsAllItemsAtLeast(state, target) {
-  const hasSubscriptions = SUBSCRIPTIONS.every((item) => (state.subscriptions?.[item.id] ?? 0) >= target)
-  const hasUpgrades = UPGRADES.every((item) => (state.upgrades?.[item.id] ?? 0) >= target)
+  const hasSubscriptions = SUBSCRIPTIONS.every(
+    (item) => (state.subscriptions?.[item.id] ?? 0) >= target,
+  )
+  const hasUpgrades = UPGRADES.every(
+    (item) => (state.upgrades?.[item.id] ?? 0) >= target,
+  )
   return hasSubscriptions && hasUpgrades
 }
 
@@ -608,7 +807,8 @@ function buildMilestoneAchievements({
   return milestones.map((target, index) => ({
     id: `${idPrefix}_${index + 1}`,
     title: `${icon} ${titlePrefix} ${index + 1}`,
-    description: `${descriptionPrefix} ${achievementNumber.format(target)} ${suffix}`.trim(),
+    description:
+      `${descriptionPrefix} ${achievementNumber.format(target)} ${suffix}`.trim(),
     check: (state) => valueGetter(state) >= target,
     achievementType: 'milestone',
     groupKey: idPrefix,
@@ -652,7 +852,8 @@ const specialAchievements = [
     id: 'prestige_unlocked',
     title: 'Разрыв цикла',
     description: 'Открой систему престижа и выйди за пределы обычного забега.',
-    check: (state) => (state.totalPrestigeShardsEarned ?? 0) > 0 || (state.rebirths ?? 0) > 0,
+    check: (state) =>
+      (state.totalPrestigeShardsEarned ?? 0) > 0 || (state.rebirths ?? 0) > 0,
     category: 'Престиж',
     tier: 3,
   },
@@ -667,7 +868,8 @@ const specialAchievements = [
   {
     id: 'full_stack_bootstrap',
     title: 'Собрано на коленке',
-    description: 'Купи хотя бы по одному уровню всех подписок и всех апгрейдов.',
+    description:
+      'Купи хотя бы по одному уровню всех подписок и всех апгрейдов.',
     check: (state) => ownsAllItemsAtLeast(state, 1),
     category: 'Секреты',
     tier: 5,
@@ -778,7 +980,6 @@ const levelAchievements = [
   }),
 ]
 
-
 const secretAchievements = [
   {
     id: 'all_systems_online_7',
@@ -811,7 +1012,9 @@ const secretAchievements = [
     id: 'noob_trap',
     title: '🪤 Упрямый старт',
     description: 'Сделай 1000 ручных кликов, не купив ни одной подписки.',
-    check: (state) => (state.manualClicks ?? 0) >= 1000 && totalLevels(state.subscriptions) === 0,
+    check: (state) =>
+      (state.manualClicks ?? 0) >= 1000 &&
+      totalLevels(state.subscriptions) === 0,
     category: 'Секреты',
     tier: 15,
     secret: true,
@@ -865,7 +1068,8 @@ const secretAchievements = [
     id: 'meme_dimension',
     title: '🫠 Мембрана реальности',
     description: 'Сделай 777 эмодзи-взрывов и 777 мега-кликов.',
-    check: (state) => (state.emojiBursts ?? 0) >= 777 && (state.megaClicks ?? 0) >= 777,
+    check: (state) =>
+      (state.emojiBursts ?? 0) >= 777 && (state.megaClicks ?? 0) >= 777,
     category: 'Секреты',
     tier: 24,
     secret: true,
@@ -916,7 +1120,10 @@ const CONTRIBUTION_META = {
 }
 
 function getUnlockRule(id) {
-  return BALANCE.subscriptions[id]?.unlock ?? BALANCE.upgrades[id]?.unlock ?? { shishki: 0, knowledge: 0 }
+  return (
+    BALANCE.subscriptions[id]?.unlock ??
+    BALANCE.upgrades[id]?.unlock ?? { shishki: 0, knowledge: 0 }
+  )
 }
 
 export function getUnlockStatus(state, id) {
@@ -927,7 +1134,8 @@ export function getUnlockStatus(state, id) {
   }
 
   return {
-    unlocked: progress.shishki >= rule.shishki && progress.knowledge >= rule.knowledge,
+    unlocked:
+      progress.shishki >= rule.shishki && progress.knowledge >= rule.knowledge,
     rule,
     progress,
   }
@@ -937,7 +1145,9 @@ export function formatUnlockText(rule) {
   const parts = []
   if (rule.shishki > 0) parts.push(`шишки: ${rule.shishki}`)
   if (rule.knowledge > 0) parts.push(`знания: ${rule.knowledge}`)
-  return parts.length ? `Открывается при ${parts.join(' · ')}` : 'Открыто с начала игры'
+  return parts.length
+    ? `Открывается при ${parts.join(' · ')}`
+    : 'Открыто с начала игры'
 }
 
 export function getScaledCost(baseCost, costScale, level) {
@@ -983,7 +1193,9 @@ function accumulateEffects(items, levels, aiMultiplier = 1) {
     if (level <= 0) return totals
 
     item.effects.forEach((effect) => {
-      totals[effect.stat] = (totals[effect.stat] ?? 0) + getEffectTotalAtLevel(effect, level, aiMultiplier)
+      totals[effect.stat] =
+        (totals[effect.stat] ?? 0) +
+        getEffectTotalAtLevel(effect, level, aiMultiplier)
     })
 
     return totals
@@ -991,7 +1203,10 @@ function accumulateEffects(items, levels, aiMultiplier = 1) {
 }
 
 function getEffectIncrement(effect, level, aiMultiplier = 1) {
-  return getEffectTotalAtLevel(effect, level + 1, aiMultiplier) - getEffectTotalAtLevel(effect, level, aiMultiplier)
+  return (
+    getEffectTotalAtLevel(effect, level + 1, aiMultiplier) -
+    getEffectTotalAtLevel(effect, level, aiMultiplier)
+  )
 }
 
 function formatEffectStat(stat, value) {
@@ -1004,8 +1219,16 @@ function describeItemEffects(item, level, aiMultiplier, prestigeMultiplier) {
   const next = []
 
   item.effects.forEach((effect) => {
-    const total = getEffectTotalAtLevel(effect, level, aiMultiplier) * (effect.stat === 'clickPower' || effect.stat.endsWith('PerSecond') ? prestigeMultiplier : 1)
-    const delta = getEffectIncrement(effect, level, aiMultiplier) * (effect.stat === 'clickPower' || effect.stat.endsWith('PerSecond') ? prestigeMultiplier : 1)
+    const total =
+      getEffectTotalAtLevel(effect, level, aiMultiplier) *
+      (effect.stat === 'clickPower' || effect.stat.endsWith('PerSecond')
+        ? prestigeMultiplier
+        : 1)
+    const delta =
+      getEffectIncrement(effect, level, aiMultiplier) *
+      (effect.stat === 'clickPower' || effect.stat.endsWith('PerSecond')
+        ? prestigeMultiplier
+        : 1)
 
     if (total > 0) current.push(formatEffectStat(effect.stat, total))
     if (delta > 0) next.push(formatEffectStat(effect.stat, delta))
@@ -1013,28 +1236,45 @@ function describeItemEffects(item, level, aiMultiplier, prestigeMultiplier) {
 
   const aiSource = BALANCE.growth.aiMultiplier
   if (item.id === aiSource.source) {
-    const currentAi = aiSource.base + geometricGain(level, aiSource.firstGain, aiSource.decay)
-    const nextAi = aiSource.base + geometricGain(level + 1, aiSource.firstGain, aiSource.decay)
+    const currentAi =
+      aiSource.base + geometricGain(level, aiSource.firstGain, aiSource.decay)
+    const nextAi =
+      aiSource.base +
+      geometricGain(level + 1, aiSource.firstGain, aiSource.decay)
     const aiDelta = nextAi - currentAi
 
-    if (level > 0 || currentAi > aiSource.base) current.push(formatEffectStat('aiMultiplier', currentAi))
+    if (level > 0 || currentAi > aiSource.base)
+      current.push(formatEffectStat('aiMultiplier', currentAi))
     if (aiDelta > 0) next.push(formatEffectStat('aiMultiplier', aiDelta))
   }
 
   if (item.id === 'focusMode') {
-    const currentChance = getMegaClickChance({ upgrades: { focusMode: level, memeMarketing: 0 } })
-    const nextChance = getMegaClickChance({ upgrades: { focusMode: level + 1, memeMarketing: 0 } })
+    const currentChance = getMegaClickChance({
+      upgrades: { focusMode: level, memeMarketing: 0 },
+    })
+    const nextChance = getMegaClickChance({
+      upgrades: { focusMode: level + 1, memeMarketing: 0 },
+    })
     current.push(formatEffectStat('megaChance', currentChance * 100))
-    next.push(formatEffectStat('megaChance', (nextChance - currentChance) * 100))
+    next.push(
+      formatEffectStat('megaChance', (nextChance - currentChance) * 100),
+    )
   }
 
   return {
     currentText: current.length ? current.join(' · ') : item.effectLabel,
-    nextText: next.length ? `След. ур.: ${next.join(' · ')}` : 'Максимум полезного эффекта достигнут',
+    nextText: next.length
+      ? `След. ур.: ${next.join(' · ')}`
+      : 'Максимум полезного эффекта достигнут',
   }
 }
 
-export function getItemEffectPreview(item, level, aiMultiplier, prestigeMultiplier = 1) {
+export function getItemEffectPreview(
+  item,
+  level,
+  aiMultiplier,
+  prestigeMultiplier = 1,
+) {
   return describeItemEffects(item, level, aiMultiplier, prestigeMultiplier)
 }
 
@@ -1047,7 +1287,12 @@ function deriveAiMultiplier(state = STARTING_STATE) {
 export function derivePrestigeMultiplier(state = STARTING_STATE) {
   const cfg = BALANCE.growth.prestigeMultiplier
   const bonuses = getPrestigeBonuses(state)
-  return 1 + (state?.rebirths ?? 0) * cfg.rebirthGain + (state?.prestigeShards ?? 0) * cfg.shardGain + bonuses.permanentMultiplierBonus
+  return (
+    1 +
+    (state?.rebirths ?? 0) * cfg.rebirthGain +
+    (state?.prestigeShards ?? 0) * cfg.shardGain +
+    bonuses.permanentMultiplierBonus
+  )
 }
 
 function deriveAiPower(state = STARTING_STATE) {
@@ -1076,16 +1321,33 @@ export function getRandomMegaEmoji() {
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
-function getRawStatTotals(state = STARTING_STATE, aiMultiplier, prestigeMultiplier) {
+function getRawStatTotals(
+  state = STARTING_STATE,
+  aiMultiplier,
+  prestigeMultiplier,
+) {
   const safeState = state ?? STARTING_STATE
-  const upgradeTotals = accumulateEffects(UPGRADES, safeState?.upgrades ?? {}, aiMultiplier)
-  const subscriptionTotals = accumulateEffects(SUBSCRIPTIONS, safeState?.subscriptions ?? {}, aiMultiplier)
+  const upgradeTotals = accumulateEffects(
+    UPGRADES,
+    safeState?.upgrades ?? {},
+    aiMultiplier,
+  )
+  const subscriptionTotals = accumulateEffects(
+    SUBSCRIPTIONS,
+    safeState?.subscriptions ?? {},
+    aiMultiplier,
+  )
 
   return {
     clickPower: (upgradeTotals.clickPower || 1) * prestigeMultiplier,
-    shishkiPerSecond: (upgradeTotals.shishkiPerSecond + subscriptionTotals.shishkiPerSecond) * prestigeMultiplier,
+    shishkiPerSecond:
+      (upgradeTotals.shishkiPerSecond + subscriptionTotals.shishkiPerSecond) *
+      prestigeMultiplier,
     moneyPerSecond: (upgradeTotals.moneyPerSecond || 1) * prestigeMultiplier,
-    knowledgePerSecond: (upgradeTotals.knowledgePerSecond + subscriptionTotals.knowledgePerSecond) * prestigeMultiplier,
+    knowledgePerSecond:
+      (upgradeTotals.knowledgePerSecond +
+        subscriptionTotals.knowledgePerSecond) *
+      prestigeMultiplier,
   }
 }
 
@@ -1095,7 +1357,12 @@ function getItemStatTotals(item, level, aiMultiplier, prestigeMultiplier) {
 
   item.effects.forEach((effect) => {
     const value = getEffectTotalAtLevel(effect, level, aiMultiplier)
-    totals[effect.stat] = (totals[effect.stat] ?? 0) + value * (effect.stat === 'clickPower' || effect.stat.endsWith('PerSecond') ? prestigeMultiplier : 1)
+    totals[effect.stat] =
+      (totals[effect.stat] ?? 0) +
+      value *
+        (effect.stat === 'clickPower' || effect.stat.endsWith('PerSecond')
+          ? prestigeMultiplier
+          : 1)
   })
 
   return totals
@@ -1109,7 +1376,10 @@ function getBaseContributionEntries(rawTotals, finalTotals) {
         id: 'base-click',
         title: 'Базовый клик',
         sourceType: 'base',
-        value: rawTotals.clickPower > 0 ? finalTotals.clickPower / rawTotals.clickPower : 0,
+        value:
+          rawTotals.clickPower > 0
+            ? finalTotals.clickPower / rawTotals.clickPower
+            : 0,
       },
     },
     {
@@ -1118,7 +1388,10 @@ function getBaseContributionEntries(rawTotals, finalTotals) {
         id: 'base-money',
         title: 'Базовый доход',
         sourceType: 'base',
-        value: rawTotals.moneyPerSecond > 0 ? finalTotals.moneyPerSecond / rawTotals.moneyPerSecond : 0,
+        value:
+          rawTotals.moneyPerSecond > 0
+            ? finalTotals.moneyPerSecond / rawTotals.moneyPerSecond
+            : 0,
       },
     },
   ]
@@ -1128,7 +1401,11 @@ export function deriveContributionBreakdown(state = STARTING_STATE) {
   const safeState = state ?? STARTING_STATE
   const aiMultiplier = deriveAiMultiplier(safeState)
   const prestigeMultiplier = derivePrestigeMultiplier(safeState)
-  const rawTotals = getRawStatTotals(safeState, aiMultiplier, prestigeMultiplier)
+  const rawTotals = getRawStatTotals(
+    safeState,
+    aiMultiplier,
+    prestigeMultiplier,
+  )
   const rawAiPower = SUBSCRIPTIONS.reduce((sum, item) => {
     const level = safeState?.subscriptions?.[item.id] ?? 0
     return sum + level * (item.aiPowerWeight ?? 0)
@@ -1136,9 +1413,15 @@ export function deriveContributionBreakdown(state = STARTING_STATE) {
 
   const finalTotals = {
     clickPower: applySoftcap('clickPower', rawTotals.clickPower),
-    shishkiPerSecond: applySoftcap('shishkiPerSecond', rawTotals.shishkiPerSecond),
+    shishkiPerSecond: applySoftcap(
+      'shishkiPerSecond',
+      rawTotals.shishkiPerSecond,
+    ),
     moneyPerSecond: applySoftcap('moneyPerSecond', rawTotals.moneyPerSecond),
-    knowledgePerSecond: applySoftcap('knowledgePerSecond', rawTotals.knowledgePerSecond),
+    knowledgePerSecond: applySoftcap(
+      'knowledgePerSecond',
+      rawTotals.knowledgePerSecond,
+    ),
     aiPower: applySoftcap('aiPower', rawAiPower),
   }
 
@@ -1151,13 +1434,26 @@ export function deriveContributionBreakdown(state = STARTING_STATE) {
   }
 
   const items = [
-    ...UPGRADES.map((item) => ({ ...item, sourceType: 'upgrade', level: safeState?.upgrades?.[item.id] ?? 0 })),
-    ...SUBSCRIPTIONS.map((item) => ({ ...item, sourceType: 'subscription', level: safeState?.subscriptions?.[item.id] ?? 0 })),
+    ...UPGRADES.map((item) => ({
+      ...item,
+      sourceType: 'upgrade',
+      level: safeState?.upgrades?.[item.id] ?? 0,
+    })),
+    ...SUBSCRIPTIONS.map((item) => ({
+      ...item,
+      sourceType: 'subscription',
+      level: safeState?.subscriptions?.[item.id] ?? 0,
+    })),
   ]
 
   items.forEach((item) => {
     if (item.level <= 0) return
-    const totals = getItemStatTotals(item, item.level, aiMultiplier, prestigeMultiplier)
+    const totals = getItemStatTotals(
+      item,
+      item.level,
+      aiMultiplier,
+      prestigeMultiplier,
+    )
 
     Object.keys(groups).forEach((stat) => {
       const rawValue = totals[stat] ?? 0
@@ -1176,7 +1472,8 @@ export function deriveContributionBreakdown(state = STARTING_STATE) {
 
     if ((item.aiPowerWeight ?? 0) > 0) {
       const rawValue = item.level * item.aiPowerWeight
-      const scaledValue = rawAiPower > 0 ? (rawValue / rawAiPower) * finalTotals.aiPower : 0
+      const scaledValue =
+        rawAiPower > 0 ? (rawValue / rawAiPower) * finalTotals.aiPower : 0
       groups.aiPower.push({
         id: item.id,
         title: item.title,
@@ -1186,9 +1483,11 @@ export function deriveContributionBreakdown(state = STARTING_STATE) {
     }
   })
 
-  getBaseContributionEntries(rawTotals, finalTotals).forEach(({ stat, entry }) => {
-    groups[stat].push({ ...entry, value: Number(entry.value.toFixed(2)) })
-  })
+  getBaseContributionEntries(rawTotals, finalTotals).forEach(
+    ({ stat, entry }) => {
+      groups[stat].push({ ...entry, value: Number(entry.value.toFixed(2)) })
+    },
+  )
 
   return Object.fromEntries(
     Object.entries(groups).map(([stat, entries]) => {
@@ -1210,7 +1509,9 @@ export function deriveContributionBreakdown(state = STARTING_STATE) {
 function getUnlockedAchievementCount(state = STARTING_STATE) {
   const safeState = state ?? STARTING_STATE
   return ACHIEVEMENTS.reduce((count, achievement) => {
-    const unlocked = Boolean(safeState?.achievements?.[achievement.id]) || Boolean(achievement.check(safeState))
+    const unlocked =
+      Boolean(safeState?.achievements?.[achievement.id]) ||
+      Boolean(achievement.check(safeState))
     return count + (unlocked ? 1 : 0)
   }, 0)
 }
@@ -1239,7 +1540,11 @@ export function getPrestigePreview(state = STARTING_STATE) {
   const unlockedAchievements = unlock.progress.achievements
   const quota = getRebirthQuota(state, unlockedAchievements)
   const shardPreview = getShardPreview(state, unlockedAchievements, quota)
-  const nextQuota = getRebirthQuota(state, unlockedAchievements, (state?.rebirths ?? 0) + 1)
+  const nextQuota = getRebirthQuota(
+    state,
+    unlockedAchievements,
+    (state?.rebirths ?? 0) + 1,
+  )
   const bonuses = getPrestigeBonuses(state)
 
   return {
@@ -1260,7 +1565,10 @@ export function getPrestigePreview(state = STARTING_STATE) {
     nextGoal: {
       shishki: Math.max(0, quota.shishki - shardPreview.progress.shishki),
       knowledge: Math.max(0, quota.knowledge - shardPreview.progress.knowledge),
-      achievements: Math.max(0, quota.achievements - shardPreview.progress.achievements),
+      achievements: Math.max(
+        0,
+        quota.achievements - shardPreview.progress.achievements,
+      ),
     },
   }
 }
@@ -1272,10 +1580,13 @@ export function deriveAchievements(state = STARTING_STATE) {
     secret: Boolean(achievement.secret),
     ...achievement,
     progressValue:
-      achievement.achievementType === 'milestone' && typeof achievement.valueGetter === 'function'
+      achievement.achievementType === 'milestone' &&
+      typeof achievement.valueGetter === 'function'
         ? Number(achievement.valueGetter(state ?? STARTING_STATE) ?? 0)
         : null,
-    unlocked: Boolean(state?.achievements?.[achievement.id]) || Boolean(achievement.check(state ?? STARTING_STATE)),
+    unlocked:
+      Boolean(state?.achievements?.[achievement.id]) ||
+      Boolean(achievement.check(state ?? STARTING_STATE)),
   }))
 }
 
@@ -1285,10 +1596,20 @@ export function deriveEconomy(state = STARTING_STATE) {
   const rawTotals = getRawStatTotals(state, aiMultiplier, prestigeMultiplier)
 
   return {
-    clickPower: Number(applySoftcap('clickPower', rawTotals.clickPower).toFixed(1)),
-    shishkiPerSecond: Number(applySoftcap('shishkiPerSecond', rawTotals.shishkiPerSecond).toFixed(1)),
-    moneyPerSecond: Number(applySoftcap('moneyPerSecond', rawTotals.moneyPerSecond).toFixed(1)),
-    knowledgePerSecond: Number(applySoftcap('knowledgePerSecond', rawTotals.knowledgePerSecond).toFixed(1)),
+    clickPower: Number(
+      applySoftcap('clickPower', rawTotals.clickPower).toFixed(1),
+    ),
+    shishkiPerSecond: Number(
+      applySoftcap('shishkiPerSecond', rawTotals.shishkiPerSecond).toFixed(1),
+    ),
+    moneyPerSecond: Number(
+      applySoftcap('moneyPerSecond', rawTotals.moneyPerSecond).toFixed(1),
+    ),
+    knowledgePerSecond: Number(
+      applySoftcap('knowledgePerSecond', rawTotals.knowledgePerSecond).toFixed(
+        1,
+      ),
+    ),
     aiPower: Number(deriveAiPower(state).toFixed(1)),
     aiMultiplier: Number(aiMultiplier.toFixed(2)),
     prestigeMultiplier: Number(prestigeMultiplier.toFixed(2)),

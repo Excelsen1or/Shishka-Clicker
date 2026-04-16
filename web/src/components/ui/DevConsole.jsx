@@ -10,15 +10,44 @@ import { ConeIcon } from './ConeIcon.jsx'
 
 const RESOURCES = [
   { key: 'shishki', label: 'Шишки', icon: <ConeIcon /> },
-  { key: 'money', label: 'Деньги', icon: <PxlKitIcon icon={Coin} size={16} colorful className="pixel-inline-icon" /> },
-  { key: 'knowledge', label: 'Знания', icon: <PxlKitIcon icon={Scroll} size={16} colorful className="pixel-inline-icon" /> },
-  { key: 'prestigeShards', label: 'Осколки', icon: <PxlKitIcon icon={Gem} size={16} colorful className="pixel-inline-icon" /> },
+  {
+    key: 'money',
+    label: 'Деньги',
+    icon: (
+      <PxlKitIcon
+        icon={Coin}
+        size={16}
+        colorful
+        className="pixel-inline-icon"
+      />
+    ),
+  },
+  {
+    key: 'knowledge',
+    label: 'Знания',
+    icon: (
+      <PxlKitIcon
+        icon={Scroll}
+        size={16}
+        colorful
+        className="pixel-inline-icon"
+      />
+    ),
+  },
+  {
+    key: 'prestigeShards',
+    label: 'Осколки',
+    icon: (
+      <PxlKitIcon icon={Gem} size={16} colorful className="pixel-inline-icon" />
+    ),
+  },
 ]
 
 const PRESETS = [1e3, 1e4, 100e3, 1e6, 1e9]
 
 const DevConsolePanel = observer(function DevConsolePanel() {
-  const { devConsoleResources, _devGiveResource, _devSetResource } = useGameStore()
+  const { devConsoleResources, _devGiveResource, _devSetResource } =
+    useGameStore()
   const [cheatsEnabled, setCheatsEnabled] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [log, setLog] = useState([])
@@ -83,7 +112,10 @@ const DevConsolePanel = observer(function DevConsolePanel() {
       pushLog('Не угадал, такого нет.', 'error')
       setShowWrongOverlay(true)
       clearTimeout(overlayTimerRef.current)
-      overlayTimerRef.current = setTimeout(() => setShowWrongOverlay(false), 1600)
+      overlayTimerRef.current = setTimeout(
+        () => setShowWrongOverlay(false),
+        1600,
+      )
       await play()
 
       return
@@ -96,7 +128,10 @@ const DevConsolePanel = observer(function DevConsolePanel() {
     }
 
     if (cmd === 'help') {
-      pushLog('Команды: give <ресурс> <число> | set <ресурс> <число> | status | sv.cheats false', 'info')
+      pushLog(
+        'Команды: give <ресурс> <число> | set <ресурс> <число> | status | sv.cheats false',
+        'info',
+      )
       pushLog('Ресурсы: shishki, money, knowledge, shards', 'info')
       return
     }
@@ -109,9 +144,14 @@ const DevConsolePanel = observer(function DevConsolePanel() {
       return
     }
 
-    const giveMatch = cmd.match(/^give\s+(shishki|money|knowledge|shards)\s+([0-9eE+.]+)$/i)
+    const giveMatch = cmd.match(
+      /^give\s+(shishki|money|knowledge|shards)\s+([0-9eE+.]+)$/i,
+    )
     if (giveMatch) {
-      const key = giveMatch[1].toLowerCase() === 'shards' ? 'prestigeShards' : giveMatch[1].toLowerCase()
+      const key =
+        giveMatch[1].toLowerCase() === 'shards'
+          ? 'prestigeShards'
+          : giveMatch[1].toLowerCase()
       const amount = Number(giveMatch[2])
       if (!Number.isFinite(amount) || amount <= 0) {
         pushLog('Невалидное число.', 'error')
@@ -122,9 +162,14 @@ const DevConsolePanel = observer(function DevConsolePanel() {
       return
     }
 
-    const setMatch = cmd.match(/^set\s+(shishki|money|knowledge|shards)\s+([0-9eE+.]+)$/i)
+    const setMatch = cmd.match(
+      /^set\s+(shishki|money|knowledge|shards)\s+([0-9eE+.]+)$/i,
+    )
     if (setMatch) {
-      const key = setMatch[1].toLowerCase() === 'shards' ? 'prestigeShards' : setMatch[1].toLowerCase()
+      const key =
+        setMatch[1].toLowerCase() === 'shards'
+          ? 'prestigeShards'
+          : setMatch[1].toLowerCase()
       const amount = Number(setMatch[2])
       if (!Number.isFinite(amount) || amount < 0) {
         pushLog('Невалидное число.', 'error')
@@ -154,7 +199,15 @@ const DevConsolePanel = observer(function DevConsolePanel() {
   return (
     <div className="dev-console">
       <div className="dev-console__header">
-        <span><PxlKitIcon icon={Lightning} size={16} colorful className="pixel-inline-icon" /> Консоль</span>
+        <span>
+          <PxlKitIcon
+            icon={Lightning}
+            size={16}
+            colorful
+            className="pixel-inline-icon"
+          />{' '}
+          Консоль
+        </span>
       </div>
 
       <div className="dev-console__log">
@@ -165,11 +218,18 @@ const DevConsolePanel = observer(function DevConsolePanel() {
                 ? 'Введите help для списка команд'
                 : 'Введите секретную команду для активации читов…'}
             </div>
-            {!cheatsEnabled && <div className="dev-console__hint">или help для списка команд</div>}
+            {!cheatsEnabled && (
+              <div className="dev-console__hint">
+                или help для списка команд
+              </div>
+            )}
           </>
         )}
         {log.map((entry) => (
-          <div key={entry.ts + entry.text} className={`dev-console__line dev-console__line--${entry.type}`}>
+          <div
+            key={entry.ts + entry.text}
+            className={`dev-console__line dev-console__line--${entry.type}`}
+          >
             {entry.text}
           </div>
         ))}
@@ -189,7 +249,9 @@ const DevConsolePanel = observer(function DevConsolePanel() {
           className="dev-console__input"
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
-          placeholder={cheatsEnabled ? 'help / give / set / status' : 'Введите команду…'}
+          placeholder={
+            cheatsEnabled ? 'help / give / set / status' : 'Введите команду…'
+          }
           spellCheck={false}
           autoComplete="off"
         />
@@ -197,14 +259,26 @@ const DevConsolePanel = observer(function DevConsolePanel() {
 
       {cheatsEnabled && (
         <div className="dev-admin">
-          <div className="dev-admin__title"><PxlKitIcon icon={Lightning} size={16} colorful className="pixel-inline-icon" /> Админ-панель</div>
+          <div className="dev-admin__title">
+            <PxlKitIcon
+              icon={Lightning}
+              size={16}
+              colorful
+              className="pixel-inline-icon"
+            />{' '}
+            Админ-панель
+          </div>
           <div className="dev-admin__grid">
             {RESOURCES.map((resource) => (
               <div key={resource.key} className="dev-admin__card">
                 <div className="dev-admin__card-head">
                   <span>{resource.icon}</span>
-                  <span className="dev-admin__card-label">{resource.label}</span>
-                  <span className="dev-admin__card-value">{devConsoleResources[`${resource.key}Text`]}</span>
+                  <span className="dev-admin__card-label">
+                    {resource.label}
+                  </span>
+                  <span className="dev-admin__card-value">
+                    {devConsoleResources[`${resource.key}Text`]}
+                  </span>
                 </div>
                 <div className="dev-admin__presets">
                   {PRESETS.map((amount) => (
@@ -219,10 +293,18 @@ const DevConsolePanel = observer(function DevConsolePanel() {
                   ))}
                 </div>
                 <div className="dev-admin__presets">
-                  <button type="button" className="dev-admin__btn dev-admin__btn--set" onClick={() => setResource(resource.key, 0)}>
+                  <button
+                    type="button"
+                    className="dev-admin__btn dev-admin__btn--set"
+                    onClick={() => setResource(resource.key, 0)}
+                  >
                     Обнулить
                   </button>
-                  <button type="button" className="dev-admin__btn dev-admin__btn--set" onClick={() => setResource(resource.key, 1e12)}>
+                  <button
+                    type="button"
+                    className="dev-admin__btn dev-admin__btn--set"
+                    onClick={() => setResource(resource.key, 1e12)}
+                  >
                     Max (1T)
                   </button>
                 </div>
@@ -240,7 +322,11 @@ export function DevConsole() {
 
   useEffect(() => {
     function onKeyDown(event) {
-      if (event.key === '`' || event.key === '~' || event.code === 'Backquote') {
+      if (
+        event.key === '`' ||
+        event.key === '~' ||
+        event.code === 'Backquote'
+      ) {
         event.preventDefault()
         setConsoleOpen((value) => !value)
       }
@@ -255,7 +341,13 @@ export function DevConsole() {
   return (
     <div className="dev-console-overlay">
       <div className="dev-console-shell">
-        <button type="button" className="dev-console__close" onClick={() => setConsoleOpen(false)}>×</button>
+        <button
+          type="button"
+          className="dev-console__close"
+          onClick={() => setConsoleOpen(false)}
+        >
+          ×
+        </button>
         <DevConsolePanel />
       </div>
     </div>

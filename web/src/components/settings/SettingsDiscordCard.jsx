@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { Community, PxlKitIcon, Robot, Trophy } from '../../lib/pxlkit'
 import { useDiscordActivity } from '../../context/DiscordActivityContext.jsx'
 import { getPreferredDiscordName } from '../../lib/playerName.js'
@@ -50,7 +50,7 @@ function formatLabel(value, labels) {
   return labels[value] ?? value ?? 'нет данных'
 }
 
-export function SettingsDiscordCard() {
+export const SettingsDiscordCard = memo(function SettingsDiscordCard() {
   const {
     isActivity,
     status,
@@ -100,11 +100,13 @@ export function SettingsDiscordCard() {
       </p>
 
       <p className="settings-card__hint settings-card__hint--block">
-        Статус SDK: {formatLabel(status, STATUS_LABELS)}. Синхронизация: {formatLabel(syncState, SYNC_STATE_LABELS)}.
+        Статус SDK: {formatLabel(status, STATUS_LABELS)}. Синхронизация:{' '}
+        {formatLabel(syncState, SYNC_STATE_LABELS)}.
       </p>
 
       <p className="settings-card__hint settings-card__hint--block">
-        Rich Presence: {formatLabel(presenceState, PRESENCE_STATE_LABELS)}. Последнее обновление: {formatDate(lastPresenceAt)}.
+        Rich Presence: {formatLabel(presenceState, PRESENCE_STATE_LABELS)}.
+        Последнее обновление: {formatDate(lastPresenceAt)}.
       </p>
 
       <p className="settings-card__hint settings-card__hint--block">
@@ -130,9 +132,18 @@ export function SettingsDiscordCard() {
         onClick={handleSync}
         disabled={isSyncing}
       >
-        <PxlKitIcon icon={Community} size={16} colorful className="pixel-inline-icon" />
-        {isSyncing ? 'Синхронизация...' : offlineMode ? 'Включить синхронизацию' : 'Синхронизировать сейчас'}
+        <PxlKitIcon
+          icon={Community}
+          size={16}
+          colorful
+          className="pixel-inline-icon"
+        />
+        {isSyncing
+          ? 'Синхронизация...'
+          : offlineMode
+            ? 'Включить синхронизацию'
+            : 'Синхронизировать сейчас'}
       </button>
     </article>
   )
-}
+})

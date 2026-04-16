@@ -2,7 +2,22 @@
   "name": "shishka-clicker-root",
   "private": true,
   "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "mojibake:check": "node scripts/fix-mojibake.mjs",
+    "mojibake:fix": "node scripts/fix-mojibake.mjs . --fix",
+    "build": "pnpm --dir web build",
+    "check": "pnpm mojibake:check && pnpm lint && pnpm format:check && pnpm build"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.103.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.2.0",
+    "globals": "^17.5.0",
+    "prettier": "^3.8.3"
   }
 }

@@ -6,8 +6,8 @@ import { memo, useEffect, useSyncExternalStore } from 'react'
 import { observer } from 'mobx-react-lite'
 import { Header } from '../header/Header.jsx'
 import { useNav } from '../../context/NavContext.jsx'
-import { useSettingsContext } from '../../context/SettingsContext.jsx'
-import { useDiscordActivity } from '../../context/DiscordActivityContext.jsx'
+import { useSettingsVisuals } from '../../context/SettingsContext.jsx'
+import { useDiscordBoot } from '../../context/DiscordActivityContext.jsx'
 import { ScreenFallback } from './ScreenFallback.jsx'
 
 export const loadClickerScreen = () => import('../clicker/ClickerScreen')
@@ -66,7 +66,8 @@ export function isTabScreenLoaded(tabId) {
 export function preloadTabScreen(tabId) {
   const loader = screenLoaders[tabId]
   if (!loader) return Promise.resolve(null)
-  if (loadedTabs.has(tabId)) return Promise.resolve(screenRegistry.get(tabId) ?? null)
+  if (loadedTabs.has(tabId))
+    return Promise.resolve(screenRegistry.get(tabId) ?? null)
 
   const existingPromise = screenLoadPromises.get(tabId)
   if (existingPromise) return existingPromise
@@ -150,14 +151,32 @@ function resolveBootProgress({ status, syncState }) {
     {
       id: 'session',
       label: 'Сессия',
-      detail: sessionReady ? 'Профиль найден' : 'Проверяем вход и профиль игрока',
-      state: sessionReady ? 'done' : status === 'error' ? 'error' : status === 'connecting' ? 'active' : 'pending',
+      detail: sessionReady
+        ? 'Профиль найден'
+        : 'Проверяем вход и профиль игрока',
+      state: sessionReady
+        ? 'done'
+        : status === 'error'
+          ? 'error'
+          : status === 'connecting'
+            ? 'active'
+            : 'pending',
     },
     {
       id: 'save',
       label: 'Сейв',
-      detail: syncReady ? 'Прогресс готов' : syncState === 'syncing' ? 'Сверяем прогресс с облаком' : 'Поднимаем сохранение',
-      state: syncReady ? 'done' : syncState === 'error' ? 'error' : syncState === 'syncing' || syncState === 'loading' ? 'active' : 'pending',
+      detail: syncReady
+        ? 'Прогресс готов'
+        : syncState === 'syncing'
+          ? 'Сверяем прогресс с облаком'
+          : 'Поднимаем сохранение',
+      state: syncReady
+        ? 'done'
+        : syncState === 'error'
+          ? 'error'
+          : syncState === 'syncing' || syncState === 'loading'
+            ? 'active'
+            : 'pending',
     },
   ]
 
@@ -177,7 +196,12 @@ function resolveBootProgress({ status, syncState }) {
   }
 
   return {
-    phase: syncState === 'syncing' ? 'syncing' : status === 'connecting' ? 'connecting' : 'loading',
+    phase:
+      syncState === 'syncing'
+        ? 'syncing'
+        : status === 'connecting'
+          ? 'connecting'
+          : 'loading',
     progressTarget,
     steps,
   }
@@ -185,15 +209,19 @@ function resolveBootProgress({ status, syncState }) {
 
 export const AppWrapper = observer(function AppWrapper() {
   const { activeTab, transitionDirection } = useNav()
-  const { visualEffectToggles } = useSettingsContext()
-  const { saveReady, status, syncState, enterOfflineMode } = useDiscordActivity()
+  const { visualEffectToggles } = useSettingsVisuals()
+  const { saveReady, status, syncState, enterOfflineMode } = useDiscordBoot()
   const showBootScreen = !saveReady
   const bootProgress = resolveBootProgress({
     status,
     syncState,
   })
 
-  useSyncExternalStore(subscribeToScreenRegistry, getScreenRegistrySnapshot, getScreenRegistrySnapshot)
+  useSyncExternalStore(
+    subscribeToScreenRegistry,
+    getScreenRegistrySnapshot,
+    getScreenRegistrySnapshot,
+  )
 
   useEffect(() => {
     void preloadTabScreen('clicker')
@@ -209,7 +237,9 @@ export const AppWrapper = observer(function AppWrapper() {
     if (typeof window === 'undefined') return undefined
 
     if (typeof window.requestIdleCallback === 'function') {
-      const idleId = window.requestIdleCallback(preloadScreens, { timeout: 1200 })
+      const idleId = window.requestIdleCallback(preloadScreens, {
+        timeout: 1200,
+      })
       return () => window.cancelIdleCallback?.(idleId)
     }
 
@@ -223,9 +253,13 @@ export const AppWrapper = observer(function AppWrapper() {
 
       <div className="app-content">
         <Header />
-        <main className={`app-main ${showBootScreen ? 'app-main--boot' : ''}`.trim()}>
+        <main
+          className={`app-main ${showBootScreen ? 'app-main--boot' : ''}`.trim()}
+        >
           {showBootScreen ? null : <StatsBar className="stats-bar--shop" />}
-          <div className={`screen-bg ${showBootScreen ? 'screen-bg--boot' : ''}`.trim()}>
+          <div
+            className={`screen-bg ${showBootScreen ? 'screen-bg--boot' : ''}`.trim()}
+          >
             <div className="screen__glow" />
             <div
               key={activeTab}

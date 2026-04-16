@@ -1,4 +1,16 @@
 import { formatNumber } from '../../lib/format'
+import {
+  Community,
+  Crown,
+  Gem,
+  Lightning,
+  Package,
+  Palette,
+  Play,
+  Robot,
+  SparkleSmall,
+  Trophy,
+} from '../../lib/pxlkit'
 
 export const CLEANUP_INTERVAL_MS = 120
 export const CLEANUP_BUFFER_MS = 120
@@ -18,6 +30,18 @@ export const EFFECT_LIFETIMES = {
   cone: 920,
   shockwave: 860,
 }
+
+const MEGA_ICON_POOL = [Lightning, Crown, Gem, Trophy]
+const EMOJI_ICON_POOL = [
+  SparkleSmall,
+  Package,
+  Robot,
+  Play,
+  Palette,
+  Community,
+  Gem,
+  Crown,
+]
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value))
@@ -42,11 +66,11 @@ function pickRandom(pool) {
 }
 
 export function easeOutCubic(value) {
-  return 1 - ((1 - value) ** 3)
+  return 1 - (1 - value) ** 3
 }
 
 export function easeOutQuad(value) {
-  return 1 - ((1 - value) ** 2)
+  return 1 - (1 - value) ** 2
 }
 
 export function appendWithCapInPlace(current, incoming, cap, pool) {
@@ -93,7 +117,7 @@ function fastExpireOverflowInPlace(current, overflow, now, pool) {
     }
 
     const targetProgress = 0.9 + Math.random() * 0.08
-    const adjustedCreatedAt = now - (lifetime * targetProgress)
+    const adjustedCreatedAt = now - lifetime * targetProgress
     effect.createdAt = adjustedCreatedAt
     effect.expiresAt = adjustedCreatedAt + lifetime + CLEANUP_BUFFER_MS
     remaining -= 1
@@ -128,12 +152,30 @@ export function pruneExpiredInPlace(current, now, pool) {
   return current
 }
 
-function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosion, particleCap, now, effectPool) {
+function createParticles(
+  localX,
+  localY,
+  amount,
+  symbols,
+  isMega,
+  isEmojiExplosion,
+  particleCap,
+  now,
+  effectPool,
+) {
   const isNormalConeDrop = !isMega && !isEmojiExplosion
-  const maxParticles = isEmojiExplosion || isMega ? Math.min(Math.max(0, particleCap), 5) : Math.max(0, particleCap)
-  const total = isNormalConeDrop ? 1 : Math.max(1, Math.min(maxParticles, amount))
+  const maxParticles =
+    isEmojiExplosion || isMega
+      ? Math.min(Math.max(0, particleCap), 5)
+      : Math.max(0, particleCap)
+  const total = isNormalConeDrop
+    ? 1
+    : Math.max(1, Math.min(maxParticles, amount))
   const pool = Array.isArray(symbols) ? symbols : [symbols]
-  const lifetime = EFFECT_LIFETIMES.particle[isEmojiExplosion ? 'emoji' : isMega ? 'mega' : 'normal']
+  const lifetime =
+    EFFECT_LIFETIMES.particle[
+      isEmojiExplosion ? 'emoji' : isMega ? 'mega' : 'normal'
+    ]
   const angleJitter = (Math.PI * 2) / Math.max(total, 1)
 
   return Array.from({ length: total }, (_, index) => {
@@ -141,8 +183,8 @@ function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosi
 
     if (isNormalConeDrop) {
       const horizontalDirection = Math.random() < 0.5 ? -1 : 1
-      particle.x = localX + ((Math.random() - 0.5) * 18)
-      particle.y = localY - 8 - (Math.random() * 14)
+      particle.x = localX + (Math.random() - 0.5) * 18
+      particle.y = localY - 8 - Math.random() * 14
       particle.dx = horizontalDirection * (18 + Math.random() * 64)
       particle.dy = 88 + Math.random() * 62
       particle.rotate = horizontalDirection * (140 + Math.random() * 260)
@@ -155,9 +197,12 @@ function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosi
       particle.wobblePhase = Math.random() * Math.PI * 2
     } else {
       const angle = isEmojiExplosion
-        ? ((Math.PI * 2 * index) / total) + ((Math.random() - 0.5) * angleJitter * 0.9)
+        ? (Math.PI * 2 * index) / total +
+          (Math.random() - 0.5) * angleJitter * 0.9
         : getRandomAngle()
-      const spawnOffset = getRandomOffset(isEmojiExplosion ? 18 : isMega ? 20 : 18)
+      const spawnOffset = getRandomOffset(
+        isEmojiExplosion ? 18 : isMega ? 20 : 18,
+      )
       const distance = isEmojiExplosion
         ? 180 + Math.random() * 180
         : 22 + Math.random() * (isMega ? 180 : 92)
@@ -166,7 +211,9 @@ function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosi
       particle.y = localY + spawnOffset.y
       particle.dx = Math.cos(angle) * distance
       particle.dy = Math.sin(angle) * distance
-      particle.rotate = Math.round((Math.random() - 0.5) * (isEmojiExplosion ? 1080 : isMega ? 720 : 540))
+      particle.rotate = Math.round(
+        (Math.random() - 0.5) * (isEmojiExplosion ? 1080 : isMega ? 720 : 540),
+      )
       particle.scale = isEmojiExplosion
         ? 0.72 + Math.random() * 0.16
         : isMega
@@ -174,7 +221,12 @@ function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosi
           : 0.9 + Math.random() * 0.58
     }
 
-    particle.symbol = isNormalConeDrop ? '🌰' : pickRandom(pool)
+    particle.symbol = isNormalConeDrop ? 'shishka' : null
+    particle.iconData = isNormalConeDrop
+      ? null
+      : pickRandom(
+          isEmojiExplosion ? EMOJI_ICON_POOL : isMega ? MEGA_ICON_POOL : pool,
+        )
     particle.isMega = isMega
     particle.isEmojiExplosion = isEmojiExplosion
     particle.isNormalConeDrop = isNormalConeDrop
@@ -185,7 +237,15 @@ function createParticles(localX, localY, amount, symbols, isMega, isEmojiExplosi
   })
 }
 
-function createConeSprites(localX, localY, amount, isMega, coneCap, now, effectPool) {
+function createConeSprites(
+  localX,
+  localY,
+  amount,
+  isMega,
+  coneCap,
+  now,
+  effectPool,
+) {
   if (amount <= 0 || coneCap <= 0) return []
 
   const total = Math.min(coneCap, isMega ? amount + 3 : amount + 1)
@@ -202,8 +262,12 @@ function createConeSprites(localX, localY, amount, isMega, coneCap, now, effectP
     sprite.dx = Math.cos(angle) * distance
     sprite.dy = Math.sin(angle) * distance
     sprite.rotateStart = Math.round(Math.random() * 360)
-    sprite.rotateEnd = Math.round((Math.random() - 0.5) * (isMega ? 1440 : 1080))
-    sprite.scale = isMega ? 0.96 + Math.random() * 0.32 : 0.92 + Math.random() * 0.18
+    sprite.rotateEnd = Math.round(
+      (Math.random() - 0.5) * (isMega ? 1440 : 1080),
+    )
+    sprite.scale = isMega
+      ? 0.96 + Math.random() * 0.32
+      : 0.92 + Math.random() * 0.18
     sprite.isMega = isMega
     sprite.createdAt = now
     sprite.lifetime = lifetime
@@ -222,7 +286,11 @@ function createShockwaves(result, point, now, effectPool) {
     wave.x = point.x
     wave.y = point.y
     wave.color = result.isEmojiExplosion
-      ? ['rgba(168,85,247,0.72)', 'rgba(34,211,238,0.72)', 'rgba(255,166,0,0.72)'][index]
+      ? [
+          'rgba(168,85,247,0.72)',
+          'rgba(34,211,238,0.72)',
+          'rgba(255,166,0,0.72)',
+        ][index]
       : index === 0
         ? 'rgba(250,204,21,0.72)'
         : 'rgba(34,211,238,0.62)'
@@ -241,7 +309,8 @@ export function buildClickEffectPoints(buttonElement, event) {
   const burstAngle = getRandomAngle()
   const burstRadiusBase = Math.min(rect.width, rect.height) * 0.28
   const burstRadius = burstRadiusBase + Math.random() * (burstRadiusBase * 0.42)
-  const hasPointerCoords = Number.isFinite(event.clientX) && Number.isFinite(event.clientY)
+  const hasPointerCoords =
+    Number.isFinite(event.clientX) && Number.isFinite(event.clientY)
   const pointerX = hasPointerCoords ? event.clientX : centerX
   const pointerY = hasPointerCoords ? event.clientY : centerY
 
@@ -255,8 +324,12 @@ export function buildClickEffectPoints(buttonElement, event) {
       y: centerY + Math.sin(particleAngle) * burstRadius,
     },
     burstPoint: {
-      x: hasPointerCoords ? pointerX + ((Math.random() - 0.5) * 20) : centerX + Math.cos(burstAngle) * burstRadius,
-      y: hasPointerCoords ? pointerY - 28 - (Math.random() * 8) : centerY + Math.sin(burstAngle) * burstRadius,
+      x: hasPointerCoords
+        ? pointerX + (Math.random() - 0.5) * 20
+        : centerX + Math.cos(burstAngle) * burstRadius,
+      y: hasPointerCoords
+        ? pointerY - 28 - Math.random() * 8
+        : centerY + Math.sin(burstAngle) * burstRadius,
     },
     shockwavePoint: {
       x: pointerX,
@@ -265,7 +338,16 @@ export function buildClickEffectPoints(buttonElement, event) {
   }
 }
 
-export function buildClickSpawnState({ result, pointerPoint, particlePoint, burstPoint, shockwavePoint, config, now, pools }) {
+export function buildClickSpawnState({
+  result,
+  pointerPoint,
+  particlePoint,
+  burstPoint,
+  shockwavePoint,
+  config,
+  now,
+  pools,
+}) {
   const {
     visualEffectCaps: caps,
     visualEffectScaling: scaling,
@@ -273,40 +355,45 @@ export function buildClickSpawnState({ result, pointerPoint, particlePoint, burs
     visualEffectsFactor: factor,
   } = config
 
-  const burstType = result.isEmojiExplosion ? 'emoji' : result.isMega ? 'mega' : 'normal'
+  const burstType = result.isEmojiExplosion
+    ? 'emoji'
+    : result.isMega
+      ? 'mega'
+      : 'normal'
   const burstLifetime = EFFECT_LIFETIMES.burst[burstType]
   const burstCap = Math.round(caps.burstCap * scaling.burstSpawnScale)
-  const particleAmount = result.isEmojiExplosion || result.isMega
-    ? Math.round(result.particleCount * scaling.particleSpawnScale)
-    : result.particleCount
+  const particleAmount =
+    result.isEmojiExplosion || result.isMega
+      ? Math.round(result.particleCount * scaling.particleSpawnScale)
+      : result.particleCount
   const coneBurstCount = Math.max(
     0,
-    result.isEmojiExplosion
-      ? Math.round(2 * scaling.coneSpawnScale)
-      : result.isMega
-        ? Math.round(1 * scaling.coneSpawnScale)
-        : 0,
+    result.isEmojiExplosion ? Math.round(2 * scaling.coneSpawnScale) : 0,
   )
-  const spawnParticlePoint = result.isMega || result.isEmojiExplosion ? particlePoint : (pointerPoint ?? particlePoint)
+  const spawnParticlePoint =
+    result.isMega || result.isEmojiExplosion
+      ? particlePoint
+      : (pointerPoint ?? particlePoint)
 
   return {
-    burst: !toggles.floatingNumbers || burstCap <= 0
-      ? null
-      : {
-          cap: burstCap,
-          entry: {
-            id: `burst-${now}-${Math.random().toString(36).slice(2)}`,
-            x: burstPoint.x,
-            y: burstPoint.y,
-            value: result.isEmojiExplosion
-              ? `💥 ЭМОДЗИ +${formatNumber(result.amount)}`
-              : result.isMega
-                ? `⚡ МЕГА +${formatNumber(result.amount)}`
-                : `+${formatNumber(result.amount)}`,
-            type: burstType,
-            expiresAt: now + burstLifetime + CLEANUP_BUFFER_MS,
+    burst:
+      !toggles.floatingNumbers || burstCap <= 0
+        ? null
+        : {
+            cap: burstCap,
+            entry: {
+              id: `burst-${now}-${Math.random().toString(36).slice(2)}`,
+              x: burstPoint.x,
+              y: burstPoint.y,
+              value: result.isEmojiExplosion
+                ? `BURST +${formatNumber(result.amount)}`
+                : result.isMega
+                  ? `MEGA +${formatNumber(result.amount)}`
+                  : `+${formatNumber(result.amount)}`,
+              type: burstType,
+              expiresAt: now + burstLifetime + CLEANUP_BUFFER_MS,
+            },
           },
-        },
     particles: toggles.particles
       ? createParticles(
           spawnParticlePoint.x,
@@ -320,19 +407,21 @@ export function buildClickSpawnState({ result, pointerPoint, particlePoint, burs
           pools?.particles,
         )
       : [],
-    cones: toggles.coneSprites
-      ? createConeSprites(
-          spawnParticlePoint.x,
-          spawnParticlePoint.y,
-          coneBurstCount,
-          result.isMega,
-          caps.coneCap,
-          now,
-          pools?.coneSprites,
-        )
-      : [],
-    shockwaves: result.isMega && toggles.shockwaves && factor > 0.2
-      ? createShockwaves(result, shockwavePoint, now, pools?.shockwaves)
-      : [],
+    cones:
+      toggles.coneSprites && coneBurstCount > 0
+        ? createConeSprites(
+            spawnParticlePoint.x,
+            spawnParticlePoint.y,
+            coneBurstCount,
+            result.isMega,
+            caps.coneCap,
+            now,
+            pools?.coneSprites,
+          )
+        : [],
+    shockwaves:
+      result.isMega && toggles.shockwaves && factor > 0.2
+        ? createShockwaves(result, shockwavePoint, now, pools?.shockwaves)
+        : [],
   }
 }

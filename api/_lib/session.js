@@ -24,7 +24,14 @@ function parseCookies(cookieHeader = '') {
     }, {})
 }
 
-function serializeCookie(name, value, { maxAge = SESSION_TTL_SECONDS, secure = process.env.NODE_ENV === 'production' } = {}) {
+function serializeCookie(
+  name,
+  value,
+  {
+    maxAge = SESSION_TTL_SECONDS,
+    secure = process.env.NODE_ENV === 'production',
+  } = {},
+) {
   const sameSite = secure ? 'None' : 'Lax'
   const parts = [
     `${name}=${encodeURIComponent(value)}`,
@@ -122,7 +129,7 @@ export function writeSession(res, session) {
 }
 
 export function requireSession(req, res) {
-  let session = null
+  let session
 
   try {
     session = readSession(req)

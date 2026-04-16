@@ -43,7 +43,15 @@ function isMissingSaveRpc(error) {
   )
 }
 
-async function saveViaRpc({ supabase, playerId, playerUsername, appVersion, save, expectedVersion, force }) {
+async function saveViaRpc({
+  supabase,
+  playerId,
+  playerUsername,
+  appVersion,
+  save,
+  expectedVersion,
+  force,
+}) {
   const { data, error } = await supabase
     .rpc('save_player_progress', {
       p_player_id: playerId,
@@ -51,7 +59,9 @@ async function saveViaRpc({ supabase, playerId, playerUsername, appVersion, save
       p_save_data: save,
       p_expected_version: expectedVersion,
       p_force: force,
-      p_player_username: playerId.startsWith('discord:') ? playerUsername ?? null : null,
+      p_player_username: playerId.startsWith('discord:')
+        ? (playerUsername ?? null)
+        : null,
     })
     .single()
 
@@ -78,7 +88,14 @@ async function saveViaRpc({ supabase, playerId, playerUsername, appVersion, save
   }
 }
 
-async function saveViaLegacyQueries({ supabase, playerId, appVersion, save, expectedVersion, force }) {
+async function saveViaLegacyQueries({
+  supabase,
+  playerId,
+  appVersion,
+  save,
+  expectedVersion,
+  force,
+}) {
   const { data: existingSave, error: selectError } = await supabase
     .from('player_saves')
     .select('save_data, updated_at, app_version, save_version')
@@ -90,7 +107,11 @@ async function saveViaLegacyQueries({ supabase, playerId, appVersion, save, expe
   }
 
   if (existingSave) {
-    if (!force && expectedVersion !== null && Number(expectedVersion) !== Number(existingSave.save_version ?? 0)) {
+    if (
+      !force &&
+      expectedVersion !== null &&
+      Number(expectedVersion) !== Number(existingSave.save_version ?? 0)
+    ) {
       return {
         ok: false,
         conflict: {
@@ -170,7 +191,11 @@ export default async function handler(req, res) {
 
     const normalizedExpectedVersion = normalizeExpectedVersion(expectedVersion)
 
-    if (expectedVersion !== undefined && expectedVersion !== null && normalizedExpectedVersion === null) {
+    if (
+      expectedVersion !== undefined &&
+      expectedVersion !== null &&
+      normalizedExpectedVersion === null
+    ) {
       return res.status(400).json({
         ok: false,
         error: 'invalid_expected_version',
@@ -227,7 +252,8 @@ export default async function handler(req, res) {
       ok: false,
       error:
         error instanceof Error &&
-        (error.message === 'missing_SUPABASE_URL' || error.message === 'missing_SUPABASE_SERVICE_ROLE_KEY')
+        (error.message === 'missing_SUPABASE_URL' ||
+          error.message === 'missing_SUPABASE_SERVICE_ROLE_KEY')
           ? error.message
           : 'internal_error',
     })

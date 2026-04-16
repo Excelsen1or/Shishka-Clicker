@@ -15,16 +15,19 @@ export const BottomNav = observer(function BottomNav() {
   const { bottomNavAlerts } = useGameStore()
   const { play } = useSound(switchSound, { volume: 0.1 })
 
-  const handleTabChange = useCallback(async (tabId) => {
-    if (tabId === activeTab) return
+  const handleTabChange = useCallback(
+    async (tabId) => {
+      if (tabId === activeTab) return
 
-    if (!isTabScreenLoaded(tabId)) {
-      await preloadTabScreen(tabId)
-    }
+      if (!isTabScreenLoaded(tabId)) {
+        await preloadTabScreen(tabId)
+      }
 
-    play()
-    setActiveTab(tabId)
-  }, [activeTab, play, setActiveTab])
+      play()
+      setActiveTab(tabId)
+    },
+    [activeTab, play, setActiveTab],
+  )
 
   return (
     <nav className="bottom-nav bottom-nav--pixel" aria-label="Разделы игры">

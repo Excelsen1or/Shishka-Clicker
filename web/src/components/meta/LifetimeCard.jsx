@@ -6,13 +6,19 @@ export const LifetimeCard = ({ lifetimeStats }) => {
       <div className="meta-card__kicker">Глобальный прогресс</div>
       <section className="stats-bar stats-bar--shop meta-lifetime-grid">
         {lifetimeStats.map((item) => (
-          <StatCard key={item.label} {...item} formatValue={false} variant="pixel" />
+          <StatCard
+            key={item.label}
+            {...item}
+            formatValue={false}
+            variant="pixel"
+          />
         ))}
       </section>
 
       <div className="meta-card__hint">
-        После реберса сбрасываются текущие ресурсы и уровни магазина, но сохраняются достижения,
-        осколки, мета-улучшения и общий множитель престижа.
+        После реберса сбрасываются текущие ресурсы и уровни магазина, но
+        сохраняются достижения, осколки, мета-улучшения и общий множитель
+        престижа.
       </div>
     </article>
   )

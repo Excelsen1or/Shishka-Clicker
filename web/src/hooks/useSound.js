@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { useSettingsContext } from '../context/SettingsContext'
+import { useSettingsAudio } from '../context/SettingsContext'
 
 let sharedCtx = null
 const rawAudioCache = new Map()
@@ -32,7 +32,7 @@ function loadRawAudio(src) {
 export function useSound(src, { volume = 1, randomPitch } = {}) {
   const rawRef = useRef(null)
   const bufferRef = useRef(null)
-  const { effectVolumeFactor } = useSettingsContext()
+  const { effectVolumeFactor } = useSettingsAudio()
 
   useEffect(() => {
     let cancelled = false
@@ -87,7 +87,8 @@ export function useSound(src, { volume = 1, randomPitch } = {}) {
     const pitch = randomPitch
     if (pitch) {
       const [semitoneDown, semitoneUp] = pitch
-      const semitones = semitoneDown + Math.random() * (semitoneUp - semitoneDown)
+      const semitones =
+        semitoneDown + Math.random() * (semitoneUp - semitoneDown)
       source.playbackRate.value = Math.pow(2, semitones / 12)
       gain.gain.value = baseVol * (0.85 + Math.random() * 0.15)
     } else {

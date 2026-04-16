@@ -16,8 +16,16 @@ import {
   getMegaClickChance,
   getMegaEmojiChance,
 } from '../game/config'
-import { getPrestigeUpgradeCards, PRESTIGE_UPGRADES, getPrestigeUpgradeCost } from '../game/metaConfig'
-import { formatFullNumber, formatNumber, isNumberAbbreviated } from '../lib/format'
+import {
+  getPrestigeUpgradeCards,
+  PRESTIGE_UPGRADES,
+  getPrestigeUpgradeCost,
+} from '../game/metaConfig'
+import {
+  formatFullNumber,
+  formatNumber,
+  isNumberAbbreviated,
+} from '../lib/format'
 
 const UI_SNAPSHOT_DELAY_MS = 120
 const PASSIVE_UI_SNAPSHOT_DELAY_MS = 480
@@ -114,7 +122,12 @@ function mergeState(saved) {
 
 function enrichItem(state, item, level, aiMultiplier, prestigeMultiplier) {
   const unlock = getUnlockStatus(state, item.id)
-  const effectPreview = getItemEffectPreview(item, level, aiMultiplier, prestigeMultiplier)
+  const effectPreview = getItemEffectPreview(
+    item,
+    level,
+    aiMultiplier,
+    prestigeMultiplier,
+  )
   const cost = getScaledCost(item.baseCost, item.costScale, level)
   const balance = Number(state?.[item.currency] ?? 0)
 
@@ -155,7 +168,8 @@ function applyIncome(current, seconds) {
     totalKnowledgeEarned: safeCurrent.totalKnowledgeEarned + knowledgeGain,
     lifetimeShishkiEarned: safeCurrent.lifetimeShishkiEarned + shishkiGain,
     lifetimeMoneyEarned: safeCurrent.lifetimeMoneyEarned + moneyGain,
-    lifetimeKnowledgeEarned: safeCurrent.lifetimeKnowledgeEarned + knowledgeGain,
+    lifetimeKnowledgeEarned:
+      safeCurrent.lifetimeKnowledgeEarned + knowledgeGain,
   }
 }
 
@@ -231,7 +245,9 @@ function buildStatsSnapshot(state, contributions) {
 
 function buildAlertSummary(items) {
   const readyCount = items.filter((item) => item.isBuyableNew).length
-  const newCount = items.filter((item) => item.isNew && !item.isBuyableNew).length
+  const newCount = items.filter(
+    (item) => item.isNew && !item.isBuyableNew,
+  ).length
 
   return {
     count: readyCount || newCount,
@@ -242,12 +258,15 @@ function buildAlertSummary(items) {
 function buildUnlockPreview(state, sourceItems, type) {
   const derived = deriveEconomy(state)
   const { aiMultiplier, prestigeMultiplier } = derived
-  const nextItem = sourceItems.find((item) => !getUnlockStatus(state, item.id).unlocked)
+  const nextItem = sourceItems.find(
+    (item) => !getUnlockStatus(state, item.id).unlocked,
+  )
   if (!nextItem) return null
 
-  const level = type === 'subscriptions'
-    ? (state.subscriptions[nextItem.id] ?? 0)
-    : (state.upgrades[nextItem.id] ?? 0)
+  const level =
+    type === 'subscriptions'
+      ? (state.subscriptions[nextItem.id] ?? 0)
+      : (state.upgrades[nextItem.id] ?? 0)
 
   return enrichItem(
     state,
@@ -264,7 +283,13 @@ function buildEconomySnapshot(state, derived) {
   return {
     subscriptions: SUBSCRIPTIONS.map((item) => {
       const level = state.subscriptions[item.id] ?? 0
-      return enrichItem(state, { ...item, currency: 'money' }, level, aiMultiplier, prestigeMultiplier)
+      return enrichItem(
+        state,
+        { ...item, currency: 'money' },
+        level,
+        aiMultiplier,
+        prestigeMultiplier,
+      )
     }),
     upgrades: UPGRADES.map((item) => {
       const level = state.upgrades[item.id] ?? 0
@@ -448,26 +473,45 @@ export default class GameStore {
     const cycleKnowledgeGoalText = formatNumber(prestige.rebirthRule.knowledge)
 
     return {
-      nextSub: buildUnlockPreview(this.uiSnapshotState, SUBSCRIPTIONS, 'subscriptions'),
-      nextUpgrade: buildUnlockPreview(this.uiSnapshotState, UPGRADES, 'upgrades'),
-      unlockedAchievements: achievements.filter((entry) => entry.unlocked).length,
+      nextSub: buildUnlockPreview(
+        this.uiSnapshotState,
+        SUBSCRIPTIONS,
+        'subscriptions',
+      ),
+      nextUpgrade: buildUnlockPreview(
+        this.uiSnapshotState,
+        UPGRADES,
+        'upgrades',
+      ),
+      unlockedAchievements: achievements.filter((entry) => entry.unlocked)
+        .length,
       achievementsTotal: achievements.length,
       rebirthsText: formatNumber(this.uiSnapshotState.rebirths),
       prestigeShardsText: formatNumber(this.uiSnapshotState.prestigeShards),
       projectedShardsText: formatNumber(prestige.projectedShards),
-      lifetimeShishkiEarnedText: formatNumber(this.uiSnapshotState.lifetimeShishkiEarned),
+      lifetimeShishkiEarnedText: formatNumber(
+        this.uiSnapshotState.lifetimeShishkiEarned,
+      ),
       totalMoneyEarnedText: formatNumber(this.uiSnapshotState.totalMoneyEarned),
-      totalKnowledgeEarnedText: formatNumber(this.uiSnapshotState.totalKnowledgeEarned),
+      totalKnowledgeEarnedText: formatNumber(
+        this.uiSnapshotState.totalKnowledgeEarned,
+      ),
       megaClicksText: formatNumber(this.uiSnapshotState.megaClicks),
-      prestigeLabel: prestige.isUnlocked ? `Цикл #${prestige.rebirthRule.cycle}` : 'Система ещё закрыта',
+      prestigeLabel: prestige.isUnlocked
+        ? `Цикл #${prestige.rebirthRule.cycle}`
+        : 'Система ещё закрыта',
       cycleShishkiText,
       cycleShishkiGoalText,
       cycleShishkiFull: `${formatFullNumber(prestige.cycleProgress.shishki)} / ${formatFullNumber(prestige.rebirthRule.shishki)}`,
-      cycleShishkiAbbreviated: isNumberAbbreviated(cycleShishkiText) || isNumberAbbreviated(cycleShishkiGoalText),
+      cycleShishkiAbbreviated:
+        isNumberAbbreviated(cycleShishkiText) ||
+        isNumberAbbreviated(cycleShishkiGoalText),
       cycleKnowledgeText,
       cycleKnowledgeGoalText,
       cycleKnowledgeFull: `${formatFullNumber(prestige.cycleProgress.knowledge)} / ${formatFullNumber(prestige.rebirthRule.knowledge)}`,
-      cycleKnowledgeAbbreviated: isNumberAbbreviated(cycleKnowledgeText) || isNumberAbbreviated(cycleKnowledgeGoalText),
+      cycleKnowledgeAbbreviated:
+        isNumberAbbreviated(cycleKnowledgeText) ||
+        isNumberAbbreviated(cycleKnowledgeGoalText),
       prestige,
     }
   }
@@ -495,7 +539,9 @@ export default class GameStore {
 
     window.addEventListener('scroll', this.handleInteraction, { passive: true })
     window.addEventListener('wheel', this.handleInteraction, { passive: true })
-    window.addEventListener('touchmove', this.handleInteraction, { passive: true })
+    window.addEventListener('touchmove', this.handleInteraction, {
+      passive: true,
+    })
   }
 
   markStateChanged(updatedAt = new Date().toISOString()) {
@@ -540,7 +586,11 @@ export default class GameStore {
     if (uiSync === 'immediate') {
       this.syncUiSnapshotNow()
     } else {
-      this.scheduleUiSnapshotSync(uiSync === 'passive' ? PASSIVE_UI_SNAPSHOT_DELAY_MS : UI_SNAPSHOT_DELAY_MS)
+      this.scheduleUiSnapshotSync(
+        uiSync === 'passive'
+          ? PASSIVE_UI_SNAPSHOT_DELAY_MS
+          : UI_SNAPSHOT_DELAY_MS,
+      )
     }
 
     this.markStateChanged()
@@ -594,7 +644,8 @@ export default class GameStore {
       return
     }
 
-    this.lastMutationAt = updatedAt ?? this.lastMutationAt ?? new Date().toISOString()
+    this.lastMutationAt =
+      updatedAt ?? this.lastMutationAt ?? new Date().toISOString()
   }
 
   applyPassiveIncome(seconds) {
@@ -603,7 +654,9 @@ export default class GameStore {
     startTransition(() => {
       runInAction(() => {
         const result = unlockAchievements(applyIncome(this._state, seconds))
-        this.commitState(result.state, result.unlockedNow, { uiSync: 'passive' })
+        this.commitState(result.state, result.unlockedNow, {
+          uiSync: 'passive',
+        })
       })
     })
   }
@@ -617,7 +670,7 @@ export default class GameStore {
     const isIdleForeground =
       isForeground &&
       !this.isInteracting &&
-      (now - this.lastActivityAt) >= IDLE_THRESHOLD_MS
+      now - this.lastActivityAt >= IDLE_THRESHOLD_MS
 
     if (isForeground && this.isInteracting) {
       this.tickTimeoutId = window.setTimeout(this.tickStep, ACTIVE_TICK_MS)
@@ -630,7 +683,9 @@ export default class GameStore {
 
     this.tickTimeoutId = window.setTimeout(
       this.tickStep,
-      document.visibilityState === 'hidden' || isIdleForeground ? IDLE_TICK_MS : ACTIVE_TICK_MS,
+      document.visibilityState === 'hidden' || isIdleForeground
+        ? IDLE_TICK_MS
+        : ACTIVE_TICK_MS,
     )
   }
 
@@ -663,11 +718,60 @@ export default class GameStore {
     const emoji = isEmojiBurst ? getRandomMegaEmoji() : '🌰'
     const rates = deriveEconomy(snapshot)
     const rawClickValue = isMega ? rates.clickPower * 5 : rates.clickPower
-    const clickValue = Number.isFinite(rawClickValue) ? Math.max(rawClickValue, 0.1) : 0.1
+    const clickValue = Number.isFinite(rawClickValue)
+      ? Math.max(rawClickValue, 0.1)
+      : 0.1
     const emojiExplosionPool = [
-      '😀', '😎', '🥳', '🤯', '😈', '🤖', '👾', '🦄', '🪩', '🔥', '⚡', '🌈', '💥', '🎉', '✨', '🍄', '🐸', '🐙', '🐲', '🦊',
-      '🍓', '🍍', '🍕', '🍩', '🧃', '🌟', '⭐', '💫', '🎊', '🎵', '🎮', '🛸', '🌸', '🌻', '🌴', '❄️', '☁️', '🌋', '🦋', '🐣',
-      '🐼', '🪅', '💎', '🍀', '🫧', '🧠', '👑', '🫶', '🎯', '🏆',
+      '😀',
+      '😎',
+      '🥳',
+      '🤯',
+      '😈',
+      '🤖',
+      '👾',
+      '🦄',
+      '🪩',
+      '🔥',
+      '⚡',
+      '🌈',
+      '💥',
+      '🎉',
+      '✨',
+      '🍄',
+      '🐸',
+      '🐙',
+      '🐲',
+      '🦊',
+      '🍓',
+      '🍍',
+      '🍕',
+      '🍩',
+      '🧃',
+      '🌟',
+      '⭐',
+      '💫',
+      '🎊',
+      '🎵',
+      '🎮',
+      '🛸',
+      '🌸',
+      '🌻',
+      '🌴',
+      '❄️',
+      '☁️',
+      '🌋',
+      '🦋',
+      '🐣',
+      '🐼',
+      '🪅',
+      '💎',
+      '🍀',
+      '🫧',
+      '🧠',
+      '👑',
+      '🫶',
+      '🎯',
+      '🏆',
     ]
 
     const result = unlockAchievements({
@@ -684,7 +788,9 @@ export default class GameStore {
 
     this.commitState(result.state, result.unlockedNow)
 
-    const particleCount = Math.round(clickValue * (isEmojiBurst ? 1.35 : isMega ? 1.1 : 1))
+    const particleCount = Math.round(
+      clickValue * (isEmojiBurst ? 1.35 : isMega ? 1.1 : 1),
+    )
 
     return {
       amount: clickValue,
@@ -692,7 +798,11 @@ export default class GameStore {
         isEmojiBurst ? 6 : isMega ? 3 : 1,
         Math.min(isEmojiBurst ? 68 : isMega ? 32 : 10, particleCount),
       ),
-      symbols: isEmojiBurst ? emojiExplosionPool : isMega ? ['⚡', '⚡️', '⚡', '⚡️'] : [emoji, '✨'],
+      symbols: isEmojiBurst
+        ? emojiExplosionPool
+        : isMega
+          ? ['⚡', '⚡️', '⚡', '⚡️']
+          : [emoji, '✨'],
       isMega,
       isEmojiExplosion: isEmojiBurst,
     }
@@ -765,7 +875,8 @@ export default class GameStore {
       seenBuyableShopItems: buildSeenBuyableShopItems(STARTING_STATE),
       prestigeUpgrades: this._state.prestigeUpgrades,
       prestigeShards: this._state.prestigeShards + preview.shards,
-      totalPrestigeShardsEarned: this._state.totalPrestigeShardsEarned + preview.shards,
+      totalPrestigeShardsEarned:
+        this._state.totalPrestigeShardsEarned + preview.shards,
       rebirths: this._state.rebirths + 1,
       lifetimeShishkiEarned: this._state.lifetimeShishkiEarned,
       lifetimeMoneyEarned: this._state.lifetimeMoneyEarned,

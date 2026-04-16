@@ -1,5 +1,15 @@
 import { isValidElement, memo, useEffect, useMemo, useRef } from 'react'
-import { Coin, Gem, Lightning, PxlKitIcon, Scroll, Sword, Trophy, Community, Robot } from '../../lib/pxlkit'
+import {
+  Coin,
+  Gem,
+  Lightning,
+  PxlKitIcon,
+  Scroll,
+  Sword,
+  Trophy,
+  Community,
+  Robot,
+} from '../../lib/pxlkit'
 import { formatNumber } from '../../lib/format'
 import { ContributionBar } from './ContributionBar.jsx'
 import { ConeIcon } from '../ui/ConeIcon'
@@ -85,15 +95,18 @@ export const StatCard = memo(function StatCard({
   const cardRef = useRef(null)
   const valueTrackRef = useRef(null)
   const valueAnimationTimerRef = useRef(null)
-  const isRenderablePrimitive = typeof value === 'string' || typeof value === 'number'
+  const isRenderablePrimitive =
+    typeof value === 'string' || typeof value === 'number'
   const displayValue = formatValue ? formatNumber(value) : value
-  const shouldAnimateValue = isRenderablePrimitive && !isValidElement(displayValue)
-  const resolvedIcon = typeof icon === 'string'
-    ? ICON_MAP[icon] ?? icon
-    : icon ?? (iconKey ? ICON_MAP[iconKey] ?? iconKey : null)
-  const pixelIcon = iconKey ? PIXEL_ICON_MAP[iconKey] ?? null : null
-  const iconNode = variant === 'pixel' && pixelIcon
-    ? (
+  const shouldAnimateValue =
+    isRenderablePrimitive && !isValidElement(displayValue)
+  const resolvedIcon =
+    typeof icon === 'string'
+      ? (ICON_MAP[icon] ?? icon)
+      : (icon ?? (iconKey ? (ICON_MAP[iconKey] ?? iconKey) : null))
+  const pixelIcon = iconKey ? (PIXEL_ICON_MAP[iconKey] ?? null) : null
+  const iconNode =
+    variant === 'pixel' && pixelIcon ? (
       <PxlKitIcon
         icon={pixelIcon}
         size={18}
@@ -101,16 +114,31 @@ export const StatCard = memo(function StatCard({
         className="stat-card__pixel-icon"
         aria-label={label ?? iconKey}
       />
+    ) : (
+      resolvedIcon
     )
-    : resolvedIcon
-  const items = compact ? (contributions?.items?.slice(0, 3) ?? []) : (contributions?.items ?? [])
+  const items = compact
+    ? (contributions?.items?.slice(0, 3) ?? [])
+    : (contributions?.items ?? [])
   const total = items.reduce((sum, entry) => sum + entry.value, 0) ?? 0
   const topContributors = compact ? items.slice(0, 3) : []
-  const cardClassName = ['stat-card', `stat-card--${variant}`, compact ? 'stat-card--compact' : '', className].filter(Boolean).join(' ')
-  const valueClasses = ['stat-card__value', valueClassName].filter(Boolean).join(' ')
-  const hintClasses = ['stat-card__hint', hintClassName].filter(Boolean).join(' ')
+  const cardClassName = [
+    'stat-card',
+    `stat-card--${variant}`,
+    compact ? 'stat-card--compact' : '',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ')
+  const valueClasses = ['stat-card__value', valueClassName]
+    .filter(Boolean)
+    .join(' ')
+  const hintClasses = ['stat-card__hint', hintClassName]
+    .filter(Boolean)
+    .join(' ')
   const animatedDigits = useMemo(
-    () => (shouldAnimateValue ? buildAnimatedDigits(displayValue, displayValue) : []),
+    () =>
+      shouldAnimateValue ? buildAnimatedDigits(displayValue, displayValue) : [],
     [displayValue, shouldAnimateValue],
   )
 
@@ -127,7 +155,9 @@ export const StatCard = memo(function StatCard({
     const nodes = valueTrackRef.current?.querySelectorAll('.stat-card__digit')
 
     if (nodes?.length) {
-      nodes.forEach((node) => node.classList.remove('stat-card__digit--changed'))
+      nodes.forEach((node) =>
+        node.classList.remove('stat-card__digit--changed'),
+      )
 
       if (nextIndexes.length) {
         cardNode?.classList.remove('stat-card--updated')
@@ -148,7 +178,9 @@ export const StatCard = memo(function StatCard({
         valueAnimationTimerRef.current = window.setTimeout(() => {
           cardNode?.classList.remove('stat-card--updated')
           valueTrackNode?.classList.remove('stat-card__value-track--changed')
-          nodes.forEach((node) => node.classList.remove('stat-card__digit--changed'))
+          nodes.forEach((node) =>
+            node.classList.remove('stat-card__digit--changed'),
+          )
         }, 260)
       }
     }
@@ -163,22 +195,29 @@ export const StatCard = memo(function StatCard({
   }, [])
 
   return (
-    <div ref={cardRef} className={cardClassName} style={{ animationDelay: `${delay * 60}ms` }}>
+    <div
+      ref={cardRef}
+      className={cardClassName}
+      style={{ animationDelay: `${delay * 60}ms` }}
+    >
       {(resolvedIcon || label) && (
         <div className="stat-card__head">
-          {iconNode ? <span className="stat-card__icon">{iconNode}</span> : null}
+          {iconNode ? (
+            <span className="stat-card__icon">{iconNode}</span>
+          ) : null}
           {label ? <span className="stat-card__label">{label}</span> : null}
         </div>
       )}
 
       <div className={valueClasses}>
         {shouldAnimateValue ? (
-          <span ref={valueTrackRef} className="stat-card__value-track" aria-hidden="true">
+          <span
+            ref={valueTrackRef}
+            className="stat-card__value-track"
+            aria-hidden="true"
+          >
             {animatedDigits.map((entry) => (
-              <span
-                key={entry.key}
-                className="stat-card__digit"
-              >
+              <span key={entry.key} className="stat-card__digit">
                 {entry.char}
               </span>
             ))}
@@ -188,22 +227,19 @@ export const StatCard = memo(function StatCard({
         )}
       </div>
 
-      {(hint || reserveHintSpace) && <div className={hintClasses}>{hint ?? ''}</div>}
+      {(hint || reserveHintSpace) && (
+        <div className={hintClasses}>{hint ?? ''}</div>
+      )}
 
       {children}
 
       {compact && topContributors.length > 0 && (
         <div className="stat-card__top-contrib">
           {topContributors.map((entry, index) => (
-            <div
-              key={entry.id}
-              className="stat-card__top-contrib-row"
-            >
+            <div key={entry.id} className="stat-card__top-contrib-row">
               <span>#{index + 1}</span>
               <b>{entry.title}</b>
-              <span
-                className="stat-card__top-contrib-val"
-              >
+              <span className="stat-card__top-contrib-val">
                 {formatNumber(entry.value)}
               </span>
             </div>
@@ -214,7 +250,12 @@ export const StatCard = memo(function StatCard({
       {items.length > 0 && (
         <div className="stat-card__breakdown">
           {items.map((entry, index) => (
-            <ContributionBar key={entry.id} entry={entry} total={total} index={index} />
+            <ContributionBar
+              key={entry.id}
+              entry={entry}
+              total={total}
+              index={index}
+            />
           ))}
         </div>
       )}

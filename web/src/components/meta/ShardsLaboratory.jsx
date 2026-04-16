@@ -13,7 +13,12 @@ export const ShardsLaboratory = ({
 
       <section className="stats-bar stats-bar--shop prestige-lab__summary">
         {prestigeLabSummary.map((item) => (
-          <StatCard key={item.label} {...item} formatValue={false} variant="pixel" />
+          <StatCard
+            key={item.label}
+            {...item}
+            formatValue={false}
+            variant="pixel"
+          />
         ))}
       </section>
 

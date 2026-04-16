@@ -32,7 +32,9 @@ export function createSaveBundle({
     exportedAt,
     payload: {
       game: gameState,
-      ...(includeSettings && settings ? { settings: normalizeSettings(settings) } : {}),
+      ...(includeSettings && settings
+        ? { settings: normalizeSettings(settings) }
+        : {}),
     },
   }
 }
@@ -40,16 +42,14 @@ export function createSaveBundle({
 function hasGameStateShape(value) {
   return Boolean(
     value &&
-      typeof value === 'object' &&
-      !Array.isArray(value) &&
-      (
-        'shishki' in value ||
-        'money' in value ||
-        'knowledge' in value ||
-        'subscriptions' in value ||
-        'upgrades' in value ||
-        'prestigeUpgrades' in value
-      )
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    ('shishki' in value ||
+      'money' in value ||
+      'knowledge' in value ||
+      'subscriptions' in value ||
+      'upgrades' in value ||
+      'prestigeUpgrades' in value),
   )
 }
 
@@ -68,7 +68,9 @@ export function normalizeImportedBundle(rawValue) {
       appVersion: rawValue.appVersion ?? 'unknown',
       exportedAt: rawValue.exportedAt ?? null,
       game,
-      settings: rawValue.payload?.settings ? normalizeSettings(rawValue.payload.settings) : null,
+      settings: rawValue.payload?.settings
+        ? normalizeSettings(rawValue.payload.settings)
+        : null,
       isLegacy: false,
     }
   }

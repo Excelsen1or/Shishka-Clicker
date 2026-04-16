@@ -1,6 +1,14 @@
 import { useMemo } from 'react'
 import { observer } from 'mobx-react-lite'
-import { Coin, Gem, Lightning, PxlKitIcon, Scroll, Trophy, Community } from '../../lib/pxlkit'
+import {
+  Coin,
+  Gem,
+  Lightning,
+  PxlKitIcon,
+  Scroll,
+  Trophy,
+  Community,
+} from '../../lib/pxlkit'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { formatNumber } from '../../lib/format'
 import { ProgressLoopCard } from '../clicker/ProgressLoopCard.jsx'
@@ -39,7 +47,9 @@ function getAchievementTheme(category, secret = false) {
     return ACHIEVEMENT_THEME_BY_CATEGORY.Секреты
   }
 
-  return ACHIEVEMENT_THEME_BY_CATEGORY[category] ?? { tone: 'slate', icon: Trophy }
+  return (
+    ACHIEVEMENT_THEME_BY_CATEGORY[category] ?? { tone: 'slate', icon: Trophy }
+  )
 }
 
 function toRoman(value) {
@@ -67,13 +77,19 @@ function toRoman(value) {
 
 function buildAchievementGroup(items) {
   const sortedItems = [...items].sort((a, b) => a.level - b.level)
-  const currentLevel = sortedItems.reduce((level, item) => (item.unlocked ? item.level : level), 0)
+  const currentLevel = sortedItems.reduce(
+    (level, item) => (item.unlocked ? item.level : level),
+    0,
+  )
   const nextItem = sortedItems.find((item) => !item.unlocked) ?? null
   const lastItem = sortedItems[sortedItems.length - 1]
   const nextLevel = nextItem?.level ?? null
   const progressValue = Number(sortedItems[0]?.progressValue ?? 0)
   const progressTarget = nextItem?.target ?? lastItem?.target ?? 0
-  const theme = getAchievementTheme(sortedItems[0].category, sortedItems[0].secret)
+  const theme = getAchievementTheme(
+    sortedItems[0].category,
+    sortedItems[0].secret,
+  )
 
   return {
     id: `group-${sortedItems[0].groupKey}`,
@@ -150,9 +166,12 @@ export const MetaScreen = observer(function MetaScreen() {
     }, {})
 
     return Object.entries(groups).map(([category, data]) => {
-      const milestoneItems = Array.from(data.milestoneGroups.values()).map(buildAchievementGroup)
+      const milestoneItems = Array.from(data.milestoneGroups.values()).map(
+        buildAchievementGroup,
+      )
       const items = [...milestoneItems, ...data.singles].sort((a, b) => {
-        const weightDelta = getAchievementSortWeight(a) - getAchievementSortWeight(b)
+        const weightDelta =
+          getAchievementSortWeight(a) - getAchievementSortWeight(b)
         if (weightDelta !== 0) return weightDelta
         return (a.tier ?? a.currentLevel ?? 0) - (b.tier ?? b.currentLevel ?? 0)
       })
@@ -167,34 +186,137 @@ export const MetaScreen = observer(function MetaScreen() {
   }, [uiAchievements])
 
   const prestigeStats = [
-    { iconKey: 'rebirth', label: 'Реберсов', value: formatNumber(uiState.rebirths), hint: 'завершенных циклов' },
-    { iconKey: 'shards', label: 'Осколков', value: formatNumber(uiState.prestigeShards), hint: 'на руках сейчас' },
-    { icon: pxl(Lightning, 'общий буст', 18), label: 'Общий буст', value: `x${formatNumber(uiState.prestigeMultiplier)}`, hint: 'постоянный множитель' },
+    {
+      iconKey: 'rebirth',
+      label: 'Реберсов',
+      value: formatNumber(uiState.rebirths),
+      hint: 'завершенных циклов',
+    },
+    {
+      iconKey: 'shards',
+      label: 'Осколков',
+      value: formatNumber(uiState.prestigeShards),
+      hint: 'на руках сейчас',
+    },
+    {
+      icon: pxl(Lightning, 'общий буст', 18),
+      label: 'Общий буст',
+      value: `x${formatNumber(uiState.prestigeMultiplier)}`,
+      hint: 'постоянный множитель',
+    },
   ]
 
   const forecastStats = [
-    { iconKey: 'reward', label: 'Прогноз', value: formatNumber(uiPrestige.projectedShards), hint: 'осколков за реберс' },
-    { icon: pxl(Trophy, 'квота', 18), label: 'Квота', value: formatNumber(uiPrestige.quotaScore), hint: 'текущая оценка цикла' },
-    { icon: <ConeIcon />, label: 'След. квота', value: <>{formatNumber(uiPrestige.nextQuota.shishki)} <ConeIcon /></>, hint: 'по шишкам' },
-    { iconKey: 'knowledge', label: 'След. знания', value: <>{formatNumber(uiPrestige.nextQuota.knowledge)} {pxl(Scroll, 'знания')}</>, hint: 'по знаниям' },
+    {
+      iconKey: 'reward',
+      label: 'Прогноз',
+      value: formatNumber(uiPrestige.projectedShards),
+      hint: 'осколков за реберс',
+    },
+    {
+      icon: pxl(Trophy, 'квота', 18),
+      label: 'Квота',
+      value: formatNumber(uiPrestige.quotaScore),
+      hint: 'текущая оценка цикла',
+    },
+    {
+      icon: <ConeIcon />,
+      label: 'След. квота',
+      value: (
+        <>
+          {formatNumber(uiPrestige.nextQuota.shishki)} <ConeIcon />
+        </>
+      ),
+      hint: 'по шишкам',
+    },
+    {
+      iconKey: 'knowledge',
+      label: 'След. знания',
+      value: (
+        <>
+          {formatNumber(uiPrestige.nextQuota.knowledge)} {pxl(Scroll, 'знания')}
+        </>
+      ),
+      hint: 'по знаниям',
+    },
   ]
 
   const lifetimeStats = [
-    { icon: <ConeIcon />, label: 'Шишки', value: formatNumber(uiState.lifetimeShishkiEarned), hint: 'за все время' },
-    { iconKey: 'money', label: 'Деньги', value: formatNumber(uiState.lifetimeMoneyEarned), hint: 'заработано всего' },
-    { iconKey: 'knowledge', label: 'Знания', value: formatNumber(uiState.lifetimeKnowledgeEarned), hint: 'заработано всего' },
-    { iconKey: 'mega', label: 'Мега-клики', value: formatNumber(uiState.megaClicks), hint: 'ручные усиления' },
-    { icon: pxl(Community, 'взрывы', 18), label: 'Взрывы', value: formatNumber(uiState.emojiBursts), hint: 'эмодзи-эффектов' },
-    { iconKey: 'prize', label: 'Достижения', value: `${unlockedCount}/${uiAchievements.length}`, hint: 'открыто навсегда' },
+    {
+      icon: <ConeIcon />,
+      label: 'Шишки',
+      value: formatNumber(uiState.lifetimeShishkiEarned),
+      hint: 'за все время',
+    },
+    {
+      iconKey: 'money',
+      label: 'Деньги',
+      value: formatNumber(uiState.lifetimeMoneyEarned),
+      hint: 'заработано всего',
+    },
+    {
+      iconKey: 'knowledge',
+      label: 'Знания',
+      value: formatNumber(uiState.lifetimeKnowledgeEarned),
+      hint: 'заработано всего',
+    },
+    {
+      iconKey: 'mega',
+      label: 'Мега-клики',
+      value: formatNumber(uiState.megaClicks),
+      hint: 'ручные усиления',
+    },
+    {
+      icon: pxl(Community, 'взрывы', 18),
+      label: 'Взрывы',
+      value: formatNumber(uiState.emojiBursts),
+      hint: 'эмодзи-эффектов',
+    },
+    {
+      iconKey: 'prize',
+      label: 'Достижения',
+      value: `${unlockedCount}/${uiAchievements.length}`,
+      hint: 'открыто навсегда',
+    },
   ]
 
   const prestigeLabSummary = [
-    { iconKey: 'shards', label: 'На руках', value: `${formatNumber(uiState.prestigeShards)} шт.`, hint: 'свободный баланс' },
-    { icon: pxl(Gem, 'заработано', 18), label: 'Заработано', value: `${formatNumber(uiState.totalPrestigeShardsEarned)} шт.`, hint: 'за все циклы' },
-    { icon: <ConeIcon />, label: 'Квота шишек', value: `-${formatNumber(uiPrestige.bonuses.shishkiQuotaReduction * 100)}%`, hint: 'снижение требования' },
-    { iconKey: 'knowledge', label: 'Квота знаний', value: `-${formatNumber(uiPrestige.bonuses.knowledgeQuotaReduction * 100)}%`, hint: 'снижение требования' },
-    { iconKey: 'prize', label: 'Достижения', value: `-${formatNumber(uiPrestige.bonuses.achievementQuotaReduction)}`, hint: 'срез по квоте' },
-    { icon: pxl(Lightning, 'бонус', 18), label: 'Бонус', value: `+x${formatNumber(uiPrestige.bonuses.permanentMultiplierBonus)}`, hint: 'к постоянному престижу' },
+    {
+      iconKey: 'shards',
+      label: 'На руках',
+      value: `${formatNumber(uiState.prestigeShards)} шт.`,
+      hint: 'свободный баланс',
+    },
+    {
+      icon: pxl(Gem, 'заработано', 18),
+      label: 'Заработано',
+      value: `${formatNumber(uiState.totalPrestigeShardsEarned)} шт.`,
+      hint: 'за все циклы',
+    },
+    {
+      icon: <ConeIcon />,
+      label: 'Квота шишек',
+      value: `-${formatNumber(uiPrestige.bonuses.shishkiQuotaReduction * 100)}%`,
+      hint: 'снижение требования',
+    },
+    {
+      iconKey: 'knowledge',
+      label: 'Квота знаний',
+      value: `-${formatNumber(uiPrestige.bonuses.knowledgeQuotaReduction * 100)}%`,
+      hint: 'снижение требования',
+    },
+    {
+      iconKey: 'prize',
+      label: 'Достижения',
+      value: `-${formatNumber(uiPrestige.bonuses.achievementQuotaReduction)}`,
+      hint: 'срез по квоте',
+    },
+    {
+      icon: pxl(Lightning, 'бонус', 18),
+      label: 'Бонус',
+      value: `+x${formatNumber(uiPrestige.bonuses.permanentMultiplierBonus)}`,
+      hint: 'к постоянному престижу',
+    },
   ]
 
   return (
@@ -203,8 +325,8 @@ export const MetaScreen = observer(function MetaScreen() {
         <span className="screen__kicker">Мета</span>
         <h2 className="screen__title">Престиж, квоты и осколки</h2>
         <p className="screen__desc">
-          Метаслой собран как стратегическая панель: наверху ключевая ситуация по циклу,
-          ниже управление реберсом и постоянными улучшениями.
+          Метаслой собран как стратегическая панель: наверху ключевая ситуация
+          по циклу, ниже управление реберсом и постоянными улучшениями.
         </p>
       </div>
 
@@ -214,7 +336,12 @@ export const MetaScreen = observer(function MetaScreen() {
             <div className="meta-card__kicker">Престиж</div>
             <section className="stats-bar stats-bar--shop meta-stats">
               {prestigeStats.map((item) => (
-                <StatCard key={item.label} {...item} formatValue={false} variant="pixel" />
+                <StatCard
+                  key={item.label}
+                  {...item}
+                  formatValue={false}
+                  variant="pixel"
+                />
               ))}
             </section>
 
@@ -242,27 +369,66 @@ export const MetaScreen = observer(function MetaScreen() {
             {!uiPrestige.isUnlocked ? (
               <>
                 <div className="unlock-progress">
-                  <ProgressRow label={<><ConeIcon /> Лайфтайм шишки</>} current={uiPrestige.unlockProgress.shishki} goal={uiPrestige.unlockRule.shishki} />
-                  <ProgressRow label={<>{knowledgeLabel} лайфтайм</>} current={uiPrestige.unlockProgress.knowledge} goal={uiPrestige.unlockRule.knowledge} alt />
-                  <ProgressRow label={achievementsLabel} current={uiPrestige.unlockProgress.achievements} goal={uiPrestige.unlockRule.achievements} />
+                  <ProgressRow
+                    label={
+                      <>
+                        <ConeIcon /> Лайфтайм шишки
+                      </>
+                    }
+                    current={uiPrestige.unlockProgress.shishki}
+                    goal={uiPrestige.unlockRule.shishki}
+                  />
+                  <ProgressRow
+                    label={<>{knowledgeLabel} лайфтайм</>}
+                    current={uiPrestige.unlockProgress.knowledge}
+                    goal={uiPrestige.unlockRule.knowledge}
+                    alt
+                  />
+                  <ProgressRow
+                    label={achievementsLabel}
+                    current={uiPrestige.unlockProgress.achievements}
+                    goal={uiPrestige.unlockRule.achievements}
+                  />
                 </div>
 
                 <div className="meta-card__hint">
-                  Сначала открой систему престижа. После этого появится отдельная квота забега
-                  и прогноз по осколкам.
+                  Сначала открой систему престижа. После этого появится
+                  отдельная квота забега и прогноз по осколкам.
                 </div>
               </>
             ) : (
               <>
                 <div className="unlock-progress">
-                  <ProgressRow label={<><ConeIcon /> Квота шишек в этом цикле</>} current={uiPrestige.cycleProgress.shishki} goal={uiPrestige.rebirthRule.shishki} />
-                  <ProgressRow label={<>{knowledgeLabel} в этом цикле</>} current={uiPrestige.cycleProgress.knowledge} goal={uiPrestige.rebirthRule.knowledge} alt />
-                  <ProgressRow label={achievementsLabel} current={uiPrestige.cycleProgress.achievements} goal={uiPrestige.rebirthRule.achievements} />
+                  <ProgressRow
+                    label={
+                      <>
+                        <ConeIcon /> Квота шишек в этом цикле
+                      </>
+                    }
+                    current={uiPrestige.cycleProgress.shishki}
+                    goal={uiPrestige.rebirthRule.shishki}
+                  />
+                  <ProgressRow
+                    label={<>{knowledgeLabel} в этом цикле</>}
+                    current={uiPrestige.cycleProgress.knowledge}
+                    goal={uiPrestige.rebirthRule.knowledge}
+                    alt
+                  />
+                  <ProgressRow
+                    label={achievementsLabel}
+                    current={uiPrestige.cycleProgress.achievements}
+                    goal={uiPrestige.rebirthRule.achievements}
+                  />
                 </div>
 
                 <section className="stats-bar stats-bar--shop prestige-forecast-grid">
                   {forecastStats.map((item) => (
-                    <StatCard key={item.label} {...item} formatValue={false} variant="pixel" />
+                    <StatCard
+                      key={item.label}
+                      {...item}
+                      formatValue={false}
+                      variant="pixel"
+                    />
                   ))}
                 </section>
 
@@ -281,7 +447,9 @@ export const MetaScreen = observer(function MetaScreen() {
               onClick={prestigeReset}
             >
               {uiPrestige.isUnlocked
-                ? uiPrestige.canRebirth ? 'Переродиться и забрать осколки' : 'Сначала закрой квоту цикла'
+                ? uiPrestige.canRebirth
+                  ? 'Переродиться и забрать осколки'
+                  : 'Сначала закрой квоту цикла'
                 : 'Сначала открой систему престижа'}
             </button>
           </article>
@@ -304,7 +472,9 @@ export const MetaScreen = observer(function MetaScreen() {
         <div>
           <span className="meta-section-head__kicker">Достижения</span>
         </div>
-        <div className="meta-section-head__meta">Открыто {unlockedCount} из {uiAchievements.length}</div>
+        <div className="meta-section-head__meta">
+          Открыто {unlockedCount} из {uiAchievements.length}
+        </div>
       </div>
 
       <AchievementsGrid grouped={grouped} />

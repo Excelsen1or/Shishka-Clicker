@@ -1,7 +1,8 @@
 import { DiscordSDK } from '@discord/embedded-app-sdk'
 import { exchangeDiscordCode } from './lib/discordAuth.js'
 
-const DISCORD_CLIENT_ID = import.meta.env.VITE_CLIENT_ID ?? import.meta.env.VITE_DISCORD_CLIENT_ID
+const DISCORD_CLIENT_ID =
+  import.meta.env.VITE_CLIENT_ID ?? import.meta.env.VITE_DISCORD_CLIENT_ID
 const DISCORD_ACTIVITY_SCOPES = ['identify', 'rpc.activities.write']
 const DISCORD_READY_TIMEOUT_MS = 5000
 const DISCORD_AUTHORIZE_TIMEOUT_MS = 10000
@@ -14,7 +15,11 @@ function isDiscordEmbeddedContext() {
   }
 
   const params = new URLSearchParams(window.location.search)
-  if (params.has('frame_id') || params.has('instance_id') || params.has('referrer_id')) {
+  if (
+    params.has('frame_id') ||
+    params.has('instance_id') ||
+    params.has('referrer_id')
+  ) {
     return true
   }
 
@@ -72,7 +77,11 @@ export async function setupDiscord() {
   }
 
   try {
-    await withTimeout(discordSdk.ready(), DISCORD_READY_TIMEOUT_MS, 'discord_ready')
+    await withTimeout(
+      discordSdk.ready(),
+      DISCORD_READY_TIMEOUT_MS,
+      'discord_ready',
+    )
 
     const { code } = await withTimeout(
       discordSdk.commands.authorize({

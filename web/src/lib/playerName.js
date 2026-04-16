@@ -1,5 +1,7 @@
 function trimTrailingDiscordZero(value) {
-  return String(value ?? '').replace(/#0+$/, '').trim()
+  return String(value ?? '')
+    .replace(/#0+$/, '')
+    .trim()
 }
 
 export function getPreferredDiscordName(user) {

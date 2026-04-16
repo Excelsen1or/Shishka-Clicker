@@ -1,11 +1,35 @@
-import { memo, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  memo,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { observer } from 'mobx-react-lite'
-import { Coin, Gem, MagicWand, PxlKitIcon, Scroll, SocialStar, Target, Trophy, Community, Package } from '../../lib/pxlkit'
+import {
+  Coin,
+  Gem,
+  MagicWand,
+  PxlKitIcon,
+  Scroll,
+  SocialStar,
+  Target,
+  Trophy,
+  Community,
+  Package,
+} from '../../lib/pxlkit'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { ShopCard } from './ShopCard'
 
 const pxl = (icon, label, size = 18) => (
-  <PxlKitIcon icon={icon} size={size} colorful className="pixel-inline-icon" aria-label={label} />
+  <PxlKitIcon
+    icon={icon}
+    size={size}
+    colorful
+    className="pixel-inline-icon"
+    aria-label={label}
+  />
 )
 
 const SCREEN_META = {
@@ -16,10 +40,30 @@ const SCREEN_META = {
     accent: 'orange',
     emptyText: 'Подписки загружаются...',
     categories: [
-      { id: 'starter', title: 'Стартовые ассистенты', desc: 'Ранние сервисы для первого разгона и мягкого входа в AI-экономику.', icon: Community },
-      { id: 'production', title: 'Рабочие модели', desc: 'Основной производственный слой: стабильный доход, наука и поддержка билда.', icon: Scroll },
-      { id: 'research', title: 'Исследовательские сервисы', desc: 'Сервисы, которые сильнее всего толкают знания и помогают готовить престиж.', icon: Gem },
-      { id: 'frontier', title: 'Фронтир-кластеры', desc: 'Дорогие late-game модели для глубокой меты и финального разгона.', icon: SocialStar },
+      {
+        id: 'starter',
+        title: 'Стартовые ассистенты',
+        desc: 'Ранние сервисы для первого разгона и мягкого входа в AI-экономику.',
+        icon: Community,
+      },
+      {
+        id: 'production',
+        title: 'Рабочие модели',
+        desc: 'Основной производственный слой: стабильный доход, наука и поддержка билда.',
+        icon: Scroll,
+      },
+      {
+        id: 'research',
+        title: 'Исследовательские сервисы',
+        desc: 'Сервисы, которые сильнее всего толкают знания и помогают готовить престиж.',
+        icon: Gem,
+      },
+      {
+        id: 'frontier',
+        title: 'Фронтир-кластеры',
+        desc: 'Дорогие late-game модели для глубокой меты и финального разгона.',
+        icon: SocialStar,
+      },
     ],
   },
   upgrades: {
@@ -29,10 +73,30 @@ const SCREEN_META = {
     accent: 'orange',
     emptyText: 'Апгрейды загружаются...',
     categories: [
-      { id: 'manual', title: 'Ручной темп', desc: 'Клик, ранняя стабильность и активная игра.', icon: Target },
-      { id: 'industry', title: 'Производство и логистика', desc: 'Контур шишек, денег и инфраструктуры для ровной средней игры.', icon: Package },
-      { id: 'research', title: 'Обучение и исследования', desc: 'Ветка, усиливающая AI, науку и стратегические решения.', icon: Scroll },
-      { id: 'capital', title: 'Рост и капитал', desc: 'Поздние ускорители экономики, престижа и длинной дистанции.', icon: Coin },
+      {
+        id: 'manual',
+        title: 'Ручной темп',
+        desc: 'Клик, ранняя стабильность и активная игра.',
+        icon: Target,
+      },
+      {
+        id: 'industry',
+        title: 'Производство и логистика',
+        desc: 'Контур шишек, денег и инфраструктуры для ровной средней игры.',
+        icon: Package,
+      },
+      {
+        id: 'research',
+        title: 'Обучение и исследования',
+        desc: 'Ветка, усиливающая AI, науку и стратегические решения.',
+        icon: Scroll,
+      },
+      {
+        id: 'capital',
+        title: 'Рост и капитал',
+        desc: 'Поздние ускорители экономики, престижа и длинной дистанции.',
+        icon: Coin,
+      },
     ],
   },
 }
@@ -80,7 +144,9 @@ function groupItemsByCategory(items, type, categories) {
   return categories
     .map((category) => ({
       ...category,
-      items: items.filter((item) => (categoryByItem[item.id] ?? 'misc') === category.id),
+      items: items.filter(
+        (item) => (categoryByItem[item.id] ?? 'misc') === category.id,
+      ),
     }))
     .filter((category) => category.items.length > 0)
 }
@@ -118,11 +184,18 @@ const ShopCategory = memo(function ShopCategory({
     <section
       ref={sectionRef}
       className={`shop-category pixel-surface ${isLockedGroup ? 'shop-category--virtualized-locked' : 'shop-category--virtualized'}`}
-      style={{ '--shop-placeholder-count': Math.min(Math.max(category.items.length, 1), 4) }}
+      style={{
+        '--shop-placeholder-count': Math.min(
+          Math.max(category.items.length, 1),
+          4,
+        ),
+      }}
     >
       <div className="shop-category__head">
         <h4 className="shop-category__title">
-          <span className="shop-category__icon">{pxl(category.icon, category.title)}</span>
+          <span className="shop-category__icon">
+            {pxl(category.icon, category.title)}
+          </span>
           {category.title}
         </h4>
         <p className="shop-category__desc">{category.desc}</p>
@@ -143,17 +216,29 @@ const ShopCategory = memo(function ShopCategory({
           ))}
         </div>
       ) : (
-        <div className="shop-grid shop-grid--category shop-grid--deferred" aria-hidden="true">
-          <div className="shop-grid__placeholder">Категория будет отрисована при прокрутке.</div>
+        <div
+          className="shop-grid shop-grid--category shop-grid--deferred"
+          aria-hidden="true"
+        >
+          <div className="shop-grid__placeholder">
+            Категория будет отрисована при прокрутке.
+          </div>
         </div>
       )}
     </section>
   )
 })
 
-function ShopCategoryList({ groupedItems, onBuy, onInspect, isLockedGroup = false }) {
+function ShopCategoryList({
+  groupedItems,
+  onBuy,
+  onInspect,
+  isLockedGroup = false,
+}) {
   return (
-    <div className={`shop-categories${isLockedGroup ? ' shop-categories--locked' : ''}`}>
+    <div
+      className={`shop-categories${isLockedGroup ? ' shop-categories--locked' : ''}`}
+    >
       {groupedItems.map((category, index) => (
         <ShopCategory
           key={category.id}
@@ -187,25 +272,37 @@ function ShopCardGrid({ items, onBuy, onInspect, locked = false }) {
 }
 
 export const ShopScreen = observer(function ShopScreen({ type }) {
-  const { uiEconomy, buySubscription, buyUpgrade, markShopItemSeen, markShopItemsSeen } = useGameStore()
+  const {
+    uiEconomy,
+    buySubscription,
+    buyUpgrade,
+    markShopItemSeen,
+    markShopItemsSeen,
+  } = useGameStore()
   const meta = SCREEN_META[type]
   const hasItemCategories = type === 'upgrades'
 
-  const items = type === 'subscriptions' ? uiEconomy.subscriptions : uiEconomy.upgrades
+  const items =
+    type === 'subscriptions' ? uiEconomy.subscriptions : uiEconomy.upgrades
   const deferredItems = useDeferredValue(items)
   const onBuy = type === 'subscriptions' ? buySubscription : buyUpgrade
 
-  const { unlockedItems, lockedItems, unlockedByCategory, lockedByCategory } = useMemo(() => {
-    const unlocked = deferredItems.filter((item) => item.unlocked)
-    const locked = deferredItems.filter((item) => !item.unlocked)
+  const { unlockedItems, lockedItems, unlockedByCategory, lockedByCategory } =
+    useMemo(() => {
+      const unlocked = deferredItems.filter((item) => item.unlocked)
+      const locked = deferredItems.filter((item) => !item.unlocked)
 
-    return {
-      unlockedItems: unlocked,
-      lockedItems: locked,
-      unlockedByCategory: hasItemCategories ? groupItemsByCategory(unlocked, type, meta.categories) : [],
-      lockedByCategory: hasItemCategories ? groupItemsByCategory(locked, type, meta.categories) : [],
-    }
-  }, [deferredItems, hasItemCategories, meta.categories, type])
+      return {
+        unlockedItems: unlocked,
+        lockedItems: locked,
+        unlockedByCategory: hasItemCategories
+          ? groupItemsByCategory(unlocked, type, meta.categories)
+          : [],
+        lockedByCategory: hasItemCategories
+          ? groupItemsByCategory(locked, type, meta.categories)
+          : [],
+      }
+    }, [deferredItems, hasItemCategories, meta.categories, type])
 
   useEffect(() => {
     const idsToMark = items
@@ -225,7 +322,9 @@ export const ShopScreen = observer(function ShopScreen({ type }) {
         <p className="screen__desc">{meta.desc}</p>
       </div>
 
-      {items.length === 0 ? <div className="shop-empty">{meta.emptyText}</div> : null}
+      {items.length === 0 ? (
+        <div className="shop-empty">{meta.emptyText}</div>
+      ) : null}
 
       {unlockedItems.length > 0 ? (
         <section className="shop-group shop-group--active">
@@ -235,7 +334,10 @@ export const ShopScreen = observer(function ShopScreen({ type }) {
                 {pxl(MagicWand, 'available now', 16)} Доступно сейчас
               </span>
               <h3 className="shop-group__title">Разблокированные</h3>
-              <p className="shop-group__desc">Выбирай с умом, выстраивай свою стратегию и просчитывай следующий шаг.</p>
+              <p className="shop-group__desc">
+                Выбирай с умом, выстраивай свою стратегию и просчитывай
+                следующий шаг.
+              </p>
             </div>
           ) : null}
 
@@ -246,7 +348,11 @@ export const ShopScreen = observer(function ShopScreen({ type }) {
               onInspect={markShopItemSeen}
             />
           ) : (
-            <ShopCardGrid items={unlockedItems} onBuy={onBuy} onInspect={markShopItemSeen} />
+            <ShopCardGrid
+              items={unlockedItems}
+              onBuy={onBuy}
+              onInspect={markShopItemSeen}
+            />
           )}
         </section>
       ) : null}
@@ -258,7 +364,9 @@ export const ShopScreen = observer(function ShopScreen({ type }) {
               {pxl(Trophy, 'next goals', 16)} Следующие цели
             </span>
             <h3 className="shop-group__title">Заблокированные</h3>
-            <p className="shop-group__desc">Эти товары откроются по мере твоего прогресса.</p>
+            <p className="shop-group__desc">
+              Эти товары откроются по мере твоего прогресса.
+            </p>
           </div>
 
           {hasItemCategories ? (
@@ -269,7 +377,12 @@ export const ShopScreen = observer(function ShopScreen({ type }) {
               isLockedGroup
             />
           ) : (
-            <ShopCardGrid items={lockedItems} onBuy={onBuy} onInspect={markShopItemSeen} locked />
+            <ShopCardGrid
+              items={lockedItems}
+              onBuy={onBuy}
+              onInspect={markShopItemSeen}
+              locked
+            />
           )}
         </section>
       ) : null}
