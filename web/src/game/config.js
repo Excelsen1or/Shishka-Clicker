@@ -3,6 +3,7 @@ import {
   getRebirthQuota,
   getShardPreview,
 } from './metaConfig'
+import { formatNumber } from '../lib/format.js'
 
 export const BALANCE = {
   start: {
@@ -1211,7 +1212,7 @@ function getEffectIncrement(effect, level, aiMultiplier = 1) {
 
 function formatEffectStat(stat, value) {
   const meta = STAT_META[stat] ?? { label: stat, prefix: '+', suffix: '' }
-  return `${meta.prefix}${Number(value.toFixed(2))} ${meta.label}${meta.suffix}`.trim()
+  return `${meta.prefix}${formatNumber(value)} ${meta.label}${meta.suffix}`.trim()
 }
 
 function describeItemEffects(item, level, aiMultiplier, prestigeMultiplier) {
