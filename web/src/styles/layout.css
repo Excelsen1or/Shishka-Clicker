@@ -1129,7 +1129,7 @@
 @keyframes achievementToastEnter {
   from {
     opacity: 0;
-    transform: translate3d(0, 0.75rem, 0);
+    transform: translate3d(0.9rem, -0.9rem, 0) scale(0.96);
   }
   to {
     opacity: 1;
@@ -1144,18 +1144,17 @@
   }
   to {
     opacity: 0;
-    transform: translate3d(0.5rem, 1rem, 0);
+    transform: translate3d(0.9rem, -0.9rem, 0) scale(0.96);
   }
 }
 
 @media (max-width: 720px) {
   .achievement-toast {
     right: max(0.75rem, env(safe-area-inset-right, 0px));
-    left: max(0.75rem, env(safe-area-inset-left, 0px));
-    width: auto;
-    bottom: calc(
-      var(--nav-height) + 0.72rem + env(safe-area-inset-bottom, 0px)
-    );
+    top: max(0.75rem, env(safe-area-inset-top, 0px));
+    left: auto;
+    bottom: auto;
+    width: min(13.5rem, calc(100vw - 1.5rem));
     grid-template-columns: auto minmax(0, 1fr);
     gap: 0.44rem;
     padding: 0.46rem 0.5rem 0.54rem;

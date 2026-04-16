@@ -1026,12 +1026,24 @@ export const ClickerButton = observer(function ClickerButton() {
             <span className="clicker-btn__core-ring clicker-btn__core-ring--inner" />
           )}
           <div className="clicker-btn__hero-shell">
-            <img
-              src={heroImage}
-              alt="Шишка"
-              className="clicker-btn__hero"
-              draggable={false}
-            />
+            <span className="clicker-btn__hero-grid" aria-hidden="true" />
+            <span className="clicker-btn__hero-badge pixel-badge" aria-hidden="true">
+              <PxlKitIcon
+                icon={SparkleSmall}
+                size={12}
+                colorful
+                className="pixel-inline-icon"
+              />
+              <span>PXL-01</span>
+            </span>
+            <span className="clicker-btn__hero-motion">
+              <img
+                src={heroImage}
+                alt="Шишка"
+                className="clicker-btn__hero"
+                draggable={false}
+              />
+            </span>
           </div>
         </div>
 

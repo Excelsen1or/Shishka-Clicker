@@ -30,8 +30,11 @@
 .clicker-wrap {
   width: 100%;
   min-width: 0;
+  height: 100%;
   display: grid;
-  place-items: center;
+  grid-template-rows: auto minmax(0, 1fr);
+  justify-items: stretch;
+  align-items: start;
   gap: 0.7rem;
   padding-inline: clamp(0.28rem, 1vw, 0.55rem);
 }
@@ -48,8 +51,10 @@
 
 .clicker-wrap__metrics {
   width: min(100%, 30rem);
+  margin-inline: auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
   gap: 0.48rem;
   align-items: stretch;
 }
@@ -244,7 +249,7 @@
   }
 
   .clicker-btn__core {
-    width: min(100%, 12.2rem);
+    width: min(100%, 13.4rem);
   }
 
   .clicker-wrap__metrics {
@@ -263,12 +268,14 @@
 .clicker-btn {
   --btn-accent-rgb: var(--accent-primary-rgb);
   width: 100%;
-  max-width: 25rem;
+  max-width: 100%;
   margin-inline: auto;
   display: grid;
   place-items: center;
-  min-height: clamp(16.8rem, 36vw, 20.2rem);
-  padding: clamp(0.72rem, 1.3vw, 0.95rem);
+  align-self: stretch;
+  align-content: center;
+  min-height: clamp(17.6rem, 38vw, 21rem);
+  padding: clamp(0.56rem, 1vw, 0.82rem);
   border-radius: calc(var(--radius-lg) + 0.12rem);
   border: 1px solid var(--border-strong);
   background:
@@ -302,21 +309,21 @@
 .clicker-btn--pixel {
   border: 2px solid rgb(var(--white-rgb) / 0.09);
   border-radius: 0;
-  padding: clamp(0.8rem, 1.4vw, 1.08rem);
+  padding: clamp(0.56rem, 1vw, 0.82rem);
   background:
     linear-gradient(
       180deg,
-      rgb(var(--accent-primary-rgb) / 0.1),
+      rgb(var(--accent-primary-rgb) / 0.08),
       transparent 22%
     ),
     linear-gradient(
       180deg,
-      rgb(var(--surface-2-rgb) / 0.98),
-      rgb(var(--surface-1-rgb) / 0.96)
+      rgb(var(--surface-2-rgb) / 0.96),
+      rgb(var(--surface-1-rgb) / 0.92)
     );
   box-shadow:
-    inset 0 0 0 2px rgb(var(--black-rgb) / 0.2),
-    6px 6px 0 0 rgb(var(--black-rgb) / 0.22);
+    inset 0 0 0 2px rgb(var(--black-rgb) / 0.18),
+    0 18px 42px rgb(var(--black-rgb) / 0.18);
 }
 
 .clicker-btn__pixel-corner {
@@ -326,6 +333,7 @@
   background: rgb(var(--accent-primary-rgb) / 0.9);
   z-index: 3;
   pointer-events: none;
+  opacity: 1;
 }
 
 .clicker-btn__pixel-corner--tl {
@@ -349,15 +357,15 @@
 }
 
 .clicker-btn:hover {
-  transform: translateY(-2px) scale(1.009);
-  border-color: rgb(var(--btn-accent-rgb) / 0.46);
+  transform: translateY(-1px) scale(1.003);
+  border-color: rgb(var(--btn-accent-rgb) / 0.42);
   box-shadow:
-    0 0 28px rgb(var(--btn-accent-rgb) / 0.18),
+    0 0 22px rgb(var(--btn-accent-rgb) / 0.14),
     var(--shadow-lg);
 }
 
 .clicker-btn:active {
-  transform: scale(0.985);
+  transform: scale(0.988);
 }
 
 .clicker-btn--mega {
@@ -370,9 +378,8 @@
 
 .clicker-btn--charged {
   box-shadow:
-    0 0 0 1px rgb(var(--btn-accent-rgb) / 0.2),
-    0 0 24px rgb(var(--btn-accent-rgb) / 0.1),
-    0 22px 54px rgb(var(--btn-accent-rgb) / 0.14),
+    0 0 0 1px rgb(var(--btn-accent-rgb) / 0.18),
+    0 0 20px rgb(var(--btn-accent-rgb) / 0.08),
     var(--shadow-lg);
 }
 
@@ -385,19 +392,21 @@
 }
 
 .clicker-btn__aura {
-  inset: 12%;
+  inset: 10% 14%;
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgb(var(--btn-accent-rgb) / 0.18),
-    transparent 68%
+    rgb(var(--btn-accent-rgb) / 0.14),
+    transparent 70%
   );
+  filter: blur(10px);
+  opacity: 0.95;
   z-index: 0;
 }
 
 .clicker-btn__core {
   position: relative;
-  width: min(100%, 14rem);
+  width: min(100%, 15.8rem);
   aspect-ratio: 1;
   margin-inline: auto;
   display: grid;
@@ -413,41 +422,72 @@
 }
 
 .clicker-btn__core-ring--outer {
-  border: 1.5px solid rgb(var(--btn-accent-rgb) / 0.34);
+  border: 1.5px solid rgb(var(--btn-accent-rgb) / 0.26);
   box-shadow:
     inset 0 0 0 1px rgb(var(--white-rgb) / 0.04),
-    0 0 20px rgb(var(--btn-accent-rgb) / 0.1);
+    0 0 28px rgb(var(--btn-accent-rgb) / 0.12);
 }
 
 .clicker-btn__core-ring--inner {
-  inset: 8%;
-  border: 1px dashed rgb(var(--white-rgb) / 0.18);
+  inset: 10%;
+  border: 1px dashed rgb(var(--white-rgb) / 0.14);
+  opacity: 0.88;
+}
+
+.clicker-btn--pixel .clicker-btn__core-ring {
+  border-radius: 0;
+}
+
+.clicker-btn--pixel .clicker-btn__core-ring--outer {
+  inset: 4%;
+  border: 1px solid rgb(var(--accent-primary-rgb) / 0.34);
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      transparent 18%,
+      rgb(var(--accent-primary-rgb) / 0.46) 34%,
+      transparent 52%,
+      transparent 100%
+    )
+    top / 220% 1px no-repeat,
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent 20%,
+      rgb(var(--accent-primary-rgb) / 0.32) 38%,
+      transparent 56%,
+      transparent 100%
+    )
+    right / 1px 220% no-repeat;
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--white-rgb) / 0.05),
+    0 0 24px rgb(var(--btn-accent-rgb) / 0.12),
+    0 0 40px rgb(var(--btn-accent-rgb) / 0.06);
+  animation:
+    heroSquareLineFloat 3.4s ease-in-out infinite,
+    heroScannerSweep 4.6s linear infinite;
+}
+
+.clicker-btn--pixel .clicker-btn__core-ring--inner {
+  display: none;
 }
 
 .clicker-btn__hero-shell {
   position: relative;
-  width: 78%;
+  width: 88%;
   aspect-ratio: 1;
   display: grid;
   place-items: center;
   border-radius: 50%;
   overflow: visible;
-  border: 1px solid rgb(var(--btn-accent-rgb) / 0.38);
-  background:
-    radial-gradient(
-      circle at 35% 28%,
-      rgb(var(--white-rgb) / 0.15),
-      transparent 35%
-    ),
-    radial-gradient(
-      circle at center,
-      rgb(var(--btn-accent-rgb) / 0.24),
-      rgb(var(--surface-strong-rgb) / 0.94)
-    );
-  box-shadow:
-    inset 0 1px 0 rgb(var(--white-rgb) / 0.1),
-    0 20px 48px rgb(var(--black-rgb) / 0.32),
-    0 0 0 4px rgb(var(--btn-accent-rgb) / 0.06);
+  border: 0;
+  background: radial-gradient(
+    circle at center,
+    rgb(var(--btn-accent-rgb) / 0.18),
+    transparent 64%
+  );
+  box-shadow: 0 22px 52px rgb(var(--black-rgb) / 0.22);
   z-index: 2;
 }
 
@@ -456,6 +496,11 @@
   border: 2px solid rgb(var(--accent-primary-rgb) / 0.42);
   border-radius: 0;
   background:
+    linear-gradient(
+      135deg,
+      rgb(var(--accent-primary-rgb) / 0.12),
+      transparent 42%
+    ),
     linear-gradient(180deg, rgb(var(--white-rgb) / 0.06), transparent 24%),
     radial-gradient(
       circle at center,
@@ -464,19 +509,22 @@
     );
   box-shadow:
     inset 0 0 0 2px rgb(var(--black-rgb) / 0.2),
+    inset 0 0 0 3px rgb(var(--accent-primary-rgb) / 0.08),
     0 0 0 4px rgb(var(--btn-accent-rgb) / 0.05),
-    6px 6px 0 0 rgb(var(--black-rgb) / 0.18);
+    6px 6px 0 0 rgb(var(--black-rgb) / 0.18),
+    0 18px 32px rgb(var(--black-rgb) / 0.14);
+  isolation: isolate;
 }
 
 .clicker-btn__hero-shell::before {
   content: '';
   position: absolute;
-  inset: 12%;
+  inset: 8%;
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgb(var(--btn-accent-rgb) / 0.46),
-    transparent 62%
+    rgb(var(--btn-accent-rgb) / 0.34),
+    transparent 64%
   );
   animation: innerGlow 2.6s ease-in-out infinite;
   will-change: transform, opacity;
@@ -484,24 +532,130 @@
   z-index: 0;
 }
 
+.clicker-btn--pixel .clicker-btn__hero-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0.3rem;
+  border: 1px dashed rgb(var(--accent-primary-rgb) / 0.2);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.clicker-btn__hero-grid {
+  position: absolute;
+  inset: 0.7rem;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0,
+      transparent calc(50% - 0.5px),
+      rgb(var(--white-rgb) / 0.04) calc(50% - 0.5px),
+      rgb(var(--white-rgb) / 0.04) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px),
+      transparent 100%
+    ),
+    linear-gradient(
+      180deg,
+      transparent 0,
+      transparent calc(50% - 0.5px),
+      rgb(var(--white-rgb) / 0.035) calc(50% - 0.5px),
+      rgb(var(--white-rgb) / 0.035) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px),
+      transparent 100%
+    );
+  opacity: 0.8;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.clicker-btn__hero-badge,
+.clicker-btn__hero-status {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.24rem;
+  min-height: 1.2rem;
+  padding: 0.12rem 0.34rem;
+  color: var(--text-strong);
+  font-family: var(--font-mono);
+  font-size: 0.46rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.clicker-btn__hero-badge {
+  top: -0.55rem;
+  left: -0.4rem;
+  border-color: rgb(var(--accent-primary-rgb) / 0.28);
+  background: linear-gradient(
+    180deg,
+    rgb(var(--accent-primary-rgb) / 0.2),
+    rgb(var(--accent-primary-rgb) / 0.08)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--black-rgb) / 0.12),
+    2px 2px 0 0 rgb(var(--black-rgb) / 0.16);
+}
+
+.clicker-btn__hero-motion {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  pointer-events: none;
+}
+
 .clicker-btn__hero {
-  width: 134%;
+  width: 126%;
   aspect-ratio: 1;
   object-fit: contain;
-  filter: drop-shadow(0 12px 24px rgb(var(--black-rgb) / 0.3));
+  filter: drop-shadow(0 16px 28px rgb(var(--black-rgb) / 0.26));
   position: relative;
   z-index: 1;
   transform: translateY(-8%);
 }
 
+@keyframes heroSquareLineFloat {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.74;
+  }
+  50% {
+    transform: scale(1.024);
+    opacity: 1;
+  }
+}
+
+@keyframes heroScannerSweep {
+  0% {
+    background-position:
+      -140% 0,
+      100% -140%;
+  }
+  100% {
+    background-position:
+      180% 0,
+      100% 180%;
+  }
+}
+
 .clicker-btn__content {
   position: absolute;
-  inset: auto clamp(0.72rem, 2.8vw, 1.15rem) clamp(0.72rem, 2.4vw, 1.02rem);
+  inset: auto 0 clamp(0.3rem, 1.6vw, 0.72rem);
   display: grid;
+  gap: 0.18rem;
   justify-items: center;
   text-align: center;
   pointer-events: none;
-  z-index: 4;
+  z-index: 5;
+  filter: drop-shadow(0 10px 22px rgb(var(--black-rgb) / 0.42));
 }
 
 .clicker-btn__content--shake {
@@ -552,18 +706,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  max-width: min(100%, 16.8rem);
-  min-height: 2.5rem;
-  padding: 0.36rem 0.78rem 0.42rem;
-  border: 2px solid rgb(var(--white-rgb) / 0.08);
-  background: linear-gradient(
-    180deg,
-    rgb(var(--surface-2-rgb) / 0.94),
-    rgb(var(--surface-1-rgb) / 0.98)
-  );
-  box-shadow:
-    inset 0 0 0 1px rgb(var(--black-rgb) / 0.18),
-    4px 4px 0 0 rgb(var(--black-rgb) / 0.18);
+  max-width: min(100%, 18rem);
+  min-height: 0;
+  padding: 0.08rem 0.4rem 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
   color: var(--text-strong);
   font-family: var(--font-display);
   font-size: clamp(0.96rem, 1.45vw, 1.16rem);
@@ -571,22 +719,19 @@
   line-height: 1.04;
   letter-spacing: 0;
   text-wrap: balance;
+  text-shadow:
+    0 6px 24px rgb(var(--black-rgb) / 0.6),
+    0 0 22px rgb(var(--btn-accent-rgb) / 0.22),
+    2px 2px 0 rgb(var(--black-rgb) / 0.3);
 }
 
 .clicker-btn--pixel .clicker-btn__label {
   border-radius: 0;
-  background:
-    linear-gradient(
-      180deg,
-      rgb(var(--accent-primary-rgb) / 0.16),
-      transparent 20%
-    ),
-    linear-gradient(
-      180deg,
-      rgb(var(--surface-2-rgb) / 0.98),
-      rgb(var(--surface-1-rgb) / 0.96)
-    );
-  text-shadow: 2px 2px 0 rgb(var(--black-rgb) / 0.26);
+  background: none;
+  text-shadow:
+    0 6px 24px rgb(var(--black-rgb) / 0.6),
+    0 0 22px rgb(var(--btn-accent-rgb) / 0.22),
+    2px 2px 0 rgb(var(--black-rgb) / 0.3);
 }
 
 .clicker-wrap__metric {
@@ -2118,7 +2263,7 @@
   .clicker-btn {
     box-shadow: var(--shadow-md);
     max-width: 100%;
-    min-height: 15.2rem;
+    min-height: 15.4rem;
   }
 
   .clicker-btn:hover {
@@ -2133,7 +2278,7 @@
   }
 
   .clicker-btn__core {
-    width: min(100%, 11.2rem);
+    width: min(100%, 12.8rem);
   }
 
   .clicker-wrap__metrics {
@@ -4145,6 +4290,76 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
+  .achievement-toolbar {
+    align-items: stretch;
+    gap: 0.58rem;
+  }
+
+  .achievement-toolbar__filters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 0.38rem;
+  }
+
+  .achievement-filter {
+    width: 100%;
+    justify-content: center;
+    padding-inline: 0.5rem;
+    font-size: 0.64rem;
+    letter-spacing: 0.08em;
+  }
+
+  .achievement-toolbar__meta {
+    width: 100%;
+    text-align: right;
+  }
+
+  .achievement-category {
+    gap: 0.56rem;
+    padding: 0.72rem;
+  }
+
+  .achievement-category__toggle {
+    padding: 0.64rem 0.68rem;
+  }
+
+  .achievement-grid {
+    grid-template-columns: 1fr;
+    gap: 0.56rem;
+  }
+
+  .achievement-card {
+    padding: 0.64rem;
+    gap: 0.42rem;
+  }
+
+  .achievement-card__head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.36rem;
+  }
+
+  .achievement-card__level,
+  .achievement-card__status {
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .achievement-card__title {
+    font-size: 0.9rem;
+  }
+
+  .achievement-card__desc {
+    font-size: 0.74rem;
+    line-height: 1.34;
+  }
+
+  .achievement-card__progress-meta {
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+  }
 }
 
 @media (max-width: 759px) {
@@ -4177,6 +4392,7 @@
     align-self: stretch;
     width: 100%;
     min-width: 0;
+    align-content: start;
   }
 
   .clicker-wrap {
@@ -4206,18 +4422,18 @@
 
   .clicker-btn {
     max-width: min(100%, 31rem);
-    min-height: 15rem;
-    padding: 0.72rem 0.68rem 0.78rem;
+    min-height: 15.6rem;
+    padding: 0.56rem 0.48rem 0.62rem;
   }
 
   .clicker-btn__core {
-    width: min(100%, 11.9rem);
+    width: min(100%, 13.2rem);
   }
 
   .clicker-btn__label {
-    max-width: min(100%, 14rem);
-    min-height: 2.2rem;
-    padding: 0.3rem 0.62rem 0.36rem;
+    max-width: min(100%, 15rem);
+    min-height: 0;
+    padding: 0.04rem 0.32rem 0;
     font-size: clamp(0.84rem, 3.6vw, 1.02rem);
   }
 
@@ -4248,11 +4464,11 @@
   .clicker-layout__stats .side-kpi-grid,
   .clicker-layout__meta .side-kpi-grid {
     width: 100%;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 500px) {
   .clicker-wrap {
     gap: 0.58rem;
   }
@@ -4277,6 +4493,11 @@
 
   .clicker-layout__meta {
     order: 3;
+  }
+
+  .clicker-layout__stats .side-kpi-grid,
+  .clicker-layout__meta .side-kpi-grid {
+    grid-template-columns: 1fr;
   }
 
   .progress-stats-panel .progress-stats {

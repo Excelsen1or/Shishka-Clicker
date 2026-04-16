@@ -196,8 +196,14 @@
   animation: pulseHalo 2.9s ease-in-out infinite;
 }
 
+.clicker-btn__hero-motion {
+  animation: heroFloat 3.6s ease-in-out infinite;
+  will-change: transform;
+}
+
 .clicker-btn__hero {
-  animation: heroFloat 3.2s ease-in-out infinite;
+  animation: heroTilt 4.8s ease-in-out infinite;
+  transform-origin: 50% 72%;
   will-change: transform;
 }
 
@@ -255,6 +261,7 @@
 
 :root[data-fx-click-animations='false'] .clicker-btn,
 :root[data-fx-click-animations='false'] .clicker-btn__aura,
+:root[data-fx-click-animations='false'] .clicker-btn__hero-motion,
 :root[data-fx-click-animations='false'] .clicker-btn__hero,
 :root[data-fx-click-animations='false'] .clicker-btn__core-ring--outer,
 :root[data-fx-click-animations='false'] .clicker-btn__core-ring--inner,
@@ -716,10 +723,32 @@
 @keyframes heroFloat {
   0%,
   100% {
-    transform: translateY(0px) scale(1);
+    transform: translate3d(0, -2px, 0);
+  }
+  25% {
+    transform: translate3d(0, -11px, 0);
   }
   50% {
-    transform: translateY(-20px) scale(1.018);
+    transform: translate3d(0, -22px, 0);
+  }
+  75% {
+    transform: translate3d(0, -11px, 0);
+  }
+}
+
+@keyframes heroTilt {
+  0%,
+  100% {
+    transform: rotate(-0.5deg) scale(1);
+  }
+  25% {
+    transform: rotate(-1.35deg) scale(1.008);
+  }
+  50% {
+    transform: rotate(0.35deg) scale(1.014);
+  }
+  75% {
+    transform: rotate(1.2deg) scale(1.008);
   }
 }
 
