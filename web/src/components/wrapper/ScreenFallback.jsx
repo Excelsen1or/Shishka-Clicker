@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Lightning, PxlKitIcon, Robot, SparkleSmall } from '../../lib/pxlkit'
 
 function resolveTargetProgress(phase) {
   switch (phase) {
@@ -87,17 +88,66 @@ export const ScreenFallback = ({
     setProgress(target)
   }, [target])
 
+  const completedSteps = steps.filter((step) => step.state === 'done').length
+  const activeStep = steps.find((step) => step.state === 'active')
+  const statusTone =
+    phase === 'ready'
+      ? 'ready'
+      : steps.some((step) => step.state === 'error')
+        ? 'error'
+        : 'active'
+
   return (
     <section
       className={`screen settings-screen ${mode === 'boot' ? 'screen--boot-loading' : ''}`.trim()}
     >
-      <div className={`${mode === 'boot' ? 'boot-loading-shell' : ''}`.trim()}>
+      <div
+        className={`${mode === 'boot' ? 'boot-loading-shell' : ''} boot-loading-shell--pixel`.trim()}
+      >
         <div
           className={`screen__header ${mode === 'boot' ? 'screen__header--boot' : ''}`.trim()}
         >
+          <div className="boot-loading-marquee">
+            <span className="pixel-badge boot-loading-marquee__badge">
+              <PxlKitIcon
+                icon={Lightning}
+                size={12}
+                colorful
+                className="pixel-inline-icon"
+              />
+              <span>{mode === 'boot' ? 'BOOT SECTOR' : 'PIXEL UI'}</span>
+            </span>
+            <span
+              className={`boot-loading-marquee__status boot-loading-marquee__status--${statusTone}`}
+            >
+              {phase === 'ready' ? 'READY' : 'SYNC'}
+            </span>
+          </div>
+
           <span className="screen__kicker">{copy.kicker}</span>
           <h2 className="screen__title">{copy.title}</h2>
           <p className="screen__desc">{copy.desc}</p>
+
+          <div className="boot-loading-ledger" aria-hidden="true">
+            <span>
+              <PxlKitIcon
+                icon={Robot}
+                size={12}
+                colorful
+                className="pixel-inline-icon"
+              />
+              PIPELINE
+            </span>
+            <span>
+              <PxlKitIcon
+                icon={SparkleSmall}
+                size={12}
+                colorful
+                className="pixel-inline-icon"
+              />
+              {completedSteps}/{Math.max(steps.length, 1)} READY
+            </span>
+          </div>
         </div>
 
         <div className="boot-loading-meter">
@@ -107,13 +157,18 @@ export const ScreenFallback = ({
           </div>
 
           <div className="unlock-progress">
-            <div className="unlock-progress__row"></div>
+            <div className="unlock-progress__row" />
             <div className="unlock-progress__track">
               <div
                 className="unlock-progress__fill unlock-progress__fill--alt"
                 style={{ width: `${progress}%` }}
               />
             </div>
+          </div>
+
+          <div className="boot-loading-progress-meta">
+            <span>{copy.label}</span>
+            <span>{activeStep?.label ?? 'Ожидание'}</span>
           </div>
 
           {steps.length ? (
@@ -123,10 +178,7 @@ export const ScreenFallback = ({
                   key={step.id}
                   className={`boot-loading-step boot-loading-step--${step.state}`.trim()}
                 >
-                  <div
-                    className="boot-loading-step__marker"
-                    aria-hidden="true"
-                  />
+                  <div className="boot-loading-step__marker" aria-hidden="true" />
                   <div className="boot-loading-step__body">
                     <div className="boot-loading-step__head">
                       <strong>{step.label}</strong>

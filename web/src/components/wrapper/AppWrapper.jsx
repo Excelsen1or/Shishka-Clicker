@@ -9,6 +9,7 @@ import { useNav } from '../../context/NavContext.jsx'
 import { useSettingsVisuals } from '../../context/SettingsContext.jsx'
 import { useDiscordBoot } from '../../context/DiscordActivityContext.jsx'
 import { ScreenFallback } from './ScreenFallback.jsx'
+import { AmbientCanvas } from '../ui/AmbientCanvas.jsx'
 
 export const loadClickerScreen = () => import('../clicker/ClickerScreen')
 export const loadShopScreen = () => import('../shop/ShopScreen')
@@ -134,12 +135,7 @@ const AppBackground = memo(function AppBackground({ visualEffectToggles }) {
   const showNoiseOverlay = visualEffectToggles.noiseOverlay
 
   return (
-    <>
-      {showAmbientOrbs ? <div className="ambient ambient--a" /> : null}
-      {showAmbientOrbs ? <div className="ambient ambient--b" /> : null}
-      {showAmbientOrbs ? <div className="ambient ambient--c" /> : null}
-      {showNoiseOverlay ? <div className="noise-overlay" /> : null}
-    </>
+    <AmbientCanvas showAmbient={showAmbientOrbs} showNoise={showNoiseOverlay} />
   )
 })
 

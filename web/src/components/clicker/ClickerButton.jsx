@@ -47,10 +47,27 @@ function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value))
 }
 
+const imageCache = new Map()
+
 function loadImage(src) {
+  const cached = imageCache.get(src)
+  if (cached) return cached
+
   const image = new Image()
   image.src = src
+  imageCache.set(src, image)
   return image
+}
+
+function pruneTapTimestampsInPlace(buffer, now) {
+  let writeIndex = 0
+  for (let index = 0; index < buffer.length; index += 1) {
+    if (now - buffer[index] <= TAP_SPEED_WINDOW) {
+      buffer[writeIndex] = buffer[index]
+      writeIndex += 1
+    }
+  }
+  buffer.length = writeIndex
 }
 
 function getTextSprite(cache, symbol, fontSize, fillStyle, fontWeight) {
@@ -242,7 +259,12 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay(
   const sizeRef = useRef({ left: 0, top: 0, width: 0, height: 0, dpr: 1 })
   const imagesRef = useRef({ cone: null, altCone: null })
   const textSpriteCacheRef = useRef(new Map())
-  const effectsRef = useRef({ particles: [], coneSprites: [], shockwaves: [] })
+  const effectsRef = useRef({
+    particles: [],
+    coneSprites: [],
+    shockwaves: [],
+    bursts: [],
+  })
   const activeBurstsRef = useRef([])
   const visibilityRef = useRef(false)
   const poolsRef = useRef({
@@ -911,9 +933,7 @@ export const ClickerButton = observer(function ClickerButton() {
   function rotateClickerLabel() {
     const now = Date.now()
     tapTimestampsRef.current.push(now)
-    tapTimestampsRef.current = tapTimestampsRef.current.filter(
-      (timestamp) => now - timestamp <= TAP_SPEED_WINDOW,
-    )
+    pruneTapTimestampsInPlace(tapTimestampsRef.current, now)
 
     scheduleIdleLabel()
 

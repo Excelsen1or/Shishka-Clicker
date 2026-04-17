@@ -382,7 +382,6 @@ export function buildClickSpawnState({
         : {
             cap: burstCap,
             entry: {
-              id: `burst-${now}-${Math.random().toString(36).slice(2)}`,
               x: burstPoint.x,
               y: burstPoint.y,
               value: result.isEmojiExplosion
@@ -391,6 +390,8 @@ export function buildClickSpawnState({
                   ? `MEGA +${formatNumber(result.amount)}`
                   : `+${formatNumber(result.amount)}`,
               type: burstType,
+              createdAt: now,
+              lifetime: burstLifetime,
               expiresAt: now + burstLifetime + CLEANUP_BUFFER_MS,
             },
           },
