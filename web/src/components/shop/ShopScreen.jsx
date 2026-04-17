@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react'
 import { observer } from 'mobx-react-lite'
+import '../../styles/shop-screen.css'
 import {
   Coin,
   Gem,

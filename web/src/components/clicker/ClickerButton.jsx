@@ -239,6 +239,54 @@ function getTierForTps(tps) {
   return TAP_SPEED_TIERS[0]
 }
 
+function drawCanvasBurst(ctx, burst, now) {
+  const progress = clamp((now - burst.createdAt) / burst.lifetime, 0, 1)
+  const eased = easeOutCubic(progress)
+  const y = burst.y - 28 - 74 * eased
+  const amount = String(burst.value).match(/\+\S+/)?.[0] ?? burst.value
+  const badge =
+    burst.type === 'emoji' ? 'EMOJI' : burst.type === 'mega' ? 'MEGA' : null
+  const fontSize = burst.type === 'emoji' ? 17 : burst.type === 'mega' ? 16 : 15
+  const alpha =
+    progress < 0.12 ? progress / 0.12 : progress > 0.76 ? 1 - (progress - 0.76) / 0.24 : 1
+
+  ctx.save()
+  ctx.globalAlpha = clamp(alpha, 0, 1)
+  ctx.textBaseline = 'middle'
+  ctx.textAlign = 'left'
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.34)'
+  ctx.shadowBlur = 0
+  ctx.shadowOffsetX = 2
+  ctx.shadowOffsetY = 2
+
+  let cursorX = burst.x
+  if (badge) {
+    ctx.font = '900 10px "Space Mono", monospace'
+    const badgeWidth = Math.ceil(ctx.measureText(badge).width) + 16
+    ctx.fillStyle =
+      burst.type === 'emoji'
+        ? 'rgba(255, 91, 211, 0.28)'
+        : 'rgba(255, 196, 53, 0.24)'
+    ctx.fillRect(cursorX - 10, y - 10, badgeWidth, 16)
+    ctx.strokeStyle = 'rgba(255,255,255,0.16)'
+    ctx.lineWidth = 2
+    ctx.strokeRect(cursorX - 10, y - 10, badgeWidth, 16)
+    ctx.fillStyle = 'rgba(255,255,255,0.94)'
+    ctx.fillText(badge, cursorX - 2, y)
+    cursorX += badgeWidth + 5
+  }
+
+  ctx.font = `900 ${fontSize}px "Unbounded", sans-serif`
+  ctx.fillStyle =
+    burst.type === 'emoji'
+      ? '#ffd7f4'
+      : burst.type === 'mega'
+        ? '#ffffff'
+        : '#ffbe32'
+  ctx.fillText(amount, cursorX, y)
+  ctx.restore()
+}
+
 const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay(
   { anchorRef },
   ref,
@@ -252,10 +300,8 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay(
   } = useSettingsVisuals()
 
   const canvasRef = useRef(null)
-  const burstsLayerRef = useRef(null)
   const ctxRef = useRef(null)
   const rafRef = useRef(0)
-  const burstCleanupTimeoutRef = useRef(null)
   const sizeRef = useRef({ left: 0, top: 0, width: 0, height: 0, dpr: 1 })
   const imagesRef = useRef({ cone: null, altCone: null })
   const textSpriteCacheRef = useRef(new Map())
@@ -265,7 +311,6 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay(
     shockwaves: [],
     bursts: [],
   })
-  const activeBurstsRef = useRef([])
   const visibilityRef = useRef(false)
   const poolsRef = useRef({
     particles: [],
@@ -279,7 +324,6 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay(
     visualEffectToggles,
     visualEffectsFactor,
   })
-  const scheduleBurstCleanupRef = useRef(() => {})
 
   useEffect(() => {
     configRef.current = {
@@ -306,9 +350,8 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay(
 
   const syncOverlayBounds = useCallback(() => {
     const canvas = canvasRef.current
-    const layer = burstsLayerRef.current
     const anchor = anchorRef?.current
-    if (!canvas || !layer || !anchor) return
+    if (!canvas || !anchor) return
 
     const rect = anchor.getBoundingClientRect()
     const left = Math.max(0, Math.floor(rect.left - EFFECTS_VIEWPORT_PADDING))
@@ -334,11 +377,6 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay(
     canvas.style.width = `${width}px`
     canvas.style.height = `${height}px`
 
-    layer.style.left = `${left}px`
-    layer.style.top = `${top}px`
-    layer.style.width = `${width}px`
-    layer.style.height = `${height}px`
-
     const ctx = canvas.getContext('2d')
     if (!ctx) return
     ctx.setTransform(dpr, 0, 0, dpr, -left * dpr, -top * dpr)
@@ -346,119 +384,11 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay(
     ctxRef.current = ctx
   }, [anchorRef])
 
-  const releaseBurstNode = useCallback((node) => {
-    if (!node) return
-    node.hidden = true
-    node.className = 'click-burst'
-    node.style.left = ''
-    node.style.top = ''
-    node.replaceChildren()
-    node.remove()
-    poolsRef.current.bursts.push(node)
-  }, [])
-
-  const pruneBursts = useCallback(
-    (now = Date.now()) => {
-      const active = activeBurstsRef.current
-      if (!active.length) return
-
-      let writeIndex = 0
-      for (let index = 0; index < active.length; index += 1) {
-        const burst = active[index]
-        if (burst.expiresAt > now && burst.node.isConnected) {
-          active[writeIndex] = burst
-          writeIndex += 1
-        } else {
-          releaseBurstNode(burst.node)
-        }
-      }
-      active.length = writeIndex
-    },
-    [releaseBurstNode],
-  )
-
-  const scheduleBurstCleanup = useCallback(() => {
-    if (burstCleanupTimeoutRef.current) {
-      window.clearTimeout(burstCleanupTimeoutRef.current)
-      burstCleanupTimeoutRef.current = null
-    }
-
-    const active = activeBurstsRef.current
-    if (!active.length) {
-      const hasCanvasEffects =
-        effectsRef.current.particles.length > 0 ||
-        effectsRef.current.coneSprites.length > 0 ||
-        effectsRef.current.shockwaves.length > 0
-
-      if (!hasCanvasEffects && visibilityRef.current) {
-        setIsVisible(false)
-      }
-      return
-    }
-
-    let nextExpiresAt = active[0].expiresAt
-    for (let index = 1; index < active.length; index += 1) {
-      nextExpiresAt = Math.min(nextExpiresAt, active[index].expiresAt)
-    }
-
-    burstCleanupTimeoutRef.current = window.setTimeout(
-      () => {
-        pruneBursts()
-        scheduleBurstCleanupRef.current()
-      },
-      Math.max(16, nextExpiresAt - Date.now() + 24),
-    )
-  }, [pruneBursts])
-
-  useEffect(() => {
-    scheduleBurstCleanupRef.current = scheduleBurstCleanup
-  }, [scheduleBurstCleanup])
-
-  const spawnBurstNode = useCallback(
-    (burst, cap) => {
-      const layer = burstsLayerRef.current
-      if (!layer || cap <= 0) return
-
-      pruneBursts()
-
-      while (activeBurstsRef.current.length >= cap) {
-        const oldest = activeBurstsRef.current.shift()
-        releaseBurstNode(oldest?.node)
-      }
-
-      const node =
-        poolsRef.current.bursts.pop() ?? document.createElement('span')
-      node.hidden = false
-      node.className = `click-burst click-burst--${burst.type || 'normal'}`
-      node.style.left = `${burst.x - sizeRef.current.left}px`
-      node.style.top = `${burst.y - sizeRef.current.top}px`
-
-      if (burst.type === 'mega' || burst.type === 'emoji') {
-        const badge = document.createElement('span')
-        badge.className = 'click-burst__badge'
-        badge.textContent = burst.type === 'emoji' ? 'ЭМОДЗИ' : 'МЕГА'
-        node.appendChild(badge)
-      }
-
-      const amount = document.createElement('span')
-      amount.className = 'click-burst__amount'
-      amount.textContent =
-        String(burst.value).match(/\+\S+/)?.[0] ?? burst.value
-      node.appendChild(amount)
-
-      layer.appendChild(node)
-      activeBurstsRef.current.push({ node, expiresAt: burst.expiresAt })
-      scheduleBurstCleanup()
-    },
-    [pruneBursts, releaseBurstNode, scheduleBurstCleanup],
-  )
-
   useEffect(() => {
     if (!isVisible) return undefined
 
     const resizeOverlay = () => {
       syncOverlayBounds()
-      pruneBursts()
     }
 
     resizeOverlay()
@@ -468,7 +398,7 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay(
       window.removeEventListener('resize', resizeOverlay)
       ctxRef.current = null
     }
-  }, [isVisible, pruneBursts, syncOverlayBounds])
+  }, [isVisible, syncOverlayBounds])
 
   const scheduleDraw = useCallback(() => {
     if (rafRef.current) return
@@ -498,7 +428,7 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay(
         now,
         poolsRef.current.shockwaves,
       )
-      pruneBursts(now)
+      pruneExpiredInPlace(activeEffects.bursts, now, poolsRef.current.bursts)
 
       for (const wave of activeEffects.shockwaves) {
         if (now < wave.createdAt) continue
@@ -668,34 +598,31 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay(
         ctx.restore()
       }
 
+      for (const burst of activeEffects.bursts) {
+        drawCanvasBurst(ctx, burst, now)
+      }
+
       const hasCanvasEffects =
         activeEffects.particles.length > 0 ||
         activeEffects.coneSprites.length > 0 ||
-        activeEffects.shockwaves.length > 0
+        activeEffects.shockwaves.length > 0 ||
+        activeEffects.bursts.length > 0
 
       if (hasCanvasEffects) {
         rafRef.current = window.requestAnimationFrame(drawFrame)
-      } else if (!activeBurstsRef.current.length && visibilityRef.current) {
+      } else if (visibilityRef.current) {
         setIsVisible(false)
       }
     }
 
     rafRef.current = window.requestAnimationFrame(drawFrame)
-  }, [pruneBursts])
+  }, [])
 
   useEffect(() => {
-    const activeBursts = activeBurstsRef.current
-
     return () => {
       if (rafRef.current) window.cancelAnimationFrame(rafRef.current)
-      if (burstCleanupTimeoutRef.current)
-        window.clearTimeout(burstCleanupTimeoutRef.current)
-      for (const burst of activeBursts) {
-        releaseBurstNode(burst.node)
-      }
-      activeBursts.length = 0
     }
-  }, [releaseBurstNode])
+  }, [])
 
   useEffect(() => {
     if (!isVisible) return
@@ -703,7 +630,8 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay(
     const hasCanvasEffects =
       effectsRef.current.particles.length > 0 ||
       effectsRef.current.coneSprites.length > 0 ||
-      effectsRef.current.shockwaves.length > 0
+      effectsRef.current.shockwaves.length > 0 ||
+      effectsRef.current.bursts.length > 0
 
     if (hasCanvasEffects) {
       scheduleDraw()
@@ -739,7 +667,12 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay(
         }
 
         if (nextEffects.burst) {
-          spawnBurstNode(nextEffects.burst.entry, nextEffects.burst.cap)
+          appendWithCapInPlace(
+            effectsRef.current.bursts,
+            [nextEffects.burst.entry],
+            nextEffects.burst.cap,
+            poolsRef.current.bursts,
+          )
         }
 
         if (nextEffects.particles.length) {
@@ -772,27 +705,25 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay(
         const hasCanvasEffects =
           effectsRef.current.particles.length > 0 ||
           effectsRef.current.coneSprites.length > 0 ||
-          effectsRef.current.shockwaves.length > 0
+          effectsRef.current.shockwaves.length > 0 ||
+          effectsRef.current.bursts.length > 0
 
         if (hasCanvasEffects) {
           scheduleDraw()
         }
       },
     }),
-    [scheduleDraw, spawnBurstNode, syncOverlayBounds],
+    [scheduleDraw, syncOverlayBounds],
   )
 
   if (!isVisible) return null
 
   return createPortal(
-    <>
-      <canvas
-        ref={canvasRef}
-        className="clicker-particles clicker-effects-canvas"
-        aria-hidden="true"
-      />
-      <div ref={burstsLayerRef} className="bursts-layer" aria-hidden="true" />
-    </>,
+    <canvas
+      ref={canvasRef}
+      className="clicker-particles clicker-effects-canvas"
+      aria-hidden="true"
+    />,
     document.body,
   )
 })

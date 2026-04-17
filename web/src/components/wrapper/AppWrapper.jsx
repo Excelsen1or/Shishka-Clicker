@@ -2,7 +2,7 @@ import { BottomNav } from '../bottom/BottomNav.jsx'
 import { AchievementToast } from '../ui/AchievementToast.jsx'
 import { DevConsole } from '../ui/DevConsole.jsx'
 import { StatsBar } from '../stats/StatsBar.jsx'
-import { memo, useEffect, useSyncExternalStore } from 'react'
+import { Suspense, lazy, memo, useEffect, useSyncExternalStore } from 'react'
 import { observer } from 'mobx-react-lite'
 import { Header } from '../header/Header.jsx'
 import { useNav } from '../../context/NavContext.jsx'
@@ -10,6 +10,12 @@ import { useSettingsVisuals } from '../../context/SettingsContext.jsx'
 import { useDiscordBoot } from '../../context/DiscordActivityContext.jsx'
 import { ScreenFallback } from './ScreenFallback.jsx'
 import { AmbientCanvas } from '../ui/AmbientCanvas.jsx'
+
+const DiscordRichPresenceBridge = lazy(() =>
+  import('../discord/DiscordRichPresenceBridge.jsx').then((module) => ({
+    default: module.DiscordRichPresenceBridge,
+  })),
+)
 
 export const loadClickerScreen = () => import('../clicker/ClickerScreen')
 export const loadShopScreen = () => import('../shop/ShopScreen')
@@ -246,6 +252,11 @@ export const AppWrapper = observer(function AppWrapper() {
   return (
     <div className="app-shell">
       <AppBackground visualEffectToggles={visualEffectToggles} />
+      {showBootScreen ? null : (
+        <Suspense fallback={null}>
+          <DiscordRichPresenceBridge />
+        </Suspense>
+      )}
 
       <div className="app-content">
         <Header />

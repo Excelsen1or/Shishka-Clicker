@@ -8,21 +8,14 @@ import {
 export function ClickerScreen() {
   return (
     <section className="screen clicker-screen">
-      <div className="clicker-layout">
-        <div className="clicker-layout__stats">
+
+      <div className="clicker-layout clicker-layout--pixel">
           <ProgressStatsPanel />
-        </div>
-
-        <div className="clicker-layout__hero">
           <ClickerButton />
-        </div>
-
-        <div className="clicker-layout__meta">
           <ProgressMetaPanel />
-        </div>
       </div>
 
-      <div className="clicker-below">
+      <div className="clicker-below clicker-below--pixel">
         <ProgressOverview hideStats hideMeta />
       </div>
     </section>

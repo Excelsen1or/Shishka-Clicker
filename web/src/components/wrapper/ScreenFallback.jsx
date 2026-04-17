@@ -19,7 +19,6 @@ function resolveTargetProgress(phase) {
 function resolveLoadingCopy(phase, mode) {
   if (mode === 'screen') {
     return {
-      kicker: 'Загрузка',
       title: 'Подготавливаем экран',
       desc: 'Подтягиваем модуль интерфейса и собираем нужный экран.',
       label: 'Интерфейс',
@@ -51,7 +50,6 @@ function resolveLoadingCopy(phase, mode) {
     case 'loading':
     default:
       return {
-        kicker: 'Загрузка',
         title: 'Собираем стартовый экран',
         desc: 'Ждём, пока подтянутся профиль, сейв и рейтинг, чтобы интерфейс открылся уже с данными.',
         label: 'Старт',

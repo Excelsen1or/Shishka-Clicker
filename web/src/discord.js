@@ -1,6 +1,3 @@
-import { DiscordSDK } from '@discord/embedded-app-sdk'
-import { exchangeDiscordCode } from './lib/discordAuth.js'
-
 const DISCORD_CLIENT_ID =
   import.meta.env.VITE_CLIENT_ID ?? import.meta.env.VITE_DISCORD_CLIENT_ID
 const DISCORD_ACTIVITY_SCOPES = ['identify', 'rpc.activities.write']
@@ -50,22 +47,37 @@ function withTimeout(promise, timeoutMs, label) {
   ])
 }
 
-function createDiscordSdk() {
+let discordSdkPromise = null
+let discordSdkInstance = null
+
+async function loadDiscordSdk() {
   if (typeof window === 'undefined' || !DISCORD_CLIENT_ID) {
     return null
   }
 
-  try {
-    return new DiscordSDK(DISCORD_CLIENT_ID)
-  } catch (error) {
-    console.warn('Not running inside Discord:', error)
+  if (!isDiscordEmbeddedContext()) {
     return null
   }
+
+  if (!discordSdkPromise) {
+    discordSdkPromise = import('@discord/embedded-app-sdk')
+      .then(({ DiscordSDK }) => {
+        discordSdkInstance = new DiscordSDK(DISCORD_CLIENT_ID)
+        return discordSdkInstance
+      })
+      .catch((error) => {
+        discordSdkPromise = null
+        discordSdkInstance = null
+        console.warn('Not running inside Discord:', error)
+        return null
+      })
+  }
+
+  return discordSdkPromise
 }
 
-const discordSdk = isDiscordEmbeddedContext() ? createDiscordSdk() : null
-
 export async function setupDiscord() {
+  const discordSdk = await loadDiscordSdk()
   if (!discordSdk) {
     return {
       mode: 'standalone',
@@ -77,11 +89,10 @@ export async function setupDiscord() {
   }
 
   try {
-    await withTimeout(
-      discordSdk.ready(),
-      DISCORD_READY_TIMEOUT_MS,
-      'discord_ready',
-    )
+    const [{ exchangeDiscordCode }] = await Promise.all([
+      import('./lib/discordAuth.js'),
+      withTimeout(discordSdk.ready(), DISCORD_READY_TIMEOUT_MS, 'discord_ready'),
+    ])
 
     const { code } = await withTimeout(
       discordSdk.commands.authorize({
@@ -133,6 +144,7 @@ export async function setupDiscord() {
 }
 
 export async function setDiscordRichPresence(activity) {
+  const discordSdk = await loadDiscordSdk()
   if (!discordSdk || !activity) {
     return false
   }
@@ -142,5 +154,5 @@ export async function setDiscordRichPresence(activity) {
 }
 
 export function getDiscordSdk() {
-  return discordSdk
+  return discordSdkInstance
 }
