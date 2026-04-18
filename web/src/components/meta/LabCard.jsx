@@ -2,10 +2,17 @@ import { Gem, PxlKitIcon } from '../../lib/pxlkit'
 import { formatNumber } from '../../lib/format.js'
 
 export const LabCard = ({ item, canBuy, onBuy }) => {
+  const isLocked = Number(item.level ?? 0) <= 0
+  const cardClassName = [
+    'prestige-lab-card',
+    `prestige-lab-card--${item.tint ?? 'amber'}`,
+    isLocked ? 'prestige-lab-card--locked' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
-    <article
-      className={`prestige-lab-card prestige-lab-card--${item.tint ?? 'amber'}`}
-    >
+    <article className={cardClassName}>
       <div className="prestige-lab-card__head">
         <div>
           <div className="prestige-lab-card__kicker">Метапрокачка</div>
@@ -37,6 +44,8 @@ export const LabCard = ({ item, canBuy, onBuy }) => {
           type="button"
           className="shop-card__btn"
           disabled={!canBuy}
+          aria-disabled={!canBuy}
+          data-state={canBuy ? 'ready' : 'denied'}
           onClick={onBuy}
         >
           {canBuy ? 'Улучшить за осколки' : 'Не хватает осколков'}

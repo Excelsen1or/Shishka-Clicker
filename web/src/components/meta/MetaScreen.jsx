@@ -352,18 +352,22 @@ export const MetaScreen = observer(function MetaScreen() {
                 title="Открытие"
                 text="Один раз добей лайфтайм-порог по шишкам, знаниям и достижениям."
                 active={!uiPrestige.isUnlocked}
+                completed={uiPrestige.isUnlocked}
               />
               <PrestigeStep
                 index="2"
                 title={`Квота цикла #${uiPrestige.rebirthRule.cycle}`}
                 text="После каждого реберса нужно заново закрыть отдельную квоту текущего забега."
                 active={uiPrestige.isUnlocked && !uiPrestige.canRebirth}
+                locked={!uiPrestige.isUnlocked}
+                completed={uiPrestige.canRebirth}
               />
               <PrestigeStep
                 index="3"
                 title="Осколки и мета"
                 text="Осколков теперь меньше: базово 1 за квоту, больше только за сильный перелив сверх требований."
                 active={uiPrestige.canRebirth}
+                locked={!uiPrestige.canRebirth}
               />
             </div>
 

@@ -331,14 +331,7 @@ export const ShopScreen = observer(function ShopScreen({ type }) {
         <section className="shop-group shop-group--active">
           {lockedItems.length > 0 ? (
             <div className="shop-group__head">
-              <span className="shop-group__eyebrow">
-                {pxl(MagicWand, 'available now', 16)} Доступно сейчас
-              </span>
-              <h3 className="shop-group__title">Разблокированные</h3>
-              <p className="shop-group__desc">
-                Выбирай с умом, выстраивай свою стратегию и просчитывай
-                следующий шаг.
-              </p>
+              <h3 className="shop-group__title"> {pxl(MagicWand, 'available now', 16)} Разблокированные</h3>
             </div>
           ) : null}
 

@@ -27,7 +27,6 @@ export const LeaderboardWidget = observer(function LeaderboardWidget({
   const websocketStore = useWebsocketStore()
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState('shishki')
-
   const activeMeta =
     LEADERBOARD_TABS.find((tab) => tab.id === activeTab) ?? LEADERBOARD_TABS[0]
   const entries = useMemo(
@@ -41,7 +40,14 @@ export const LeaderboardWidget = observer(function LeaderboardWidget({
     >
       <button
         type="button"
-        className="leaderboard-widget__toggle leaderboard-widget__toggle--pixel pixel-badge"
+        className={[
+          'leaderboard-widget__toggle',
+          'leaderboard-widget__toggle--pixel',
+          'pixel-badge',
+          placement === 'header' ? 'leaderboard-widget__toggle--header' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
         onClick={() => setIsOpen((current) => !current)}
         aria-expanded={isOpen}
         aria-label={isOpen ? 'Свернуть топ-5' : 'Развернуть топ-5'}

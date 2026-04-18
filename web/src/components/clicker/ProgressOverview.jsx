@@ -132,10 +132,20 @@ const PrestigeOverviewCard = memo(function PrestigeOverviewCard({
   cycleKnowledgeText,
   cycleKnowledgeGoalText,
 }) {
+  const className = [
+    'stat-card--shop-surface',
+    'stat-card--unlock',
+    'prestige-overview-card',
+    'pixel-surface',
+    !prestige.isUnlocked ? 'pixel-panel--locked' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
     <StatCard
       variant="pixel"
-      className="stat-card--shop-surface stat-card--unlock prestige-overview-card pixel-surface"
+      className={className}
       label="Следующий ребёрс"
       value={prestigeLabel}
       hint={
