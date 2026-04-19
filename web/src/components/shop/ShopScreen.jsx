@@ -2,6 +2,7 @@ import { observer } from 'mobx-react-lite'
 import '../../styles/shop-screen.css'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { formatNumber } from '../../lib/format'
+import { EntityPlaceholderIcon } from '../ui/EntityPlaceholderIcon.jsx'
 
 const SCREEN_META = {
   subscriptions: {
@@ -16,14 +17,38 @@ const SCREEN_META = {
   },
 }
 
-function EconomyCard({ title, desc, meta, action, disabled, levelText }) {
+function EconomyCard({
+  title,
+  desc,
+  meta,
+  action,
+  disabled,
+  levelText,
+  fieldCode,
+  visualType,
+}) {
   return (
     <article className="shop-card shop-card--shishki shop-card--rarity-common">
       <div className="shop-card__head">
-        <div className="shop-card__meta">
-          <div>
-            <h3 className="shop-card__title">{title}</h3>
-            <p className="shop-card__desc">{desc}</p>
+        <div className="shop-card__badge-wrap">
+          <span
+            className="shop-card__visual"
+            aria-hidden="true"
+            data-field-code={fieldCode}
+          >
+            <EntityPlaceholderIcon
+              code={fieldCode}
+              label={title}
+              type={visualType}
+              state={disabled ? 'locked' : 'available'}
+              size={32}
+            />
+          </span>
+          <div className="shop-card__meta">
+            <div>
+              <h3 className="shop-card__title">{title}</h3>
+              <p className="shop-card__desc">{desc}</p>
+            </div>
           </div>
         </div>
         <div className="shop-card__chips">
@@ -93,6 +118,8 @@ export const ShopScreen = observer(function ShopScreen({ type }) {
             }
             action={() => onBuy(item.id)}
             disabled={!item.canBuy}
+            fieldCode={item.fieldCode}
+            visualType={type === 'subscriptions' ? 'building' : 'upgrade'}
             levelText={
               type === 'subscriptions'
                 ? `здание ${formatNumber(item.owned)}`

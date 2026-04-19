@@ -1,4 +1,5 @@
 import { formatFullNumber } from '../../lib/format.js'
+import { EntityPlaceholderIcon } from '../ui/EntityPlaceholderIcon.jsx'
 
 function estimateBuyFee(price, brokerLevel) {
   const feeRate = Math.max(0.02, 0.08 - brokerLevel * 0.005)
@@ -29,8 +30,24 @@ export function MarketTradePanel({
                 type="button"
                 onClick={() => onBuy(good.id, 1)}
                 disabled={disabled}
+                className="market-entity-row market-action-tile"
               >
-                Купить 1 {good.title} · {formatFullNumber(total)} шишек
+                <span
+                  className="market-entity-slot"
+                  aria-hidden="true"
+                  data-field-code={good.fieldCode}
+                >
+                  <EntityPlaceholderIcon
+                    code={good.fieldCode}
+                    label={good.title}
+                    type="market"
+                    state={disabled ? 'locked' : 'available'}
+                    size={32}
+                  />
+                </span>
+                <span>
+                  Купить 1 {good.title} · {formatFullNumber(total)} шишек
+                </span>
               </button>
             )
           })}
@@ -49,9 +66,25 @@ export function MarketTradePanel({
                 type="button"
                 onClick={() => onCampaign(campaign.id)}
                 disabled={disabled}
+                className="market-entity-row market-action-tile"
               >
-                {campaign.active ? 'Активно: ' : ''}
-                {campaign.title} · {formatFullNumber(campaign.cost)} шишек
+                <span
+                  className="market-entity-slot"
+                  aria-hidden="true"
+                  data-field-code={campaign.fieldCode}
+                >
+                  <EntityPlaceholderIcon
+                    code={campaign.fieldCode}
+                    label={campaign.title}
+                    type="campaign"
+                    state={campaign.active ? 'active' : disabled ? 'locked' : 'available'}
+                    size={32}
+                  />
+                </span>
+                <span>
+                  {campaign.active ? 'Активно: ' : ''}
+                  {campaign.title} · {formatFullNumber(campaign.cost)} шишек
+                </span>
               </button>
             )
           })}

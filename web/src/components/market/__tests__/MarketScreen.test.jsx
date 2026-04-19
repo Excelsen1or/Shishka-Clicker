@@ -9,6 +9,7 @@ const store = {
       marketGoods: [
         {
           id: 'parallelImport',
+          fieldCode: 'market_parallel_import',
           title: 'Параллельный завоз',
           price: 110,
           owned: 3,
@@ -17,7 +18,13 @@ const store = {
         },
       ],
       campaigns: [
-        { id: 'iceFlexer', title: 'Ледяной флексер', active: false, cost: 8000 },
+        {
+          id: 'iceFlexer',
+          fieldCode: 'campaign_ice_flexer',
+          title: 'Ледяной флексер',
+          active: false,
+          cost: 8000,
+        },
       ],
     },
     uiState: {
@@ -42,5 +49,7 @@ describe('MarketScreen', () => {
     expect(html).toContain('500')
     expect(html).toContain('Ликвидность')
     expect(html).toContain('Купить 1 Параллельный завоз')
+    expect(html).toContain('>MP<')
+    expect(html).toContain('>CI<')
   })
 })
