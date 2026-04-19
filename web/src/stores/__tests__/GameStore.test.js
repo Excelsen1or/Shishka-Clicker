@@ -39,6 +39,27 @@ describe('GameStore', () => {
     expect(store.state.currentRunShishki).toBeGreaterThan(0)
   })
 
+  it('quantizes tiny passive income ticks without float tails', () => {
+    const base = createFreshState()
+    const store = createStore()
+
+    store.importGameSave({
+      ...base,
+      buildings: {
+        ...base.buildings,
+        garagePicker: 1,
+      },
+    })
+
+    store.applyPassiveIncome(0.1)
+    store.applyPassiveIncome(0.1)
+    store.applyPassiveIncome(0.1)
+
+    expect(store.state.shishki).toBe(0.03)
+    expect(store.state.currentRunShishki).toBe(0.03)
+    expect(store.state.totalShishkiEarned).toBe(0.03)
+  })
+
   it('chains quota closures inside one life', () => {
     const base = createFreshState()
     const store = createStore()

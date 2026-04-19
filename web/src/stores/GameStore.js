@@ -27,6 +27,11 @@ import { createFreshState, mergeState } from './gameStoreState.js'
 const ACTIVE_TICK_MS = 250
 const IDLE_TICK_MS = 1000
 const DEV_RESOURCE_KEYS = ['shishki', 'heavenlyShishki', 'tarLumps']
+const SHISHKI_PRECISION = 3
+
+function roundShishkiValue(value) {
+  return Number(value.toFixed(SHISHKI_PRECISION))
+}
 
 function resolveQuotaState(state) {
   return {
@@ -47,10 +52,12 @@ function gainShishki(state, amount) {
 
   return resolveQuotaState({
     ...state,
-    shishki: state.shishki + amount,
-    totalShishkiEarned: state.totalShishkiEarned + amount,
-    lifetimeShishkiEarned: state.lifetimeShishkiEarned + amount,
-    currentRunShishki: state.currentRunShishki + amount,
+    shishki: roundShishkiValue(state.shishki + amount),
+    totalShishkiEarned: roundShishkiValue(state.totalShishkiEarned + amount),
+    lifetimeShishkiEarned: roundShishkiValue(
+      state.lifetimeShishkiEarned + amount,
+    ),
+    currentRunShishki: roundShishkiValue(state.currentRunShishki + amount),
   })
 }
 
