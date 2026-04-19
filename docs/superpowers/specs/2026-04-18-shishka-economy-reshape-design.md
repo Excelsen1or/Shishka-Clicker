@@ -390,12 +390,72 @@ Show:
 - `tar lumps`;
 - active event state.
 
+The clicker hero should be visually rebuilt around a central button and three adaptive progress zones instead of text-heavy surrounding panels.
+
+Layout rules:
+
+- keep the clicker button as the center of the screen;
+- place a `buildings` visualization zone on the left;
+- place a `market and hype` visualization zone on the right;
+- place an `upgrades and meta` visualization zone below the clicker;
+- remove non-essential text blocks and decorative hero clutter around the clicker;
+- keep the hero focused on clicking plus visualized progression.
+
+### Clicker Progress Field
+
+The main screen should gain a visual progress field built from fixed-size `32x32` entity images.
+
+Important distinction:
+
+- `32x32` refers to the size of each image/sprite;
+- the field containers themselves remain adaptive and respond to screen size.
+
+The field is not a freeform decorative scene. It is a readable progression layer that reflects what the player has actually built or unlocked.
+
+Zone semantics:
+
+- left zone visualizes owned buildings and building growth;
+- right zone visualizes market goods, gray-economy signals, and active media hype campaigns;
+- bottom zone visualizes upgrades, prestige, rebirth markers, and `tar lumps`.
+
+Rendering rules:
+
+- every displayed entity uses a `32x32` sprite or placeholder tile;
+- fields may stack or cap repeated entities instead of rendering exact 1:1 counts at high ownership totals;
+- locked entities appear muted;
+- active or boosted entities may receive stronger frame treatment, glow, or badge state;
+- the center hero area should not contain extra banners or descriptive filler once the field is present.
+
+### Placeholder Sprite System
+
+Until final pixel-art assets are produced, the UI should use a unified placeholder sprite system for both field entities and economy cards.
+
+The placeholder system must:
+
+- provide a consistent `32x32` slot for every building, market good, campaign, upgrade, and meta item;
+- use type-specific framing, color, and shorthand codes so different systems remain readable;
+- support states such as `locked`, `owned`, `active`, `stacked`, and `upgraded`;
+- be easy to replace later with real sprites without changing component structure.
+
+Suggested placeholder approach:
+
+- buildings use industrial and logistics framing;
+- market goods use speculative or commodity framing;
+- campaigns use promo/media framing;
+- upgrades and meta items use coupon, token, seal, shard, or lump framing.
+
+The same visual identity should appear both in the clicker field and inside cards across shop and market screens.
+
 ### Shop Screen
 
 Rewrite as:
 
 - buildings tab/section;
 - upgrades tab/section.
+
+Economy cards should reserve a left-aligned `32x32` sprite slot immediately in the card layout, even before final assets exist.
+
+If a final asset is unavailable, the card should render the shared placeholder tile for that entity instead of leaving the slot empty.
 
 ### Meta Screen
 
@@ -471,6 +531,14 @@ New market-specific components are expected:
 - `MarketTicker`
 - `MarketPortfolio`
 - `MarketTradePanel`
+
+Additional clicker-field components are expected:
+
+- `ProgressFieldPanel`
+- `ProgressSprite`
+- a shared placeholder/icon component for economy entities
+
+The clicker screen rewrite should remove the current text banner under the clicker and replace it with the new field-based visualization model.
 
 ## Testing Requirements
 
