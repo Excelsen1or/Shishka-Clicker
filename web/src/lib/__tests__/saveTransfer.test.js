@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   SAVE_EXPORT_VERSION,
   createSaveBundle,
+  isObsoleteSaveBundle,
   normalizeImportedBundle,
 } from '../saveTransfer.js'
 import { clearLegacyGame, loadLegacyGameRecord } from '../storage.js'
@@ -87,6 +88,27 @@ describe('saveTransfer', () => {
         version: 1,
       }),
     ).toThrow(/устарев|поддерж/i)
+  })
+
+  it('flags obsolete bundles before sync tries to import them', () => {
+    expect(
+      isObsoleteSaveBundle(
+        createGameState({
+          money: 999,
+          knowledge: 111,
+        }),
+      ),
+    ).toBe(true)
+
+    expect(
+      isObsoleteSaveBundle({
+        ...createSaveBundle({
+          gameState: createGameState(),
+          includeSettings: false,
+        }),
+        version: 1,
+      }),
+    ).toBe(true)
   })
 })
 

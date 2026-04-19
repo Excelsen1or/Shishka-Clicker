@@ -6,6 +6,9 @@ import { formatNumber } from '../../lib/format'
 export const MetaScreen = observer(function MetaScreen() {
   const { uiState, uiPrestige, uiEconomy, prestigeReset, buyPrestigeUpgrade } =
     useGameStore()
+  const canResetPrestige =
+    uiPrestige.quotaIndex > 0 ||
+    uiPrestige.currentRunShishki >= uiPrestige.currentQuotaTarget
 
   const prestigeStats = [
     {
@@ -54,7 +57,12 @@ export const MetaScreen = observer(function MetaScreen() {
           Следующая цель: {formatNumber(uiPrestige.nextQuotaTarget)}. Каждое
           закрытие квоты даёт +1 небесную шишку без ребёрса.
         </p>
-        <button type="button" className="shop-card__btn" onClick={prestigeReset}>
+        <button
+          type="button"
+          className="shop-card__btn"
+          onClick={prestigeReset}
+          disabled={!canResetPrestige}
+        >
           Переродиться
         </button>
       </article>

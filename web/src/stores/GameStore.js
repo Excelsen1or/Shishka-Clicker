@@ -434,6 +434,14 @@ export default class GameStore {
   }
 
   prestigeReset() {
+    const quota = getQuotaPreview(this._state)
+    const hasPrestigeProgress =
+      this._state.quotaIndex > 0 || this._state.currentRunShishki >= quota.current
+
+    if (!hasPrestigeProgress) {
+      return false
+    }
+
     const nextState = createFreshState()
 
     this.commitState({
@@ -449,6 +457,8 @@ export default class GameStore {
       manualClicks: this._state.manualClicks,
       lifetimeShishkiEarned: this._state.lifetimeShishkiEarned,
     })
+
+    return true
   }
 
   resetGame() {

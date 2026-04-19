@@ -62,13 +62,32 @@ function hasGameStateShape(value) {
   )
 }
 
+export function isObsoleteSaveBundle(rawValue) {
+  if (!rawValue || typeof rawValue !== 'object' || Array.isArray(rawValue)) {
+    return false
+  }
+
+  if (rawValue.format === SAVE_EXPORT_FORMAT) {
+    return Number(rawValue.version) !== SAVE_EXPORT_VERSION
+  }
+
+  return Boolean(
+    rawValue.version ||
+      rawValue.payload ||
+      'money' in rawValue ||
+      'knowledge' in rawValue ||
+      'subscriptions' in rawValue ||
+      'prestigeShards' in rawValue,
+  )
+}
+
 export function normalizeImportedBundle(rawValue) {
   if (!rawValue || typeof rawValue !== 'object' || Array.isArray(rawValue)) {
     throw new Error('Файл сохранения пустой или повреждён.')
   }
 
   if (rawValue.format === SAVE_EXPORT_FORMAT) {
-    if (Number(rawValue.version) !== SAVE_EXPORT_VERSION) {
+    if (isObsoleteSaveBundle(rawValue)) {
       throw new Error(LEGACY_SAVE_ERROR)
     }
 
@@ -88,14 +107,7 @@ export function normalizeImportedBundle(rawValue) {
     }
   }
 
-  if (
-    rawValue.version ||
-    rawValue.payload ||
-    'money' in rawValue ||
-    'knowledge' in rawValue ||
-    'subscriptions' in rawValue ||
-    'prestigeShards' in rawValue
-  ) {
+  if (isObsoleteSaveBundle(rawValue)) {
     throw new Error(LEGACY_SAVE_ERROR)
   }
 

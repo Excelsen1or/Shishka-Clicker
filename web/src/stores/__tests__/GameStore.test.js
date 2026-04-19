@@ -78,6 +78,14 @@ describe('GameStore', () => {
     expect(store.state.quotaIndex).toBe(store.state.heavenlyShishki)
   })
 
+  it('ignores prestige reset before earning any heavenly progress', () => {
+    const store = createStore()
+    const before = store.exportGameSave()
+
+    expect(store.prestigeReset()).toBe(false)
+    expect(store.exportGameSave()).toEqual(before)
+  })
+
   it('keeps meta resources on prestige reset', () => {
     const base = createFreshState()
     const store = createStore()
