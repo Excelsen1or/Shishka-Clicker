@@ -61,6 +61,67 @@ export function buildProgressOverviewData(state, derived) {
   }
 }
 
+export function buildClickerFieldData(state) {
+  return {
+    buildingsFieldItems: BUILDINGS.map((item) => {
+      const count = Math.max(0, state.buildings[item.id] ?? 0)
+
+      return {
+        id: item.id,
+        title: item.title,
+        code: item.fieldCode,
+        type: 'building',
+        state: count > 0 ? 'owned' : 'locked',
+        count,
+      }
+    }),
+    marketFieldItems: [
+      ...MARKET_GOODS.map((item) => {
+        const count = Math.max(0, state.market.positions[item.id] ?? 0)
+
+        return {
+          id: item.id,
+          title: item.title,
+          code: item.fieldCode,
+          type: 'market',
+          state: count > 0 ? 'owned' : 'locked',
+          count,
+        }
+      }),
+      ...RAP_CAMPAIGNS.map((item) => ({
+        id: item.id,
+        title: item.title,
+        code: item.fieldCode,
+        type: 'campaign',
+        state: state.activeCampaign?.id === item.id ? 'active' : 'available',
+        count: state.activeCampaign?.id === item.id ? 1 : 0,
+      })),
+    ],
+    metaFieldItems: [
+      ...RUN_UPGRADES.map((item) => {
+        const count = Math.max(0, state.upgrades[item.id] ?? 0)
+
+        return {
+          id: item.id,
+          title: item.title,
+          code: item.fieldCode,
+          type: 'upgrade',
+          state: count > 0 ? 'upgraded' : 'locked',
+          count,
+        }
+      }),
+      ...getPrestigeUpgradeCards(state).map((item) => ({
+        id: item.id,
+        title: item.title,
+        code: item.fieldCode,
+        type: 'meta',
+        state: item.level > 0 ? 'upgraded' : 'locked',
+        count: item.level,
+      })),
+    ],
+  }
+}
+
 export function buildDevConsoleResources(state) {
   return {
     shishki: state.shishki,

@@ -19,6 +19,7 @@ import {
 } from '../game/metaConfig.js'
 import {
   buildDevConsoleResources,
+  buildClickerFieldData,
   buildEconomySnapshot,
   buildProgressOverviewData,
 } from './gameStoreSnapshots.js'
@@ -72,6 +73,10 @@ function clearExpiredCampaign(state, now = Date.now()) {
   }
 }
 
+function resolveUiState(state) {
+  return clearExpiredCampaign(state)
+}
+
 export default class GameStore {
   rootStore
   _state = createFreshState()
@@ -102,6 +107,7 @@ export default class GameStore {
         bottomNavAlerts: computed.struct,
         clickerMetrics: computed.struct,
         progressOverviewData: computed.struct,
+        clickerFieldData: computed.struct,
         devConsoleResources: computed.struct,
       },
       { autoBind: true },
@@ -115,7 +121,7 @@ export default class GameStore {
   }
 
   get uiDerived() {
-    return deriveProduction(this.uiSnapshotState)
+    return deriveProduction(resolveUiState(this.uiSnapshotState))
   }
 
   get state() {
@@ -127,7 +133,7 @@ export default class GameStore {
 
   get uiState() {
     return {
-      ...this.uiSnapshotState,
+      ...resolveUiState(this.uiSnapshotState),
       ...this.uiDerived,
     }
   }
@@ -147,16 +153,17 @@ export default class GameStore {
   }
 
   get uiPrestige() {
-    const quota = getQuotaPreview(this.uiSnapshotState)
+    const resolvedState = resolveUiState(this.uiSnapshotState)
+    const quota = getQuotaPreview(resolvedState)
 
     return {
-      currentRunShishki: this.uiSnapshotState.currentRunShishki,
+      currentRunShishki: resolvedState.currentRunShishki,
       currentQuotaTarget: quota.current,
       nextQuotaTarget: quota.next,
-      quotaIndex: this.uiSnapshotState.quotaIndex,
-      heavenlyShishki: this.uiSnapshotState.heavenlyShishki,
-      rebirths: this.uiSnapshotState.rebirths,
-      tarLumps: this.uiSnapshotState.tarLumps,
+      quotaIndex: resolvedState.quotaIndex,
+      heavenlyShishki: resolvedState.heavenlyShishki,
+      rebirths: resolvedState.rebirths,
+      tarLumps: resolvedState.tarLumps,
     }
   }
 
@@ -219,7 +226,11 @@ export default class GameStore {
   }
 
   get progressOverviewData() {
-    return buildProgressOverviewData(this.uiSnapshotState, this.uiDerived)
+    return buildProgressOverviewData(resolveUiState(this.uiSnapshotState), this.uiDerived)
+  }
+
+  get clickerFieldData() {
+    return buildClickerFieldData(resolveUiState(this.uiSnapshotState))
   }
 
   get devConsoleResources() {
