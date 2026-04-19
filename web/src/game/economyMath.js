@@ -1,5 +1,6 @@
 import {
   BUILDINGS,
+  EVENT_DEFINITIONS,
   PRESTIGE_UPGRADES,
   QUOTA_RULES,
   RAP_CAMPAIGNS,
@@ -13,6 +14,28 @@ const RUN_UPGRADE_BY_ID = Object.fromEntries(
 const PRESTIGE_UPGRADE_BY_ID = Object.fromEntries(
   PRESTIGE_UPGRADES.map((item) => [item.id, item]),
 )
+
+function createUniqueIdIndex(items, label) {
+  const index = {}
+
+  for (const item of items) {
+    const id = item?.id
+
+    if (typeof id !== 'string' || !id) {
+      throw new TypeError(`Invalid ${label} id`)
+    }
+
+    if (Object.prototype.hasOwnProperty.call(index, id)) {
+      throw new RangeError(`Duplicate ${label} id: ${id}`)
+    }
+
+    index[id] = item
+  }
+
+  return index
+}
+
+const EVENT_DEFINITION_BY_ID = createUniqueIdIndex(EVENT_DEFINITIONS, 'event')
 
 export function getBuildingCost(baseCost, owned) {
   return Math.floor(baseCost * Math.pow(1.15, owned) + 1e-9)
@@ -173,4 +196,8 @@ export function applyMarketTrade({ state, goodId, quantity, side }) {
 
 export function getCampaignById(id) {
   return RAP_CAMPAIGNS.find((item) => item.id === id) ?? null
+}
+
+export function getEventById(id) {
+  return EVENT_DEFINITION_BY_ID[id] ?? null
 }
