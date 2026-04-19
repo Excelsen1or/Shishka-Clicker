@@ -3,8 +3,9 @@ import { formatNumber } from './format.js'
 
 const PRESENCE_DETAILS_BY_TAB = {
   clicker: 'Кликает по шишке',
-  subscriptions: 'Прокачивает AI-подписки',
-  upgrades: 'Покупает апгрейды',
+  subscriptions: 'Строит шишечное производство',
+  upgrades: 'Подкручивает апгрейды',
+  market: 'Торгует серым дефицитом',
   meta: 'Следит за мета-прогрессом',
   settings: 'Настраивает игру',
 }
@@ -29,32 +30,35 @@ function countUnlockedAchievements(achievements) {
 
 function buildPresenceState(activeTab, gameState, economy) {
   const achievementCount = countUnlockedAchievements(gameState?.achievements)
-  const subscriptionLevels = sumLevels(gameState?.subscriptions)
+  const buildingCount = sumLevels(gameState?.buildings)
   const upgradeLevels = sumLevels(gameState?.upgrades)
-  const rebirths = Number(gameState?.rebirths ?? 0)
-  const prestigeShards = Number(gameState?.prestigeShards ?? 0)
-  const aiMultiplier = Number(economy?.aiMultiplier ?? 1)
+  const marketPositions = sumLevels(gameState?.market?.positions)
+  const shishki = Number(gameState?.shishki ?? 0)
+  const heavenlyShishki = Number(gameState?.heavenlyShishki ?? 0)
+  const tarLumps = Number(gameState?.tarLumps ?? 0)
   const shishkiPerSecond = Number(economy?.shishkiPerSecond ?? 0)
-  const moneyPerSecond = Number(economy?.moneyPerSecond ?? 0)
+  const clickPower = Number(economy?.clickPower ?? 1)
 
   const partsByTab = {
     clicker: [
       `Шишки/с: ${formatNumber(shishkiPerSecond)}`,
-      aiMultiplier > 1
-        ? `AI x${formatNumber(aiMultiplier)}`
-        : `Ачивок: ${formatNumber(achievementCount)}`,
+      `Клик: ${formatNumber(clickPower)}`,
     ],
     subscriptions: [
-      `Подписок: ${formatNumber(subscriptionLevels)}`,
-      `AI x${formatNumber(aiMultiplier)}`,
+      `Построек: ${formatNumber(buildingCount)}`,
+      `Шишки/с: ${formatNumber(shishkiPerSecond)}`,
     ],
     upgrades: [
       `Апгрейдов: ${formatNumber(upgradeLevels)}`,
-      `Деньги/с: ${formatNumber(moneyPerSecond)}`,
+      `Клик: ${formatNumber(clickPower)}`,
+    ],
+    market: [
+      `Позиции: ${formatNumber(marketPositions)}`,
+      `Шишки: ${formatNumber(shishki)}`,
     ],
     meta: [
-      `Ребёрсы: ${formatNumber(rebirths)}`,
-      `Шарды: ${formatNumber(prestigeShards)}`,
+      `Небесные: ${formatNumber(heavenlyShishki)}`,
+      `Комки: ${formatNumber(tarLumps)}`,
     ],
     settings: [`Ачивок: ${formatNumber(achievementCount)}`, `v${APP_VERSION}`],
   }

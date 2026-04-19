@@ -52,18 +52,22 @@ function buildMetricSnapshot(gameState) {
   if (!gameState || typeof gameState !== 'object') {
     return {
       shishki: 0,
+      heavenlyShishki: 0,
       shards: 0,
       clicks: 0,
     }
   }
 
+  const heavenlyShishki = normalizeMetricValue(
+    gameState.totalHeavenlyShishkiEarned ?? gameState.heavenlyShishki,
+  )
+
   return {
     shishki: normalizeMetricValue(
       gameState.lifetimeShishkiEarned ?? gameState.totalShishkiEarned,
     ),
-    shards: normalizeMetricValue(
-      gameState.totalPrestigeShardsEarned ?? gameState.prestigeShards,
-    ),
+    heavenlyShishki,
+    shards: heavenlyShishki,
     clicks: normalizeMetricValue(gameState.manualClicks),
   }
 }
@@ -85,9 +89,12 @@ function sortLeaderboardRows(rows, metricKey) {
 }
 
 function buildLeaderboards(rows) {
+  const heavenlyShishki = sortLeaderboardRows(rows, 'heavenlyShishki')
+
   return {
     shishki: sortLeaderboardRows(rows, 'shishki'),
-    shards: sortLeaderboardRows(rows, 'shards'),
+    heavenlyShishki,
+    shards: heavenlyShishki,
     clicks: sortLeaderboardRows(rows, 'clicks'),
   }
 }

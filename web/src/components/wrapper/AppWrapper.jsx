@@ -21,11 +21,13 @@ export const loadClickerScreen = () => import('../clicker/ClickerScreen')
 export const loadShopScreen = () => import('../shop/ShopScreen')
 export const loadSettingsScreen = () => import('../settings/SettingsScreen')
 export const loadMetaScreen = () => import('../meta/MetaScreen')
+export const loadMarketScreen = () => import('../market/MarketScreen')
 
 const screenLoaders = {
   clicker: loadClickerScreen,
   subscriptions: loadShopScreen,
   upgrades: loadShopScreen,
+  market: loadMarketScreen,
   meta: loadMetaScreen,
   settings: loadSettingsScreen,
 }
@@ -58,6 +60,11 @@ function registerLoadedModule(tabId, module) {
 
   if (tabId === 'meta') {
     registerLoadedScreen('meta', module.MetaScreen)
+    return
+  }
+
+  if (tabId === 'market') {
+    registerLoadedScreen('market', module.MarketScreen)
     return
   }
 
@@ -128,6 +135,8 @@ function renderLoadedScreen(tabId) {
     case 'upgrades':
       return <ScreenComponent type="upgrades" />
     case 'meta':
+      return <ScreenComponent />
+    case 'market':
       return <ScreenComponent />
     case 'settings':
       return <ScreenComponent />
@@ -232,6 +241,7 @@ export const AppWrapper = observer(function AppWrapper() {
   useEffect(() => {
     const preloadScreens = () => {
       void preloadTabScreen('subscriptions')
+      void preloadTabScreen('market')
       void preloadTabScreen('settings')
       void preloadTabScreen('meta')
     }

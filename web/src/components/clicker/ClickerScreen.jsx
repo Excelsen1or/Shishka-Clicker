@@ -15,6 +15,9 @@ export function ClickerScreen() {
 
         <section className="clicker-layout__hero clicker-layout__pane clicker-layout__pane--hero">
           <ClickerButton />
+          <div className="clicker-event-banner">
+            Лови события, закрывай квоты и раскручивай шум.
+          </div>
         </section>
 
         <section className="clicker-layout__meta clicker-layout__pane">
@@ -23,7 +26,7 @@ export function ClickerScreen() {
       </div>
 
       <div className="clicker-below clicker-below--pixel">
-        <ProgressOverview hideStats hideMeta />
+        <ProgressOverview />
       </div>
     </section>
   )

@@ -7,7 +7,7 @@ returns table (
   player_id text,
   player_username text,
   shishki bigint,
-  shards bigint,
+  heavenly_shishki bigint,
   clicks bigint,
   updated_at timestamptz
 )
@@ -27,12 +27,12 @@ as $$
         0
       ) as shishki_total,
       coalesce(
-        nullif(ps.save_data -> 'payload' -> 'game' ->> 'totalPrestigeShardsEarned', '')::numeric,
-        nullif(ps.save_data -> 'payload' -> 'game' ->> 'prestigeShards', '')::numeric,
-        nullif(ps.save_data ->> 'totalPrestigeShardsEarned', '')::numeric,
-        nullif(ps.save_data ->> 'prestigeShards', '')::numeric,
+        nullif(ps.save_data -> 'payload' -> 'game' ->> 'totalHeavenlyShishkiEarned', '')::numeric,
+        nullif(ps.save_data -> 'payload' -> 'game' ->> 'heavenlyShishki', '')::numeric,
+        nullif(ps.save_data ->> 'totalHeavenlyShishkiEarned', '')::numeric,
+        nullif(ps.save_data ->> 'heavenlyShishki', '')::numeric,
         0
-      ) as shards_total,
+      ) as heavenly_shishki_total,
       coalesce(
         nullif(ps.save_data -> 'payload' -> 'game' ->> 'manualClicks', '')::numeric,
         nullif(ps.save_data ->> 'manualClicks', '')::numeric,
@@ -44,12 +44,12 @@ as $$
     normalized_saves.player_id,
     normalized_saves.player_username,
     greatest(0, round(normalized_saves.shishki_total))::bigint as shishki,
-    greatest(0, round(normalized_saves.shards_total))::bigint as shards,
+    greatest(0, round(normalized_saves.heavenly_shishki_total))::bigint as heavenly_shishki,
     greatest(0, round(normalized_saves.clicks_total))::bigint as clicks,
     normalized_saves.updated_at
   from normalized_saves
   where normalized_saves.shishki_total > 0
-     or normalized_saves.shards_total > 0
+     or normalized_saves.heavenly_shishki_total > 0
      or normalized_saves.clicks_total > 0
   order by normalized_saves.shishki_total desc, normalized_saves.updated_at desc nulls last
   limit greatest(coalesce(p_limit, 5), 1);
