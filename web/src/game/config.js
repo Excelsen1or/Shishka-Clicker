@@ -10,6 +10,7 @@ export {
 } from './economyConfig.js'
 
 export {
+  advanceMarketPrices,
   accrueTarLumps,
   applyMarketTrade,
   deriveProduction,

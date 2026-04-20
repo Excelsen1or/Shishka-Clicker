@@ -1,14 +1,24 @@
 import { observer } from 'mobx-react-lite'
 import { StatCard } from '../stats/StatCard.jsx'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
+import { getPrestigeStartBonus } from '../../game/metaConfig.js'
 import { formatNumber } from '../../lib/format'
 
 export const MetaScreen = observer(function MetaScreen() {
-  const { uiState, uiPrestige, uiEconomy, prestigeReset, buyPrestigeUpgrade } =
+  const {
+    uiState,
+    uiPrestige,
+    uiEconomy,
+    prestigeReset,
+    buyPrestigeUpgrade,
+    upgradeBuildingLevel,
+  } =
     useGameStore()
   const canResetPrestige =
     uiPrestige.quotaIndex > 0 ||
     uiPrestige.currentRunShishki >= uiPrestige.currentQuotaTarget
+  const levelableBuildings = uiEconomy.buildings.filter((item) => item.owned > 0)
+  const nextLifeSeed = getPrestigeStartBonus(uiState)
 
   const prestigeStats = [
     {
@@ -57,6 +67,7 @@ export const MetaScreen = observer(function MetaScreen() {
           Следующая цель: {formatNumber(uiPrestige.nextQuotaTarget)}. Каждое
           закрытие квоты даёт +1 небесную шишку без ребёрса.
         </p>
+        <p>Старт следующей жизни: {formatNumber(nextLifeSeed)} шишек.</p>
         <button
           type="button"
           className="shop-card__btn"
@@ -103,6 +114,53 @@ export const MetaScreen = observer(function MetaScreen() {
             </div>
           </article>
         ))}
+      </section>
+
+      <section className="shop-grid">
+        {levelableBuildings.map((item) => {
+          const nextCost = item.level >= 5 ? 2 : 1
+          const atCap = item.level >= 10
+
+          return (
+            <article
+              key={item.id}
+              className="shop-card shop-card--shishki shop-card--rarity-common"
+            >
+              <div className="shop-card__head">
+                <div className="shop-card__meta">
+                  <div>
+                    <h3 className="shop-card__title">{item.title}</h3>
+                    <p className="shop-card__desc">
+                      Уровни дают постоянные breakpoint-бонусы на 1 / 5 / 10.
+                    </p>
+                  </div>
+                </div>
+                <div className="shop-card__chips">
+                  <span className="shop-card__tier">ур. {formatNumber(item.level)}</span>
+                </div>
+              </div>
+              <div className="shop-card__body">
+                <div className="shop-card__effect-line">
+                  Следующий комочек: {atCap ? 'кап' : `${nextCost} шт.`}
+                </div>
+              </div>
+              <div className="shop-card__footer">
+                <button
+                  type="button"
+                  className="shop-card__btn"
+                  onClick={() => upgradeBuildingLevel(item.id)}
+                  disabled={atCap || uiState.tarLumps < nextCost}
+                >
+                  {atCap
+                    ? 'Достигнут кап'
+                    : uiState.tarLumps < nextCost
+                      ? 'Нужны комочки'
+                      : 'Поднять уровень'}
+                </button>
+              </div>
+            </article>
+          )
+        })}
       </section>
     </section>
   )

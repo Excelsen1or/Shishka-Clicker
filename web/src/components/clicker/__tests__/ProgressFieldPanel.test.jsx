@@ -43,7 +43,7 @@ describe('ProgressFieldPanel', () => {
   it('maps campaign statuses and clears expired active campaigns', () => {
     const activeCampaignState = {
       activeCampaign: { id: 'sundayProphet', endsAt: Date.now() + 60_000 },
-      market: { positions: {}, prices: {}, averageBuyPrice: {} },
+      market: { unlocked: true, positions: {}, prices: {}, averageBuyPrice: {} },
       buildings: {},
       upgrades: {},
       prestigeUpgrades: {},
@@ -58,7 +58,7 @@ describe('ProgressFieldPanel', () => {
     )
 
     expect(activeCampaign?.state).toBe('active')
-    expect(availableCampaign?.state).toBe('available')
+    expect(availableCampaign?.state).toBe('locked')
 
     const expiredCampaignState = {
       ...activeCampaignState,
@@ -76,10 +76,36 @@ describe('ProgressFieldPanel', () => {
       (item) => item.id === 'sundayProphet',
     )
 
-    expect(expiredCampaign?.state).toBe('available')
+    expect(expiredCampaign?.state).toBe('locked')
   })
 
-  it('keeps core clicker metrics visible in the composed screen', () => {
+  it('keeps market field entities and deck locked before the market is unlocked', () => {
+    const result = buildClickerFieldData({
+      activeCampaign: null,
+      market: { unlocked: false, positions: {}, prices: {}, averageBuyPrice: {} },
+      buildings: {},
+      upgrades: {},
+      prestigeUpgrades: {},
+      currentRunShishki: 0,
+      totalHeavenlyShishkiEarned: 0,
+      lifetimeShishkiEarned: 0,
+    })
+
+    const marketGood = result.marketFieldItems.find(
+      (item) => item.id === 'parallelImport',
+    )
+    const campaign = result.marketFieldItems.find(
+      (item) => item.id === 'iceFlexer',
+    )
+
+    expect(marketGood?.state).toBe('locked')
+    expect(campaign?.state).toBe('locked')
+    expect(result.deckLocks.market.unlocked).toBe(false)
+    expect(result.deckLocks.upgrades.unlocked).toBe(false)
+    expect(result.deckLocks.meta.unlocked).toBe(false)
+  })
+
+  it('renders locked deck tabs for unavailable sections', () => {
     const fakeStore = {
       gameStore: {
         clickerFieldData: {
@@ -91,10 +117,33 @@ describe('ProgressFieldPanel', () => {
               type: 'building',
               state: 'owned',
               count: 1,
+              unlocked: true,
             },
           ],
           marketFieldItems: [],
+          upgradesFieldItems: [],
           metaFieldItems: [],
+          deckLocks: {
+            buildings: { unlocked: true },
+            market: {
+              unlocked: false,
+              text: 'Откроется после первой покупки "Ларька перепродажи".',
+              progress: 0,
+              goal: 1,
+            },
+            upgrades: {
+              unlocked: false,
+              text: 'Откроется после первых 80 шишек за все жизни.',
+              progress: 12,
+              goal: 80,
+            },
+            meta: {
+              unlocked: false,
+              text: 'Откроется, когда подберёшься к первой квоте небесных шишек.',
+              progress: 250,
+              goal: 4200,
+            },
+          },
         },
         clickerMetrics: {
           clickPowerText: '12',
@@ -104,7 +153,21 @@ describe('ProgressFieldPanel', () => {
           emojiBurstStreak: 0,
         },
         uiEconomy: { shishkiPerSecond: 12 },
-        uiPrestige: { currentRunShishki: 250, currentQuotaTarget: 1_000 },
+        uiPrestige: {
+          currentRunShishki: 250,
+          currentQuotaTarget: 1_000,
+          heavenlyShishki: 0,
+          tarLumps: 0,
+        },
+        uiState: {
+          clickPower: 12,
+          market: { unlocked: false },
+          activeCampaign: null,
+          activeEvent: {
+            id: 'districtHype',
+            title: 'Районный хайп',
+          },
+        },
         mineShishki: () => ({
           amount: 12,
           particleCount: 12,
@@ -126,9 +189,12 @@ describe('ProgressFieldPanel', () => {
       </SettingsProvider>,
     )
 
-    expect(html).toContain('Шишки/сек')
-    expect(html).toContain('+12')
-    expect(html).toContain('Квота')
-    expect(html).toContain('250 / 1K')
+    expect(html).toContain('Прогресс, покупки и мета-петля')
+    expect(html).toContain('Здания')
+    expect(html).toContain('Рынок и хайп')
+    expect(html).toContain('Усиления')
+    expect(html).toContain('Мета')
+    expect(html).toContain('disabled=""')
+    expect(html).toContain('clicker-wrap--scene')
   })
 })

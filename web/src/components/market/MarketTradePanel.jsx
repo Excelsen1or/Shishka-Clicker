@@ -22,7 +22,7 @@ export function MarketTradePanel({
           {goods.map((good) => {
             const fee = estimateBuyFee(good.price, brokerLevel)
             const total = good.price + fee
-            const disabled = shishki < total
+            const disabled = !good.unlocked || shishki < total
 
             return (
               <button
@@ -41,12 +41,14 @@ export function MarketTradePanel({
                     code={good.fieldCode}
                     label={good.title}
                     type="market"
-                    state={disabled ? 'locked' : 'available'}
+                    state={!good.unlocked ? 'locked' : disabled ? 'owned' : 'available'}
                     size={32}
                   />
                 </span>
                 <span>
-                  Купить 1 {good.title} · {formatFullNumber(total)} шишек
+                  {!good.unlocked
+                    ? good.unlockText
+                    : `Купить 1 ${good.title} · ${formatFullNumber(total)} шишек`}
                 </span>
               </button>
             )
@@ -58,7 +60,8 @@ export function MarketTradePanel({
       {campaigns.length > 0 ? (
         <div className="market-campaign-grid">
           {campaigns.map((campaign) => {
-            const disabled = campaign.active || shishki < campaign.cost
+            const launchCost = campaign.launchCost ?? campaign.cost
+            const disabled = !campaign.unlocked || campaign.active || shishki < launchCost
 
             return (
               <button
@@ -77,13 +80,22 @@ export function MarketTradePanel({
                     code={campaign.fieldCode}
                     label={campaign.title}
                     type="campaign"
-                    state={campaign.active ? 'active' : disabled ? 'locked' : 'available'}
+                    state={
+                      campaign.active
+                        ? 'active'
+                        : !campaign.unlocked
+                          ? 'locked'
+                          : disabled
+                            ? 'owned'
+                            : 'available'
+                    }
                     size={32}
                   />
                 </span>
                 <span>
-                  {campaign.active ? 'Активно: ' : ''}
-                  {campaign.title} · {formatFullNumber(campaign.cost)} шишек
+                  {!campaign.unlocked
+                    ? campaign.unlockText
+                    : `${campaign.active ? 'Активно: ' : ''}${campaign.title} · ${formatFullNumber(launchCost)} шишек`}
                 </span>
               </button>
             )

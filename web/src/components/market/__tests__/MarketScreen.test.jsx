@@ -15,6 +15,7 @@ const store = {
           owned: 3,
           averageBuyPrice: 90,
           profile: 'volatile',
+          unlocked: true,
         },
       ],
       campaigns: [
@@ -24,11 +25,20 @@ const store = {
           title: 'Ледяной флексер',
           active: false,
           cost: 8000,
+          launchCost: 8000,
+          unlocked: true,
         },
       ],
     },
     uiState: {
       shishki: 500,
+      activeEvent: {
+        id: 'districtHype',
+        title: 'Районный хайп',
+      },
+      market: {
+        unlocked: true,
+      },
     },
     buyMarketGood: () => {},
     sellMarketGood: () => {},
@@ -48,8 +58,34 @@ describe('MarketScreen', () => {
     expect(html).toContain('Ледяной флексер')
     expect(html).toContain('500')
     expect(html).toContain('Ликвидность')
+    expect(html).toContain('Брокер')
+    expect(html).toContain('Районный хайп')
     expect(html).toContain('Купить 1 Параллельный завоз')
     expect(html).toContain('>MP<')
     expect(html).toContain('>CI<')
+  })
+
+  it('renders a locked-state message before the market is unlocked', () => {
+    const html = renderToStaticMarkup(
+      <StoresContext.Provider
+        value={{
+          gameStore: {
+            ...store.gameStore,
+            uiState: {
+              ...store.gameStore.uiState,
+              market: {
+                unlocked: false,
+              },
+            },
+          },
+        }}
+      >
+        <MarketScreen />
+      </StoresContext.Provider>,
+    )
+
+    expect(html).toContain('Рынок пока закрыт')
+    expect(html).toContain('Ларек перепродажи')
+    expect(html).not.toContain('Купить 1 Параллельный завоз')
   })
 })

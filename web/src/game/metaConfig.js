@@ -31,16 +31,29 @@ export function getPrestigeUpgradeCost(item, level) {
 }
 
 export function getQuotaPreview(state) {
+  const coneLegacyLevel = state?.prestigeUpgrades?.coneLegacy ?? 0
+  const quotaReduction = Math.min(0.5, coneLegacyLevel * 0.02)
+
   return {
-    current: getQuotaTarget(
-      QUOTA_RULES.baseQuota,
-      QUOTA_RULES.quotaGrowth,
-      state.quotaIndex,
+    current: Math.max(
+      250,
+      Math.floor(
+        getQuotaTarget(
+          QUOTA_RULES.baseQuota,
+          QUOTA_RULES.quotaGrowth,
+          state.quotaIndex,
+        ) * (1 - quotaReduction),
+      ),
     ),
-    next: getQuotaTarget(
-      QUOTA_RULES.baseQuota,
-      QUOTA_RULES.quotaGrowth,
-      state.quotaIndex + 1,
+    next: Math.max(
+      500,
+      Math.floor(
+        getQuotaTarget(
+          QUOTA_RULES.baseQuota,
+          QUOTA_RULES.quotaGrowth,
+          state.quotaIndex + 1,
+        ) * (1 - quotaReduction),
+      ),
     ),
   }
 }
@@ -59,4 +72,11 @@ export function getPrestigeUpgradeCards(state) {
 
 export function getPrestigeUpgradeByFieldCode(fieldCode) {
   return PRESTIGE_UPGRADE_BY_FIELD_CODE[fieldCode] ?? null
+}
+
+export function getPrestigeStartBonus(state) {
+  const heavenlyTarLevel = state?.prestigeUpgrades?.heavenlyTar ?? 0
+  const coneLegacyLevel = state?.prestigeUpgrades?.coneLegacy ?? 0
+
+  return Math.max(0, heavenlyTarLevel * 20 + coneLegacyLevel * 30)
 }

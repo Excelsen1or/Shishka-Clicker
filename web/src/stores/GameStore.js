@@ -2,19 +2,29 @@ import { startTransition } from 'react'
 import { computed, makeAutoObservable, runInAction } from 'mobx'
 import {
   BUILDINGS,
+  EVENT_DEFINITIONS,
   PRESTIGE_UPGRADES,
   RUN_UPGRADES,
+  TAR_LUMP_RULES,
 } from '../game/economyConfig.js'
 import {
+  advanceMarketPrices,
   accrueTarLumps,
   applyMarketTrade,
   deriveProduction,
+  getBuildingById,
   getBuildingCost,
   getCampaignById,
+  getCampaignLaunchCost,
+  getEventSpawnChance,
+  getEventPresentation,
+  getEventRewardMultiplier,
+  rollEventDefinition,
   resolveQuotaClosures,
 } from '../game/economyMath.js'
 import {
   getPrestigeUpgradeCost,
+  getPrestigeStartBonus,
   getQuotaPreview,
 } from '../game/metaConfig.js'
 import {
@@ -62,6 +72,21 @@ function gainShishki(state, amount) {
   })
 }
 
+function gainQuotaCredit(state, amount) {
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return state
+  }
+
+  return resolveQuotaState({
+    ...state,
+    totalShishkiEarned: roundShishkiValue(state.totalShishkiEarned + amount),
+    lifetimeShishkiEarned: roundShishkiValue(
+      state.lifetimeShishkiEarned + amount,
+    ),
+    currentRunShishki: roundShishkiValue(state.currentRunShishki + amount),
+  })
+}
+
 function clearExpiredCampaign(state, now = Date.now()) {
   if (!state.activeCampaign?.endsAt || state.activeCampaign.endsAt > now) {
     return state
@@ -73,8 +98,105 @@ function clearExpiredCampaign(state, now = Date.now()) {
   }
 }
 
+function clearExpiredEvent(state, now = Date.now()) {
+  if (!state.activeEvent?.endsAt || state.activeEvent.endsAt > now) {
+    return state
+  }
+
+  return {
+    ...state,
+    activeEvent: null,
+  }
+}
+
+function getEventMarketPayload(eventId) {
+  switch (eventId) {
+    case 'districtHype':
+      return { marketBoostGoodId: 'neuroCover', marketBoost: 0.08 }
+    case 'logisticsCongress':
+      return { marketBoostGoodId: 'parallelImport', marketBoost: 0.06 }
+    case 'tarStorm':
+      return { marketBoostGoodId: 'tarDrums', marketBoost: 0.12 }
+    default:
+      return { marketBoostGoodId: null, marketBoost: 0 }
+  }
+}
+
+function spawnTimedEvent(state, seconds, now = Date.now(), random = Math.random) {
+  const clearedState = clearExpiredEvent(state, now)
+
+  if (clearedState.activeEvent || !clearedState.market?.unlocked) {
+    return clearedState
+  }
+
+  const eventChance = Math.min(
+    0.35,
+    getEventSpawnChance(clearedState, seconds),
+  )
+
+  if (random() >= eventChance) {
+    return clearedState
+  }
+
+  const definition = rollEventDefinition(random, clearedState)
+  const baseReward =
+    definition.kind === 'positive'
+      ? 90
+      : definition.kind === 'mixed'
+        ? 45
+        : definition.kind === 'chain'
+          ? 60
+        : 0
+  const rewardMultiplier = getEventRewardMultiplier(clearedState)
+
+  return gainShishki(
+    {
+      ...clearedState,
+      activeEvent: {
+        ...definition,
+        ...getEventMarketPayload(definition.id),
+        chainStep: definition.kind === 'chain' ? 0 : undefined,
+        rewardShishki: Math.round(baseReward * rewardMultiplier),
+        endsAt: now + definition.durationMs,
+      },
+    },
+    Math.round(baseReward * rewardMultiplier),
+  )
+}
+
 function resolveUiState(state) {
-  return clearExpiredCampaign(state)
+  return clearExpiredEvent(clearExpiredCampaign(state))
+}
+
+function getBuildingLevelCost(level) {
+  if (level >= TAR_LUMP_RULES.maxBuildingLevel) {
+    return null
+  }
+
+  if (level >= 5) {
+    return 2
+  }
+
+  return 1
+}
+
+function getPurchaseDiscount(state) {
+  return Math.max(0, Math.min(0.6, state?.activeEvent?.purchaseDiscount ?? 0))
+}
+
+function buildEventToastPayload(event) {
+  if (!event?.id) {
+    return null
+  }
+
+  return {
+    id: event.id,
+    toastId: `${event.id}-${event.endsAt ?? Date.now()}`,
+    title: event.title,
+    description: getEventPresentation(event.id),
+    rarity: event.rarity ?? 'common',
+    kind: event.kind ?? 'positive',
+  }
 }
 
 export default class GameStore {
@@ -82,6 +204,7 @@ export default class GameStore {
   _state = createFreshState()
   uiSnapshotState = this._state
   achievementQueue = []
+  eventToastQueue = []
   tickTimeoutId = null
   initialized = false
   lastTickAt = 0
@@ -206,8 +329,7 @@ export default class GameStore {
 
   get bottomNavAlerts() {
     return {
-      subscriptions: { count: 0, hasReady: false },
-      upgrades: { count: 0, hasReady: false },
+      purchases: { count: 0, hasReady: false },
       market: { count: 0, hasReady: false },
       meta: { count: 0, hasReady: false },
       settings: { count: 0, hasReady: false },
@@ -278,8 +400,17 @@ export default class GameStore {
 
     startTransition(() => {
       runInAction(() => {
-        let nextState = clearExpiredCampaign(this._state)
+        let nextState = clearExpiredEvent(clearExpiredCampaign(this._state))
+        const previousEventId = nextState.activeEvent?.id ?? null
+        nextState = spawnTimedEvent(nextState, seconds)
+        if (!previousEventId && nextState.activeEvent?.id) {
+          const eventToast = buildEventToastPayload(nextState.activeEvent)
+          if (eventToast) {
+            this.eventToastQueue = [...this.eventToastQueue, eventToast]
+          }
+        }
         nextState = accrueTarLumps(nextState, seconds * 1000)
+        nextState = advanceMarketPrices(nextState)
         nextState = gainShishki(
           nextState,
           deriveProduction(nextState).shishkiPerSecond * seconds,
@@ -312,13 +443,35 @@ export default class GameStore {
 
   mineShishki() {
     const clickValue = Math.max(0.1, this.derived.clickPower)
-    const nextState = gainShishki(
-      {
-        ...clearExpiredCampaign(this._state),
-        manualClicks: this._state.manualClicks + 1,
-      },
-      clickValue,
-    )
+    let nextState = {
+      ...clearExpiredEvent(clearExpiredCampaign(this._state)),
+      manualClicks: this._state.manualClicks + 1,
+    }
+
+    if (nextState.activeEvent?.kind === 'chain') {
+      const nextStep = (nextState.activeEvent.chainStep ?? 0) + 1
+      const chainGoal = nextState.activeEvent.chainGoal ?? 0
+
+      if (nextStep >= chainGoal) {
+        nextState = gainShishki(
+          {
+            ...nextState,
+            activeEvent: null,
+          },
+          nextState.activeEvent.chainRewardShishki ?? nextState.activeEvent.rewardShishki ?? 0,
+        )
+      } else {
+        nextState = {
+          ...nextState,
+          activeEvent: {
+            ...nextState.activeEvent,
+            chainStep: nextStep,
+          },
+        }
+      }
+    }
+
+    nextState = gainShishki(nextState, clickValue)
 
     this.commitState(nextState)
 
@@ -338,7 +491,13 @@ export default class GameStore {
     }
 
     const owned = this._state.buildings[id] ?? 0
-    const cost = getBuildingCost(building.baseCost, owned)
+    const cost = Math.max(
+      1,
+      Math.floor(
+        getBuildingCost(building.baseCost, owned) *
+          (1 - getPurchaseDiscount(this._state)),
+      ),
+    )
     if (this._state.shishki < cost) {
       return
     }
@@ -350,6 +509,12 @@ export default class GameStore {
         ...this._state.buildings,
         [id]: owned + 1,
       },
+      market: {
+        ...this._state.market,
+        unlocked:
+          this._state.market.unlocked ||
+          (id === 'resaleStall' && owned + 1 > 0),
+      },
     })
   }
 
@@ -359,13 +524,20 @@ export default class GameStore {
 
   buyUpgrade(id) {
     const upgrade = RUN_UPGRADES.find((item) => item.id === id)
-    if (!upgrade || this._state.shishki < upgrade.cost) {
+    const cost = upgrade
+      ? Math.max(
+          1,
+          Math.floor(upgrade.cost * (1 - getPurchaseDiscount(this._state))),
+        )
+      : null
+
+    if (!upgrade || this._state.shishki < cost) {
       return
     }
 
     this.commitState({
       ...this._state,
-      shishki: this._state.shishki - upgrade.cost,
+      shishki: this._state.shishki - cost,
       upgrades: {
         ...this._state.upgrades,
         [id]: (this._state.upgrades[id] ?? 0) + 1,
@@ -395,7 +567,36 @@ export default class GameStore {
     })
   }
 
+  upgradeBuildingLevel(id) {
+    const building = getBuildingById(id)
+    if (!building) {
+      return false
+    }
+
+    const currentLevel = this._state.buildingLevels[id] ?? 0
+    const cost = getBuildingLevelCost(currentLevel)
+
+    if (cost === null || this._state.tarLumps < cost) {
+      return false
+    }
+
+    this.commitState({
+      ...this._state,
+      tarLumps: this._state.tarLumps - cost,
+      buildingLevels: {
+        ...this._state.buildingLevels,
+        [id]: currentLevel + 1,
+      },
+    })
+
+    return true
+  }
+
   buyMarketGood(goodId, quantity = 1) {
+    if (!this._state.market.unlocked) {
+      return
+    }
+
     const trade = applyMarketTrade({
       state: this._state,
       goodId,
@@ -407,6 +608,10 @@ export default class GameStore {
   }
 
   sellMarketGood(goodId, quantity = 1) {
+    if (!this._state.market.unlocked) {
+      return
+    }
+
     const trade = applyMarketTrade({
       state: this._state,
       goodId,
@@ -414,20 +619,30 @@ export default class GameStore {
       side: 'sell',
     })
 
-    this.commitState(trade.nextState)
+    this.commitState(gainQuotaCredit(trade.nextState, trade.realizedProfit))
   }
 
   activateCampaign(campaignId) {
+    if (!this._state.market.unlocked) {
+      return
+    }
+
     const campaign = getCampaignById(campaignId)
-    if (!campaign || this._state.shishki < campaign.cost) {
+    const launchCost = campaign
+      ? getCampaignLaunchCost(this._state, campaign)
+      : null
+
+    if (!campaign || this._state.shishki < launchCost) {
       return
     }
 
     this.commitState({
       ...this._state,
-      shishki: this._state.shishki - campaign.cost,
+      shishki: this._state.shishki - launchCost,
       activeCampaign: {
         ...campaign,
+        label: getEventPresentation(campaignId),
+        launchCost,
         endsAt: Date.now() + campaign.durationMs,
       },
     })
@@ -443,9 +658,11 @@ export default class GameStore {
     }
 
     const nextState = createFreshState()
+    const startBonus = getPrestigeStartBonus(this._state)
 
     this.commitState({
       ...nextState,
+      shishki: startBonus,
       heavenlyShishki: this._state.heavenlyShishki,
       totalHeavenlyShishkiEarned: this._state.totalHeavenlyShishkiEarned,
       tarLumps: this._state.tarLumps,
@@ -475,6 +692,10 @@ export default class GameStore {
 
   dismissAchievement() {
     this.achievementQueue = this.achievementQueue.slice(1)
+  }
+
+  dismissEventToast() {
+    this.eventToastQueue = this.eventToastQueue.slice(1)
   }
 
   _devGiveResource(key, amount) {

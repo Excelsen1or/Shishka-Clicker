@@ -20,7 +20,6 @@ import {
   initializeCloudSession,
   uploadCloudSave,
 } from '../lib/cloudSave.js'
-import { clearLegacyGame, loadLegacyGameRecord } from '../lib/storage.js'
 import { resolvePlayerId } from '../lib/playerId.js'
 
 const DiscordActivityContext = createContext(null)
@@ -384,7 +383,7 @@ export function DiscordActivityProvider({ children }) {
   }, [getLocalSnapshot, state.playerId])
 
   const synchronizeNow = useCallback(
-    async ({ forceDownload = false, allowLegacyMigration = false } = {}) => {
+    async ({ forceDownload = false } = {}) => {
       if (offlineModeRef.current) return false
 
       if (!state.playerId) return false
@@ -414,29 +413,6 @@ export function DiscordActivityProvider({ children }) {
       }
 
       if (!cloudSave?.save) {
-        if (allowLegacyMigration) {
-          const legacyRecord = loadLegacyGameRecord()
-          const legacyProgressScore = getProgressScore(legacyRecord.state)
-
-          if (legacyProgressScore > EMPTY_PROGRESS_SCORE_THRESHOLD) {
-            gameStore.importGameSave(legacyRecord.state, {
-              markDirty: true,
-              updatedAt: legacyRecord.updatedAt ?? new Date().toISOString(),
-            })
-
-            const migrated = await uploadLatestSave({
-              expectedVersionOverride: null,
-              source: 'migration',
-            })
-
-            if (migrated) {
-              clearLegacyGame()
-            }
-
-            return migrated
-          }
-        }
-
         if (localIsNearlyEmpty) {
           markSynced({
             remoteUpdatedAt: localSnapshot.updatedAt,
@@ -461,19 +437,16 @@ export function DiscordActivityProvider({ children }) {
 
       if (forceDownload) {
         const applied = applyRemoteSave(cloudSave)
-        if (allowLegacyMigration) clearLegacyGame()
         return applied
       }
 
       if (!hasCompletedInitialSync) {
         const applied = applyRemoteSave(cloudSave)
-        if (allowLegacyMigration) clearLegacyGame()
         return applied
       }
 
       if (localIsNearlyEmpty && !remoteIsNearlyEmpty) {
         const applied = applyRemoteSave(cloudSave)
-        if (allowLegacyMigration) clearLegacyGame()
         return applied
       }
 
@@ -481,18 +454,14 @@ export function DiscordActivityProvider({ children }) {
         const uploaded = await uploadLatestSave({
           expectedVersionOverride: remoteVersion,
         })
-        if (allowLegacyMigration) clearLegacyGame()
         return uploaded
       }
 
       if (!localDirty) {
         if (remoteVersion !== knownRemoteVersion) {
           const applied = applyRemoteSave(cloudSave)
-          if (allowLegacyMigration) clearLegacyGame()
           return applied
         }
-
-        if (allowLegacyMigration) clearLegacyGame()
 
         markSynced({
           remoteUpdatedAt: cloudSave.updatedAt,
@@ -515,7 +484,6 @@ export function DiscordActivityProvider({ children }) {
               ? 'override'
               : 'upload',
         })
-        if (allowLegacyMigration) clearLegacyGame()
         return uploaded
       } catch (error) {
         if (error?.code === 'cloud_conflict') {
@@ -534,7 +502,6 @@ export function DiscordActivityProvider({ children }) {
             chooseSyncWinner(localSnapshot.state, conflictSave) === 'remote'
           ) {
             const applied = applyRemoteSave(conflictSave)
-            if (allowLegacyMigration) clearLegacyGame()
             return applied
           }
 
@@ -543,7 +510,6 @@ export function DiscordActivityProvider({ children }) {
             expectedVersionOverride: null,
             source: 'override',
           })
-          if (allowLegacyMigration) clearLegacyGame()
           return uploaded
         }
 
@@ -552,7 +518,6 @@ export function DiscordActivityProvider({ children }) {
     },
     [
       applyRemoteSave,
-      gameStore,
       getLocalSnapshot,
       markSynced,
       setSyncState,
@@ -623,9 +588,7 @@ export function DiscordActivityProvider({ children }) {
           presenceError: null,
         }))
 
-        const syncPromise = synchronizeNow({
-          allowLegacyMigration: true,
-        })
+        const syncPromise = synchronizeNow()
 
         await waitForBootGrace(syncPromise, BOOT_SYNC_GRACE_MS)
 

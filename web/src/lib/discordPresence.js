@@ -3,8 +3,7 @@ import { formatNumber } from './format.js'
 
 const PRESENCE_DETAILS_BY_TAB = {
   clicker: 'Кликает по шишке',
-  subscriptions: 'Строит шишечное производство',
-  upgrades: 'Подкручивает апгрейды',
+  purchases: 'Листает пиксельный магазин',
   market: 'Торгует серым дефицитом',
   meta: 'Следит за мета-прогрессом',
   settings: 'Настраивает игру',
@@ -44,13 +43,9 @@ function buildPresenceState(activeTab, gameState, economy) {
       `Шишки/с: ${formatNumber(shishkiPerSecond)}`,
       `Клик: ${formatNumber(clickPower)}`,
     ],
-    subscriptions: [
+    purchases: [
       `Построек: ${formatNumber(buildingCount)}`,
-      `Шишки/с: ${formatNumber(shishkiPerSecond)}`,
-    ],
-    upgrades: [
       `Апгрейдов: ${formatNumber(upgradeLevels)}`,
-      `Клик: ${formatNumber(clickPower)}`,
     ],
     market: [
       `Позиции: ${formatNumber(marketPositions)}`,

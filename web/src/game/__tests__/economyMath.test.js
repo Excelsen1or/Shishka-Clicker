@@ -10,15 +10,18 @@ import {
 } from '../economyConfig.js'
 import {
   accrueTarLumps,
+  advanceMarketPrices,
   applyMarketTrade,
   deriveProduction,
+  getBuildingPerkSummary,
   getBuildingCost,
   getCampaignById,
   getEventById,
+  getEventPresentation,
   getQuotaTarget,
   resolveQuotaClosures,
 } from '../economyMath.js'
-import { getPrestigeUpgradeByFieldCode } from '../metaConfig.js'
+import { getPrestigeUpgradeByFieldCode, getQuotaPreview } from '../metaConfig.js'
 
 const assertUniqueFieldCodes = (items, label) => {
   const fieldCodes = items.map((item) => item.fieldCode)
@@ -62,6 +65,8 @@ describe('economy schema', () => {
     expect(
       EVENT_DEFINITIONS.every((item) => typeof item.fieldCode === 'string'),
     ).toBe(true)
+    expect(EVENT_DEFINITIONS.some((item) => item.rarity === 'rare')).toBe(true)
+    expect(EVENT_DEFINITIONS.some((item) => item.kind === 'chain')).toBe(true)
     expect(BUILDINGS).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -152,6 +157,9 @@ describe('economy schema', () => {
     expect(
       getPrestigeUpgradeByFieldCode('prestige_heavenly_tar')?.id,
     ).toBe('heavenlyTar')
+    expect(getEventPresentation('fieldAudit')).toMatch(/скидк/i)
+    expect(getEventPresentation('logisticsCongress')).toMatch(/рын/i)
+    expect(getEventById('cashbackGlitchChain')?.rarity).toBe('rare')
   })
 })
 
@@ -166,10 +174,45 @@ describe('economy math', () => {
     const state = {
       ...STARTING_STATE,
       buildings: { ...STARTING_STATE.buildings, garagePicker: 10 },
-      upgrades: { ...STARTING_STATE.upgrades, warehouseRhythm: 1 },
+      upgrades: {
+        ...STARTING_STATE.upgrades,
+        warehouseRhythm: 1,
+        quietLogistics: 1,
+        streetPromoBurst: 1,
+      },
     }
 
     expect(deriveProduction(state).shishkiPerSecond).toBeGreaterThan(0)
+    expect(deriveProduction(state).clickPower).toBeGreaterThan(1)
+  })
+
+  it('applies unique early building perks from building levels', () => {
+    const baseState = {
+      ...STARTING_STATE,
+      buildings: {
+        ...STARTING_STATE.buildings,
+        garagePicker: 10,
+        greySorting: 2,
+      },
+    }
+
+    const leveledState = {
+      ...baseState,
+      buildingLevels: {
+        ...STARTING_STATE.buildingLevels,
+        garagePicker: 1,
+        greySorting: 1,
+      },
+    }
+
+    expect(deriveProduction(leveledState).clickPower).toBeGreaterThan(
+      deriveProduction(baseState).clickPower,
+    )
+    expect(deriveProduction(leveledState).shishkiPerSecond).toBeGreaterThan(
+      deriveProduction(baseState).shishkiPerSecond,
+    )
+    expect(getBuildingPerkSummary('garagePicker', 1)).toMatch(/клик/i)
+    expect(getBuildingPerkSummary('greySorting', 1)).toMatch(/сорт/i)
   })
 
   it('accrues tar lumps on real-time cadence', () => {
@@ -184,6 +227,40 @@ describe('economy math', () => {
 
     expect(result.tarLumps).toBe(1)
     expect(result.tarLumpProgressMs).toBe(0)
+  })
+
+  it('lets tar lump upgrades accelerate the cadence', () => {
+    const result = accrueTarLumps(
+      {
+        ...STARTING_STATE,
+        tarLumps: 0,
+        tarLumpProgressMs: 1_440_000,
+        upgrades: {
+          ...STARTING_STATE.upgrades,
+          tarCacheMerge: 1,
+        },
+      },
+      11_820_000,
+    )
+
+    expect(result.tarLumps).toBe(1)
+  })
+
+  it('lets packing line levels accelerate tar lump cadence further', () => {
+    const result = accrueTarLumps(
+      {
+        ...STARTING_STATE,
+        tarLumps: 0,
+        tarLumpProgressMs: 1_000_000,
+        buildingLevels: {
+          ...STARTING_STATE.buildingLevels,
+          packingLine: 1,
+        },
+      },
+      12_000_000,
+    )
+
+    expect(result.tarLumps).toBe(1)
   })
 
   it('applies broker fee reduction with a floor', () => {
@@ -206,6 +283,43 @@ describe('economy math', () => {
 
     expect(trade.nextState.market.positions.parallelImport).toBe(10)
     expect(trade.feePaid).toBeGreaterThan(0)
+  })
+
+  it('applies prestige fee reductions to market trades', () => {
+    const baseState = {
+      ...STARTING_STATE,
+      shishki: 10_000,
+      market: {
+        ...STARTING_STATE.market,
+        brokerLevel: 0,
+        prices: { parallelImport: 100 },
+        positions: { parallelImport: 0 },
+        averageBuyPrice: { parallelImport: 0 },
+      },
+    }
+
+    const withoutPrestige = applyMarketTrade({
+      state: baseState,
+      goodId: 'parallelImport',
+      quantity: 10,
+      side: 'buy',
+    })
+
+    const withPrestige = applyMarketTrade({
+      state: {
+        ...baseState,
+        prestigeUpgrades: {
+          ...STARTING_STATE.prestigeUpgrades,
+          taxBlindness: 2,
+          shadowBrokerage: 1,
+        },
+      },
+      goodId: 'parallelImport',
+      quantity: 10,
+      side: 'buy',
+    })
+
+    expect(withPrestige.feePaid).toBeLessThan(withoutPrestige.feePaid)
   })
 
   it('rejects trades that would oversell the portfolio', () => {
@@ -247,6 +361,131 @@ describe('economy math', () => {
     ).toThrow(/insufficient shishki/i)
   })
 
+  it('evolves market prices only after the market is unlocked', () => {
+    const lockedResult = advanceMarketPrices(
+      {
+        ...STARTING_STATE,
+        market: {
+          ...STARTING_STATE.market,
+          unlocked: false,
+        },
+      },
+      () => 0.95,
+    )
+
+    expect(lockedResult.market.prices).toEqual(STARTING_STATE.market.prices)
+
+    const unlockedResult = advanceMarketPrices(
+      {
+        ...STARTING_STATE,
+        market: {
+          ...STARTING_STATE.market,
+          unlocked: true,
+        },
+      },
+      () => 0.95,
+    )
+
+    expect(unlockedResult.market.prices.parallelImport).not.toBe(
+      STARTING_STATE.market.prices.parallelImport,
+    )
+  })
+
+  it('pushes hype goods harder during an active campaign', () => {
+    const baseline = advanceMarketPrices(
+      {
+        ...STARTING_STATE,
+        market: {
+          ...STARTING_STATE.market,
+          unlocked: true,
+        },
+      },
+      () => 0.75,
+    )
+
+    const withCampaign = advanceMarketPrices(
+      {
+        ...STARTING_STATE,
+        market: {
+          ...STARTING_STATE.market,
+          unlocked: true,
+        },
+        activeCampaign: {
+          id: 'sundayProphet',
+          productionBoost: 0.35,
+          clickBoost: 0,
+          eventBoost: 0.15,
+        },
+      },
+      () => 0.75,
+    )
+
+    expect(withCampaign.market.prices.neuroCover).toBeGreaterThan(
+      baseline.market.prices.neuroCover,
+    )
+  })
+
+  it('pushes targeted goods harder during an active market event', () => {
+    const baseline = advanceMarketPrices(
+      {
+        ...STARTING_STATE,
+        market: {
+          ...STARTING_STATE.market,
+          unlocked: true,
+        },
+      },
+      () => 0.75,
+    )
+
+    const withEvent = advanceMarketPrices(
+      {
+        ...STARTING_STATE,
+        market: {
+          ...STARTING_STATE.market,
+          unlocked: true,
+        },
+        activeEvent: {
+          id: 'districtHype',
+          marketBoostGoodId: 'neuroCover',
+          marketBoost: 0.08,
+        },
+      },
+      () => 0.75,
+    )
+
+    expect(withEvent.market.prices.neuroCover).toBeGreaterThan(
+      baseline.market.prices.neuroCover,
+    )
+  })
+
+  it('amplifies campaign production with night warehouse levels', () => {
+    const baseState = {
+      ...STARTING_STATE,
+      buildings: {
+        ...STARTING_STATE.buildings,
+        garagePicker: 10,
+      },
+      activeCampaign: {
+        id: 'sundayProphet',
+        productionBoost: 0.35,
+        clickBoost: 0,
+        eventBoost: 0.15,
+      },
+    }
+
+    const leveledState = {
+      ...baseState,
+      buildingLevels: {
+        ...STARTING_STATE.buildingLevels,
+        nightWarehouse: 1,
+      },
+    }
+
+    expect(deriveProduction(leveledState).shishkiPerSecond).toBeGreaterThan(
+      deriveProduction(baseState).shishkiPerSecond,
+    )
+  })
+
   it('closes multiple quotas inside one life', () => {
     const result = resolveQuotaClosures({
       quotaIndex: 0,
@@ -261,5 +500,23 @@ describe('economy math', () => {
     expect(result.quotaIndex).toBe(2)
     expect(result.heavenlyShishki).toBe(2)
     expect(getQuotaTarget(1_000, 2, result.quotaIndex)).toBe(4_000)
+  })
+
+  it('reduces quota targets with cone legacy prestige upgrades', () => {
+    const baseQuota = getQuotaPreview(STARTING_STATE)
+    const discountedQuota = getQuotaPreview({
+      ...STARTING_STATE,
+      prestigeUpgrades: {
+        ...STARTING_STATE.prestigeUpgrades,
+        coneLegacy: 2,
+      },
+    })
+
+    expect(discountedQuota.current).toBeLessThan(baseQuota.current)
+    expect(discountedQuota.next).toBeLessThan(baseQuota.next)
+  })
+
+  it('sets a hard first quota for the first life', () => {
+    expect(getQuotaPreview(STARTING_STATE).current).toBeGreaterThanOrEqual(10_000)
   })
 })

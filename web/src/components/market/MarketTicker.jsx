@@ -24,13 +24,14 @@ export function MarketTicker({ goods }) {
                   code={good.fieldCode}
                   label={good.title}
                   type="market"
-                  state="available"
+                  state={good.unlocked ? 'available' : 'locked'}
                   size={32}
                 />
               </span>
               <span className="market-ticker__content">
                 <strong>{good.title}</strong> · {formatFullNumber(good.price)} шишек
                 <span> · {PROFILE_LABELS[good.profile] ?? 'Спот'}</span>
+                {!good.unlocked ? <span> · закрыто</span> : null}
               </span>
             </li>
           ))}

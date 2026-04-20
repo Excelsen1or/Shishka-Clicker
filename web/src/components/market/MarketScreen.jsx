@@ -7,10 +7,12 @@ import { MarketTradePanel } from './MarketTradePanel.jsx'
 export const MarketScreen = observer(function MarketScreen() {
   const { uiEconomy, uiState, buyMarketGood, sellMarketGood, activateCampaign } =
     useGameStore()
+  const isUnlocked = Boolean(uiState?.market?.unlocked)
   const goods = uiEconomy?.marketGoods ?? []
   const campaigns = uiEconomy?.campaigns ?? []
   const shishki = uiState?.shishki ?? 0
-  const brokerLevel = uiState?.market?.brokerLevel ?? 0
+  const brokerLevel = uiEconomy?.brokerLevel ?? 0
+  const activeEvent = uiState?.activeEvent ?? null
 
   return (
     <section className="screen market-screen">
@@ -22,6 +24,26 @@ export const MarketScreen = observer(function MarketScreen() {
         </p>
       </div>
 
+      {isUnlocked ? (
+        <section className="market-panel pixel-surface">
+          <p>
+            Брокер: {brokerLevel} ур. {activeEvent ? `· Активное окно: ${activeEvent.title}` : ''}
+          </p>
+        </section>
+      ) : null}
+
+      {!isUnlocked ? (
+        <section className="market-panel pixel-surface">
+          <h3>Рынок пока закрыт</h3>
+          <p>
+            Купи первый Ларек перепродажи, чтобы открыть серую биржу, прогревы и
+            спекулятивные сделки.
+          </p>
+        </section>
+      ) : null}
+
+      {isUnlocked ? (
+        <>
       <MarketTicker goods={goods} />
       <MarketPortfolio goods={goods} shishki={shishki} onSell={sellMarketGood} />
       <MarketTradePanel
@@ -32,6 +54,8 @@ export const MarketScreen = observer(function MarketScreen() {
         onBuy={buyMarketGood}
         onCampaign={activateCampaign}
       />
+        </>
+      ) : null}
     </section>
   )
 })

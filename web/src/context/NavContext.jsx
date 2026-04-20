@@ -8,7 +8,6 @@ import {
 import {
   PxlKitIcon,
   Trophy,
-  Scroll,
   Community,
   Settings,
   Coin,
@@ -33,16 +32,10 @@ export const TABS = [
     description: 'Кликай шишку, следи за прогрессом',
   },
   {
-    id: 'subscriptions',
-    icon: <PixelNavIcon icon={Community} label="Здания" />,
-    label: 'Здания',
-    description: 'Покупай шишечное производство',
-  },
-  {
-    id: 'upgrades',
-    icon: <PixelNavIcon icon={Scroll} label="Улучшения" />,
-    label: 'Улучшения',
-    description: 'Усиливай клик, рынок и события',
+    id: 'purchases',
+    icon: <PixelNavIcon icon={Community} label="Покупки" />,
+    label: 'Покупки',
+    description: 'Здания и усиления в одном пиксель-магазине',
   },
   {
     id: 'market',
