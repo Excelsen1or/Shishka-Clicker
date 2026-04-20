@@ -30,6 +30,19 @@ The project should follow Cookie Clicker structurally, but not aesthetically or 
 
 The target result is not a clone with renamed cookies. It is a Russian post-ironic satire about runaway marketplace capitalism, warehouse hell, shady logistics, AI-generated sludge, and gray-market speculation, with `шишки` as the center of the absurd machine.
 
+## Visual Direction
+
+The economy reshape UI should lean fully into `PIXEL-UI` presentation instead of reading like a conventional productivity app with game labels attached.
+
+Visual rules:
+
+- hard-edged pixel panels, sharp borders, inset frames, and chunky button states;
+- compact arcade-style information density instead of roomy SaaS cards;
+- the clicker remains the visual center of gravity;
+- support panels should read like an in-game control deck or upgrade console;
+- tabs and switches should look like pixel control toggles, not browser-style pills;
+- all newly combined panels must preserve the existing placeholder sprite language so the whole economy reads as one game surface.
+
 ## Content Tone
 
 Tone rules:
@@ -390,16 +403,33 @@ Show:
 - `tar lumps`;
 - active event state.
 
-The clicker hero should be visually rebuilt around a central button and three adaptive progress zones instead of text-heavy surrounding panels.
+The clicker hero should be visually rebuilt around a central button and one wide switchable control deck placed directly below the button.
 
 Layout rules:
 
 - keep the clicker button as the center of the screen;
-- place a `buildings` visualization zone on the left;
-- place a `market and hype` visualization zone on the right;
-- place an `upgrades and meta` visualization zone below the clicker;
+- keep the top area focused on the clicker button and short run metrics;
+- place a single wide `pixel control deck` immediately below the clicker button;
+- remove the split left/right/bottom panel composition in favor of one combined switchable panel;
 - remove non-essential text blocks and decorative hero clutter around the clicker;
 - keep the hero focused on clicking plus visualized progression.
+
+### Clicker Control Deck
+
+The unified control deck under the clicker must expose four pixel-tab views:
+
+- `Здания`
+- `Рынок и хайп`
+- `Усиления`
+- `Мета`
+
+Rules:
+
+- only one deck view is visible at a time;
+- switching views should feel like changing pages on a game terminal, not routing between full app screens;
+- each view reuses the existing economy snapshot data instead of inventing a separate state model;
+- the deck must stay visually dense and game-like on desktop and mobile;
+- on mobile, deck tabs may wrap into two rows or scroll horizontally, but the deck remains below the clicker button.
 
 ### Clicker Progress Field
 
@@ -446,12 +476,28 @@ Suggested placeholder approach:
 
 The same visual identity should appear both in the clicker field and inside cards across shop and market screens.
 
-### Shop Screen
+### Purchases Screen
 
-Rewrite as:
+The bottom navigation should no longer expose separate `Здания` and `Улучшения` tabs.
 
-- buildings tab/section;
-- upgrades tab/section.
+Replace them with one tab named `Покупки`.
+
+The `Покупки` screen must contain a top-level pixel switcher with exactly two views:
+
+- `Здания`
+- `Улучшения`
+
+Rules:
+
+- both views live inside one screen component;
+- the switcher is rendered near the top of the screen under the header;
+- switching does not change route identity or bottom-nav state;
+- both modes keep the shared card language, sprite slots, and pixel control styling;
+- the screen should read like one in-game shop terminal with two inventory pages, not two separate pages bolted together.
+
+### Shop Screen Cards
+
+The purchases UI must preserve the existing shared card system while pushing it further toward a pixel-shop feel.
 
 Economy cards should reserve a left-aligned `32x32` sprite slot immediately in the card layout, even before final assets exist.
 
@@ -563,6 +609,9 @@ The implementation plan must cover tests or verification for:
 - Cookie Clicker structure is the base, but the identity remains unique to this project.
 - Old saves are intentionally invalidated.
 - The new economy is centered on one run currency plus prestige, rare meta resource, and market layer.
+- The clicker screen uses one unified control deck below the main button instead of split side panels.
+- The bottom navigation merges buildings and upgrades into one `Покупки` tab.
+- The UI direction for these screens is explicitly `PIXEL-UI`, not generic app UI.
 
 ## Implementation Readiness
 
