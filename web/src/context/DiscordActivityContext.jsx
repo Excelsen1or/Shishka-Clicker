@@ -621,12 +621,11 @@ export function DiscordActivityProvider({ children }) {
               ? error.message
               : 'discord_activity_init_failed',
           offlineMode: false,
-          presenceState: current.isActivity ? 'error' : 'idle',
-          presenceError: current.isActivity
-            ? error instanceof Error
+          presenceState: 'error',
+          presenceError:
+            error instanceof Error
               ? error.message
-              : 'discord_activity_init_failed'
-            : null,
+              : 'discord_activity_init_failed',
           saveReady: false,
         }))
       }

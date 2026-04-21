@@ -513,17 +513,29 @@
   align-items: start;
 }
 
+.clicker-deck-layout--stacked {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .clicker-deck-layout__panel {
   min-width: 0;
   align-self: stretch;
+}
+
+.clicker-deck-layout--stacked .clicker-deck-layout__hero {
+  order: 1;
+}
+
+.clicker-deck-layout--stacked .clicker-deck-layout__panel {
+  order: 2;
 }
 
 .clicker-deck-layout__hero {
   width: 100%;
   display: grid;
   min-width: 0;
-  min-height: clamp(15rem, 52vw, 26rem);
-  aspect-ratio: 16 / 10;
+  min-height: clamp(18rem, 46vw, 28rem);
+  aspect-ratio: 16 / 9;
   align-items: stretch;
   overflow: hidden;
 }
@@ -802,9 +814,18 @@
     align-items: stretch;
   }
 
+  .clicker-deck-layout--stacked {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
   .clicker-deck-layout__hero {
     min-height: clamp(22rem, 36vw, 31rem);
     aspect-ratio: auto;
+  }
+
+  .clicker-deck-layout--stacked .clicker-deck-layout__hero {
+    min-height: clamp(18rem, 36vw, 28rem);
+    aspect-ratio: 16 / 9;
   }
 }
 

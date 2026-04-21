@@ -71,7 +71,7 @@ export const ClickerScreen = observer(function ClickerScreen() {
 
   return (
     <section className="screen clicker-screen clicker-screen--deck">
-      <div className="clicker-deck-layout">
+      <div className="clicker-deck-layout clicker-deck-layout--stacked">
         <div className="clicker-deck-layout__hero">
           <ClickerButton />
         </div>

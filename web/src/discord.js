@@ -13,6 +13,11 @@ export function shouldLoadDiscordSdk({
   return hasWindow && Boolean(clientId)
 }
 
+function toDiscordError(stage, error) {
+  const message = error instanceof Error ? error.message : 'unknown_error'
+  return new Error(`${stage}: ${message}`)
+}
+
 function withTimeout(promise, timeoutMs, label) {
   return Promise.race([
     promise,
@@ -69,7 +74,9 @@ export async function setupDiscord() {
     const [{ exchangeDiscordCode }] = await Promise.all([
       import('./lib/discordAuth.js'),
       withTimeout(discordSdk.ready(), DISCORD_READY_TIMEOUT_MS, 'discord_ready'),
-    ])
+    ]).catch((error) => {
+      throw toDiscordError('discord_ready', error)
+    })
 
     const { code } = await withTimeout(
       discordSdk.commands.authorize({
@@ -81,20 +88,26 @@ export async function setupDiscord() {
       }),
       DISCORD_AUTHORIZE_TIMEOUT_MS,
       'discord_authorize',
-    )
+    ).catch((error) => {
+      throw toDiscordError('discord_authorize', error)
+    })
 
     const { access_token: accessToken } = await withTimeout(
       exchangeDiscordCode(code),
       DISCORD_TOKEN_EXCHANGE_TIMEOUT_MS,
       'discord_exchange_token',
-    )
+    ).catch((error) => {
+      throw toDiscordError('discord_exchange_token', error)
+    })
     const auth = await withTimeout(
       discordSdk.commands.authenticate({
         access_token: accessToken,
       }),
       DISCORD_AUTHENTICATE_TIMEOUT_MS,
       'discord_authenticate',
-    )
+    ).catch((error) => {
+      throw toDiscordError('discord_authenticate', error)
+    })
 
     if (!auth) {
       throw new Error('Authenticate command returned null')
@@ -126,7 +139,9 @@ export async function setDiscordRichPresence(activity) {
     return false
   }
 
-  await discordSdk.commands.setActivity({ activity })
+  await discordSdk.commands.setActivity({ activity }).catch((error) => {
+    throw toDiscordError('discord_set_activity', error)
+  })
   return true
 }
 

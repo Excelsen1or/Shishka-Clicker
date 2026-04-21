@@ -175,7 +175,7 @@ export const ClickerButton = observer(function ClickerButton() {
   }
 
   return (
-    <div className="clicker-wrap clicker-wrap--pixel clicker-wrap--scene">
+    <div className="clicker-wrap clicker-wrap--pixel clicker-wrap--scene clicker-wrap--scene-clean">
       <button
         ref={buttonRef}
         type="button"

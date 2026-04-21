@@ -105,7 +105,7 @@
   width: 100%;
   height: 100%;
   min-height: 0;
-  aspect-ratio: inherit;
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   padding: 0;
   border: 2px solid rgb(var(--accent-primary-rgb) / 0.24);
@@ -114,6 +114,10 @@
     inset 0 0 0 2px rgb(var(--black-rgb) / 0.22),
     8px 8px 0 0 rgb(var(--black-rgb) / 0.18);
   isolation: isolate;
+}
+
+.clicker-wrap--scene-clean {
+  min-height: clamp(18rem, 46vw, 28rem);
 }
 
 .clicker-wrap__scene {
@@ -151,7 +155,8 @@
   width: 100%;
   height: 100%;
   max-width: none;
-  object-fit: fill;
+  object-fit: cover;
+  object-position: center;
   image-rendering: pixelated;
 }
 
@@ -160,8 +165,13 @@
   width: 50%;
   flex: 0 0 50%;
   height: 100%;
-  object-fit: fill;
+  object-fit: cover;
   object-position: center;
+}
+
+.clicker-wrap__scene-image--mid,
+.clicker-wrap__scene-image--front {
+  object-position: center bottom;
 }
 
 .clicker-wrap__cloud-band {
@@ -474,8 +484,8 @@
 
 .clicker-btn__hero-motion {
   position: relative;
-  width: min(100%, 9.5rem);
-  min-height: clamp(7.2rem, 11vw, 8.8rem);
+  width: min(100%, 15rem);
+  min-height: clamp(11rem, 22vw, 16rem);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -487,9 +497,10 @@
 
 .clicker-btn__hero {
   --hero-facing: 1;
-  width: 88%;
-  max-width: 9rem;
-  aspect-ratio: auto;
+  width: auto;
+  height: auto;
+  max-width: min(78%, 16rem);
+  max-height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 10px 18px rgb(var(--black-rgb) / 0.22));
   position: relative;
