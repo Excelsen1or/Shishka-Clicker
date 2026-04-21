@@ -1,4 +1,8 @@
-const LEGACY_SAVE_KEY = 'shishka-clicker-save-v4'
+const CURRENT_SAVE_KEY = 'shishka-clicker-save-v6'
+const OBSOLETE_SAVE_KEYS = [
+  'shishka-clicker-save-v5',
+  'shishka-clicker-save-v4',
+]
 
 function normalizeStoredGame(rawValue) {
   if (!rawValue || typeof rawValue !== 'object' || Array.isArray(rawValue)) {
@@ -35,7 +39,7 @@ export function loadLegacyGameRecord() {
   }
 
   try {
-    const raw = window.localStorage.getItem(LEGACY_SAVE_KEY)
+    const raw = window.localStorage.getItem(CURRENT_SAVE_KEY)
     if (!raw) {
       return {
         state: null,
@@ -55,5 +59,8 @@ export function loadLegacyGameRecord() {
 
 export function clearLegacyGame() {
   if (typeof window === 'undefined') return
-  window.localStorage.removeItem(LEGACY_SAVE_KEY)
+  window.localStorage.removeItem(CURRENT_SAVE_KEY)
+  OBSOLETE_SAVE_KEYS.forEach((key) => {
+    window.localStorage.removeItem(key)
+  })
 }

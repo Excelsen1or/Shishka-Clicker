@@ -1,341 +1,202 @@
 import { startTransition } from 'react'
 import { computed, makeAutoObservable, runInAction } from 'mobx'
 import {
-  STARTING_STATE,
-  SUBSCRIPTIONS,
-  UPGRADES,
-  deriveAchievements,
-  deriveContributionBreakdown,
-  deriveEconomy,
-  formatUnlockText,
-  getItemEffectPreview,
-  getPrestigePreview,
-  getRandomMegaEmoji,
-  getScaledCost,
-  getUnlockStatus,
-  getMegaClickChance,
-  getMegaEmojiChance,
-} from '../game/config'
-import {
-  getPrestigeUpgradeCards,
+  BUILDINGS,
+  EVENT_DEFINITIONS,
   PRESTIGE_UPGRADES,
-  getPrestigeUpgradeCost,
-} from '../game/metaConfig'
+  RUN_UPGRADES,
+  TAR_LUMP_RULES,
+} from '../game/economyConfig.js'
 import {
-  formatFullNumber,
-  formatNumber,
-  isNumberAbbreviated,
-} from '../lib/format'
+  advanceMarketPrices,
+  accrueTarLumps,
+  applyMarketTrade,
+  deriveProduction,
+  getBuildingById,
+  getBuildingCost,
+  getCampaignById,
+  getCampaignLaunchCost,
+  getEventSpawnChance,
+  getEventPresentation,
+  getEventRewardMultiplier,
+  rollEventDefinition,
+  resolveQuotaClosures,
+} from '../game/economyMath.js'
+import { getEventVisual } from '../game/marketEventVisuals.js'
+import {
+  getPrestigeUpgradeCost,
+  getPrestigeStartBonus,
+  getQuotaPreview,
+} from '../game/metaConfig.js'
+import {
+  buildDevConsoleResources,
+  buildClickerFieldData,
+  buildEconomySnapshot,
+  buildProgressOverviewData,
+} from './gameStoreSnapshots.js'
+import { createFreshState, mergeState } from './gameStoreState.js'
 
-const UI_SNAPSHOT_DELAY_MS = 120
-const PASSIVE_UI_SNAPSHOT_DELAY_MS = 480
 const ACTIVE_TICK_MS = 250
 const IDLE_TICK_MS = 1000
-const IDLE_THRESHOLD_MS = 1500
-const DEV_RESOURCE_KEYS = ['shishki', 'money', 'knowledge', 'prestigeShards']
+const DEV_RESOURCE_KEYS = ['shishki', 'heavenlyShishki', 'tarLumps']
+const SHISHKI_PRECISION = 3
 
-function buildSeenShopItems(snapshot = STARTING_STATE) {
-  const safeSnapshot = snapshot ?? STARTING_STATE
-
-  return [...SUBSCRIPTIONS, ...UPGRADES].reduce((accumulator, item) => {
-    if (getUnlockStatus(safeSnapshot, item.id).unlocked) {
-      accumulator[item.id] = true
-    }
-
-    return accumulator
-  }, {})
+function roundShishkiValue(value) {
+  return Number(value.toFixed(SHISHKI_PRECISION))
 }
 
-function buildSeenBuyableShopItems(snapshot = STARTING_STATE) {
-  const safeSnapshot = snapshot ?? STARTING_STATE
-
-  return [...SUBSCRIPTIONS, ...UPGRADES].reduce((accumulator, item) => {
-    const level = item.currency
-      ? (safeSnapshot.upgrades?.[item.id] ?? 0)
-      : (safeSnapshot.subscriptions?.[item.id] ?? 0)
-    const currency = item.currency ?? 'money'
-    const unlock = getUnlockStatus(safeSnapshot, item.id)
-    const cost = getScaledCost(item.baseCost, item.costScale, level)
-    const balance = safeSnapshot[currency] ?? 0
-
-    if (level > 0 || (unlock.unlocked && balance >= cost)) {
-      accumulator[item.id] = true
-    }
-
-    return accumulator
-  }, {})
-}
-
-function mergeState(saved) {
-  if (!saved || typeof saved !== 'object' || Array.isArray(saved)) {
-    return createFreshState()
-  }
-
+function resolveQuotaState(state) {
   return {
-    ...STARTING_STATE,
-    ...saved,
-    achievements: {
-      ...(saved.achievements ?? {}),
-    },
-    seenShopItems: saved.seenShopItems
-      ? { ...(saved.seenShopItems ?? {}) }
-      : buildSeenShopItems({
-          ...STARTING_STATE,
-          ...saved,
-          subscriptions: {
-            ...STARTING_STATE.subscriptions,
-            ...(saved.subscriptions ?? {}),
-          },
-          upgrades: {
-            ...STARTING_STATE.upgrades,
-            ...(saved.upgrades ?? {}),
-          },
-        }),
-    seenBuyableShopItems: saved.seenBuyableShopItems
-      ? { ...(saved.seenBuyableShopItems ?? {}) }
-      : buildSeenBuyableShopItems({
-          ...STARTING_STATE,
-          ...saved,
-          subscriptions: {
-            ...STARTING_STATE.subscriptions,
-            ...(saved.subscriptions ?? {}),
-          },
-          upgrades: {
-            ...STARTING_STATE.upgrades,
-            ...(saved.upgrades ?? {}),
-          },
-        }),
-    prestigeUpgrades: {
-      ...STARTING_STATE.prestigeUpgrades,
-      ...(saved.prestigeUpgrades ?? {}),
-    },
-    subscriptions: {
-      ...STARTING_STATE.subscriptions,
-      ...(saved.subscriptions ?? {}),
-    },
-    upgrades: {
-      ...STARTING_STATE.upgrades,
-      ...(saved.upgrades ?? {}),
-    },
-  }
-}
-
-function enrichItem(state, item, level, aiMultiplier, prestigeMultiplier) {
-  const unlock = getUnlockStatus(state, item.id)
-  const effectPreview = getItemEffectPreview(
-    item,
-    level,
-    aiMultiplier,
-    prestigeMultiplier,
-  )
-  const cost = getScaledCost(item.baseCost, item.costScale, level)
-  const balance = Number(state?.[item.currency] ?? 0)
-
-  return {
-    ...item,
-    level,
-    cost,
-    balance,
-    canBuy: unlock.unlocked && balance >= cost,
-    unlocked: unlock.unlocked,
-    isNew: unlock.unlocked && !state?.seenShopItems?.[item.id],
-    isBuyableNew:
-      unlock.unlocked &&
-      level === 0 &&
-      balance >= cost &&
-      !state?.seenBuyableShopItems?.[item.id],
-    unlockRule: unlock.rule,
-    unlockText: formatUnlockText(unlock.rule),
-    unlockProgress: unlock.progress,
-    effectPreview,
-  }
-}
-
-function applyIncome(current, seconds) {
-  const safeCurrent = mergeState(current)
-  const rates = deriveEconomy(safeCurrent)
-  const shishkiGain = rates.shishkiPerSecond * seconds
-  const moneyGain = rates.moneyPerSecond * seconds
-  const knowledgeGain = rates.knowledgePerSecond * seconds
-
-  return {
-    ...safeCurrent,
-    shishki: safeCurrent.shishki + shishkiGain,
-    money: safeCurrent.money + moneyGain,
-    knowledge: safeCurrent.knowledge + knowledgeGain,
-    totalShishkiEarned: safeCurrent.totalShishkiEarned + shishkiGain,
-    totalMoneyEarned: safeCurrent.totalMoneyEarned + moneyGain,
-    totalKnowledgeEarned: safeCurrent.totalKnowledgeEarned + knowledgeGain,
-    lifetimeShishkiEarned: safeCurrent.lifetimeShishkiEarned + shishkiGain,
-    lifetimeMoneyEarned: safeCurrent.lifetimeMoneyEarned + moneyGain,
-    lifetimeKnowledgeEarned:
-      safeCurrent.lifetimeKnowledgeEarned + knowledgeGain,
-  }
-}
-
-function unlockAchievements(current) {
-  const derived = deriveAchievements(current)
-  const nextUnlocked = { ...(current.achievements ?? {}) }
-  const unlockedNow = []
-
-  derived.forEach((achievement) => {
-    if (achievement.unlocked && !nextUnlocked[achievement.id]) {
-      nextUnlocked[achievement.id] = true
-      unlockedNow.push({
-        id: achievement.id,
-        title: achievement.title,
-        description: achievement.description,
-        category: achievement.category,
-        tier: achievement.tier,
-        secret: achievement.secret,
-      })
-    }
-  })
-
-  if (!unlockedNow.length) return { state: current, unlockedNow: [] }
-
-  return {
-    state: {
-      ...current,
-      achievements: nextUnlocked,
-    },
-    unlockedNow,
-  }
-}
-
-function buildStatsSnapshot(state, contributions) {
-  return [
-    {
-      icon: 'cone',
-      label: 'Шишки',
-      value: formatNumber(state.shishki),
-      hint: `+${formatNumber(state.shishkiPerSecond)} / сек`,
-      contributions: contributions.shishkiPerSecond,
-    },
-    {
-      icon: 'money',
-      label: 'Деньги',
-      value: formatNumber(state.money),
-      hint: `+${formatNumber(state.moneyPerSecond)} / сек`,
-      contributions: contributions.moneyPerSecond,
-    },
-    {
-      icon: 'knowledge',
-      label: 'Знания',
-      value: formatNumber(state.knowledge),
-      hint: `+${formatNumber(state.knowledgePerSecond)} / сек`,
-      contributions: contributions.knowledgePerSecond,
-    },
-    {
-      icon: 'power',
-      label: 'Сила клика',
-      value: formatNumber(state.clickPower),
-      hint: `${formatNumber(state.manualClicks)} кликов`,
-      contributions: contributions.clickPower,
-    },
-    {
-      icon: 'robot',
-      label: 'AI-мощность',
-      value: formatNumber(state.aiPower),
-      hint: `множитель x${formatNumber(state.aiMultiplier)}`,
-      contributions: contributions.aiPower,
-    },
-  ]
-}
-
-function buildAlertSummary(items) {
-  const readyCount = items.filter((item) => item.isBuyableNew).length
-  const newCount = items.filter(
-    (item) => item.isNew && !item.isBuyableNew,
-  ).length
-
-  return {
-    count: readyCount || newCount,
-    hasReady: readyCount > 0,
-  }
-}
-
-function buildUnlockPreview(state, sourceItems, type) {
-  const derived = deriveEconomy(state)
-  const { aiMultiplier, prestigeMultiplier } = derived
-  const nextItem = sourceItems.find(
-    (item) => !getUnlockStatus(state, item.id).unlocked,
-  )
-  if (!nextItem) return null
-
-  const level =
-    type === 'subscriptions'
-      ? (state.subscriptions[nextItem.id] ?? 0)
-      : (state.upgrades[nextItem.id] ?? 0)
-
-  return enrichItem(
-    state,
-    type === 'subscriptions' ? { ...nextItem, currency: 'money' } : nextItem,
-    level,
-    aiMultiplier,
-    prestigeMultiplier,
-  )
-}
-
-function buildEconomySnapshot(state, derived) {
-  const { aiMultiplier, prestigeMultiplier } = derived
-
-  return {
-    subscriptions: SUBSCRIPTIONS.map((item) => {
-      const level = state.subscriptions[item.id] ?? 0
-      return enrichItem(
-        state,
-        { ...item, currency: 'money' },
-        level,
-        aiMultiplier,
-        prestigeMultiplier,
-      )
+    ...state,
+    ...resolveQuotaClosures({
+      quotaIndex: state.quotaIndex,
+      currentRunShishki: state.currentRunShishki,
+      heavenlyShishki: state.heavenlyShishki,
+      totalHeavenlyShishkiEarned: state.totalHeavenlyShishkiEarned,
     }),
-    upgrades: UPGRADES.map((item) => {
-      const level = state.upgrades[item.id] ?? 0
-      return enrichItem(state, item, level, aiMultiplier, prestigeMultiplier)
-    }),
-    prestigeUpgrades: getPrestigeUpgradeCards(state),
   }
 }
 
-function markSeenItems(state, ids) {
-  const nextIds = Array.from(new Set((ids ?? []).filter(Boolean)))
-  if (!nextIds.length) {
-    return { changed: false, state }
+function gainShishki(state, amount) {
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return state
   }
 
-  let changed = false
-  const seenShopItems = { ...state.seenShopItems }
-  const seenBuyableShopItems = { ...state.seenBuyableShopItems }
-
-  nextIds.forEach((id) => {
-    if (!seenShopItems[id] || !seenBuyableShopItems[id]) {
-      seenShopItems[id] = true
-      seenBuyableShopItems[id] = true
-      changed = true
-    }
+  return resolveQuotaState({
+    ...state,
+    shishki: roundShishkiValue(state.shishki + amount),
+    totalShishkiEarned: roundShishkiValue(state.totalShishkiEarned + amount),
+    lifetimeShishkiEarned: roundShishkiValue(
+      state.lifetimeShishkiEarned + amount,
+    ),
+    currentRunShishki: roundShishkiValue(state.currentRunShishki + amount),
   })
+}
 
-  if (!changed) {
-    return { changed: false, state }
+function gainQuotaCredit(state, amount) {
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return state
+  }
+
+  return resolveQuotaState({
+    ...state,
+    totalShishkiEarned: roundShishkiValue(state.totalShishkiEarned + amount),
+    lifetimeShishkiEarned: roundShishkiValue(
+      state.lifetimeShishkiEarned + amount,
+    ),
+    currentRunShishki: roundShishkiValue(state.currentRunShishki + amount),
+  })
+}
+
+function clearExpiredCampaign(state, now = Date.now()) {
+  if (!state.activeCampaign?.endsAt || state.activeCampaign.endsAt > now) {
+    return state
   }
 
   return {
-    changed: true,
-    state: {
-      ...state,
-      seenShopItems,
-      seenBuyableShopItems,
-    },
+    ...state,
+    activeCampaign: null,
   }
 }
 
-function createFreshState() {
+function clearExpiredEvent(state, now = Date.now()) {
+  if (!state.activeEvent?.endsAt || state.activeEvent.endsAt > now) {
+    return state
+  }
+
   return {
-    ...STARTING_STATE,
-    seenShopItems: buildSeenShopItems(STARTING_STATE),
-    seenBuyableShopItems: buildSeenBuyableShopItems(STARTING_STATE),
+    ...state,
+    activeEvent: null,
+  }
+}
+
+function getEventMarketPayload(eventId) {
+  switch (eventId) {
+    case 'districtHype':
+      return { marketBoostGoodId: 'neuroCover', marketBoost: 0.08 }
+    case 'logisticsCongress':
+      return { marketBoostGoodId: 'parallelImport', marketBoost: 0.06 }
+    case 'tarStorm':
+      return { marketBoostGoodId: 'tarDrums', marketBoost: 0.12 }
+    default:
+      return { marketBoostGoodId: null, marketBoost: 0 }
+  }
+}
+
+function spawnTimedEvent(state, seconds, now = Date.now(), random = Math.random) {
+  const clearedState = clearExpiredEvent(state, now)
+
+  if (clearedState.activeEvent || !clearedState.market?.unlocked) {
+    return clearedState
+  }
+
+  const eventChance = Math.min(
+    0.35,
+    getEventSpawnChance(clearedState, seconds),
+  )
+
+  if (random() >= eventChance) {
+    return clearedState
+  }
+
+  const definition = rollEventDefinition(random, clearedState)
+  const baseReward =
+    definition.kind === 'positive'
+      ? 90
+      : definition.kind === 'mixed'
+        ? 45
+        : definition.kind === 'chain'
+          ? 60
+        : 0
+  const rewardMultiplier = getEventRewardMultiplier(clearedState)
+
+  return gainShishki(
+    {
+      ...clearedState,
+      activeEvent: {
+        ...definition,
+        ...getEventMarketPayload(definition.id),
+        chainStep: definition.kind === 'chain' ? 0 : undefined,
+        rewardShishki: Math.round(baseReward * rewardMultiplier),
+        endsAt: now + definition.durationMs,
+      },
+    },
+    Math.round(baseReward * rewardMultiplier),
+  )
+}
+
+function resolveUiState(state) {
+  return clearExpiredEvent(clearExpiredCampaign(state))
+}
+
+function getBuildingLevelCost(level) {
+  if (level >= TAR_LUMP_RULES.maxBuildingLevel) {
+    return null
+  }
+
+  if (level >= 5) {
+    return 2
+  }
+
+  return 1
+}
+
+function getPurchaseDiscount(state) {
+  return Math.max(0, Math.min(0.6, state?.activeEvent?.purchaseDiscount ?? 0))
+}
+
+function buildEventToastPayload(event) {
+  if (!event?.id) {
+    return null
+  }
+
+  return {
+    id: event.id,
+    toastId: `${event.id}-${event.endsAt ?? Date.now()}`,
+    title: event.title,
+    description: getEventPresentation(event.id),
+    rarity: event.rarity ?? 'common',
+    kind: event.kind ?? 'positive',
   }
 }
 
@@ -344,15 +205,10 @@ export default class GameStore {
   _state = createFreshState()
   uiSnapshotState = this._state
   achievementQueue = []
-  uiRefreshTimeoutId = null
-  uiRefreshDueAt = 0
+  eventToastQueue = []
   tickTimeoutId = null
-  interactionTimeoutId = null
-  pendingPassiveSeconds = 0
-  isInteracting = false
   initialized = false
   lastTickAt = 0
-  lastActivityAt = 0
   clientRevision = 0
   lastMutationAt = null
 
@@ -363,21 +219,19 @@ export default class GameStore {
       this,
       {
         rootStore: false,
-        uiRefreshTimeoutId: false,
-        uiRefreshDueAt: false,
         tickTimeoutId: false,
-        interactionTimeoutId: false,
-        pendingPassiveSeconds: false,
-        isInteracting: false,
         initialized: false,
         lastTickAt: false,
-        lastActivityAt: false,
-        syncUiSnapshotNow: false,
-        scheduleUiSnapshotSync: false,
+        achievementQueue: false,
+        state: computed.struct,
+        uiState: computed.struct,
+        economy: computed.struct,
+        uiEconomy: computed.struct,
         statsBarData: computed.struct,
         bottomNavAlerts: computed.struct,
         clickerMetrics: computed.struct,
         progressOverviewData: computed.struct,
+        clickerFieldData: computed.struct,
         devConsoleResources: computed.struct,
       },
       { autoBind: true },
@@ -387,11 +241,11 @@ export default class GameStore {
   }
 
   get derived() {
-    return deriveEconomy(this._state)
+    return deriveProduction(this._state)
   }
 
   get uiDerived() {
-    return deriveEconomy(this.uiSnapshotState)
+    return deriveProduction(resolveUiState(this.uiSnapshotState))
   }
 
   get state() {
@@ -403,33 +257,38 @@ export default class GameStore {
 
   get uiState() {
     return {
-      ...this.uiSnapshotState,
+      ...resolveUiState(this.uiSnapshotState),
       ...this.uiDerived,
     }
   }
 
-  get achievements() {
-    return deriveAchievements(this._state)
-  }
-
-  get uiAchievements() {
-    return deriveAchievements(this.uiSnapshotState)
-  }
-
-  get contributions() {
-    return deriveContributionBreakdown(this._state)
-  }
-
-  get uiContributions() {
-    return deriveContributionBreakdown(this.uiSnapshotState)
-  }
-
   get prestige() {
-    return getPrestigePreview(this._state)
+    const quota = getQuotaPreview(this._state)
+
+    return {
+      currentRunShishki: this._state.currentRunShishki,
+      currentQuotaTarget: quota.current,
+      nextQuotaTarget: quota.next,
+      quotaIndex: this._state.quotaIndex,
+      heavenlyShishki: this._state.heavenlyShishki,
+      rebirths: this._state.rebirths,
+      tarLumps: this._state.tarLumps,
+    }
   }
 
   get uiPrestige() {
-    return getPrestigePreview(this.uiSnapshotState)
+    const resolvedState = resolveUiState(this.uiSnapshotState)
+    const quota = getQuotaPreview(resolvedState)
+
+    return {
+      currentRunShishki: resolvedState.currentRunShishki,
+      currentQuotaTarget: quota.current,
+      nextQuotaTarget: quota.next,
+      quotaIndex: resolvedState.quotaIndex,
+      heavenlyShishki: resolvedState.heavenlyShishki,
+      rebirths: resolvedState.rebirths,
+      tarLumps: resolvedState.tarLumps,
+    }
   }
 
   get economy() {
@@ -441,107 +300,87 @@ export default class GameStore {
   }
 
   get statsBarData() {
-    return buildStatsSnapshot(this.uiState, this.uiContributions)
+    const activeEvent = this.uiState.activeEvent ?? null
+    const eventVisual = getEventVisual(activeEvent)
+    const eventDescription = activeEvent
+      ? getEventPresentation(activeEvent.id)
+      : 'Спокойный рынок без всплесков.'
+
+    return [
+      {
+        icon: 'cone',
+        label: 'Шишки',
+        value: this.uiState.shishki,
+        hint: `+${this.uiDerived.shishkiPerSecond}/сек`,
+      },
+      {
+        icon: 'rebirth',
+        label: 'Небесные',
+        value: this.uiState.heavenlyShishki,
+        hint: 'за всё время',
+      },
+      {
+        icon: 'knowledge',
+        label: 'Комочки',
+        value: this.uiState.tarLumps,
+        hint: 'редкий ресурс',
+      },
+      {
+        icon: 'power',
+        label: 'Клик',
+        value: this.uiDerived.clickPower,
+        hint: `${this.uiState.manualClicks} кликов`,
+      },
+      {
+        label: 'Ивент',
+        value: eventVisual.title,
+        hint: eventDescription,
+        pixelIcon: eventVisual.icon,
+        className: `stat-card--market-event stat-card--market-event--${eventVisual.tone}`.trim(),
+      },
+    ]
   }
 
   get bottomNavAlerts() {
     return {
-      subscriptions: buildAlertSummary(this.uiEconomy.subscriptions ?? []),
-      upgrades: buildAlertSummary(this.uiEconomy.upgrades ?? []),
+      purchases: { count: 0, hasReady: false },
+      market: { count: 0, hasReady: false },
+      meta: { count: 0, hasReady: false },
+      settings: { count: 0, hasReady: false },
+      clicker: { count: 0, hasReady: false },
     }
   }
 
   get clickerMetrics() {
     return {
-      clickPowerText: formatNumber(this.state.clickPower),
-      clickPowerFull: formatFullNumber(this.state.clickPower),
-      megaClickChanceText: `${formatNumber(this.state.megaClickChance)}%`,
-      megaClickChanceFull: formatFullNumber(this.state.megaClickChance),
-      megaClickStreak: this._state.megaClickStreak ?? 0,
-      emojiMegaChanceText: `${formatNumber(this.state.emojiMegaChance)}%`,
-      emojiMegaChanceFull: formatFullNumber(this.state.emojiMegaChance),
-      emojiBurstStreak: this._state.emojiBurstStreak ?? 0,
+      clickPowerText: String(this.state.clickPower),
+      megaClickChanceText: '0%',
+      megaClickStreak: 0,
+      emojiMegaChanceText: '0%',
+      emojiBurstStreak: 0,
     }
   }
 
   get progressOverviewData() {
-    const achievements = this.uiAchievements
-    const prestige = this.uiPrestige
-    const cycleShishkiText = formatNumber(prestige.cycleProgress.shishki)
-    const cycleShishkiGoalText = formatNumber(prestige.rebirthRule.shishki)
-    const cycleKnowledgeText = formatNumber(prestige.cycleProgress.knowledge)
-    const cycleKnowledgeGoalText = formatNumber(prestige.rebirthRule.knowledge)
+    return buildProgressOverviewData(resolveUiState(this.uiSnapshotState), this.uiDerived)
+  }
 
-    return {
-      nextSub: buildUnlockPreview(
-        this.uiSnapshotState,
-        SUBSCRIPTIONS,
-        'subscriptions',
-      ),
-      nextUpgrade: buildUnlockPreview(
-        this.uiSnapshotState,
-        UPGRADES,
-        'upgrades',
-      ),
-      unlockedAchievements: achievements.filter((entry) => entry.unlocked)
-        .length,
-      achievementsTotal: achievements.length,
-      rebirthsText: formatNumber(this.uiSnapshotState.rebirths),
-      prestigeShardsText: formatNumber(this.uiSnapshotState.prestigeShards),
-      projectedShardsText: formatNumber(prestige.projectedShards),
-      lifetimeShishkiEarnedText: formatNumber(
-        this.uiSnapshotState.lifetimeShishkiEarned,
-      ),
-      totalMoneyEarnedText: formatNumber(this.uiSnapshotState.totalMoneyEarned),
-      totalKnowledgeEarnedText: formatNumber(
-        this.uiSnapshotState.totalKnowledgeEarned,
-      ),
-      megaClicksText: formatNumber(this.uiSnapshotState.megaClicks),
-      prestigeLabel: prestige.isUnlocked
-        ? `Цикл #${prestige.rebirthRule.cycle}`
-        : 'Система ещё закрыта',
-      cycleShishkiText,
-      cycleShishkiGoalText,
-      cycleShishkiFull: `${formatFullNumber(prestige.cycleProgress.shishki)} / ${formatFullNumber(prestige.rebirthRule.shishki)}`,
-      cycleShishkiAbbreviated:
-        isNumberAbbreviated(cycleShishkiText) ||
-        isNumberAbbreviated(cycleShishkiGoalText),
-      cycleKnowledgeText,
-      cycleKnowledgeGoalText,
-      cycleKnowledgeFull: `${formatFullNumber(prestige.cycleProgress.knowledge)} / ${formatFullNumber(prestige.rebirthRule.knowledge)}`,
-      cycleKnowledgeAbbreviated:
-        isNumberAbbreviated(cycleKnowledgeText) ||
-        isNumberAbbreviated(cycleKnowledgeGoalText),
-      prestige,
-    }
+  get clickerFieldData() {
+    return buildClickerFieldData(resolveUiState(this.uiSnapshotState))
   }
 
   get devConsoleResources() {
-    return {
-      shishki: this._state.shishki,
-      shishkiText: formatNumber(this._state.shishki),
-      money: this._state.money,
-      moneyText: formatNumber(this._state.money),
-      knowledge: this._state.knowledge,
-      knowledgeText: formatNumber(this._state.knowledge),
-      prestigeShards: this._state.prestigeShards,
-      prestigeShardsText: formatNumber(this._state.prestigeShards),
-    }
+    return buildDevConsoleResources(this._state)
   }
 
   start() {
-    if (this.initialized || typeof window === 'undefined') return
+    if (this.initialized || typeof window === 'undefined') {
+      return
+    }
 
     this.initialized = true
     this.lastTickAt = performance.now()
-    this.lastActivityAt = this.lastTickAt
-    this.tickTimeoutId = window.setTimeout(this.tickStep, 250)
-
-    window.addEventListener('scroll', this.handleInteraction, { passive: true })
-    window.addEventListener('wheel', this.handleInteraction, { passive: true })
-    window.addEventListener('touchmove', this.handleInteraction, {
-      passive: true,
-    })
+    this.tickTimeoutId = window.setTimeout(this.tickStep, ACTIVE_TICK_MS)
   }
 
   markStateChanged(updatedAt = new Date().toISOString()) {
@@ -549,95 +388,15 @@ export default class GameStore {
     this.lastMutationAt = updatedAt
   }
 
-  syncUiSnapshotNow() {
-    window.clearTimeout(this.uiRefreshTimeoutId)
-    this.uiSnapshotState = this._state
-    this.uiRefreshTimeoutId = null
-    this.uiRefreshDueAt = 0
-  }
-
-  scheduleUiSnapshotSync(delayMs = UI_SNAPSHOT_DELAY_MS) {
-    const now = Date.now()
-    const dueAt = now + delayMs
-
-    if (this.uiRefreshTimeoutId && this.uiRefreshDueAt <= dueAt) return
-
-    window.clearTimeout(this.uiRefreshTimeoutId)
-    this.uiRefreshDueAt = dueAt
-
-    this.uiRefreshTimeoutId = window.setTimeout(() => {
-      runInAction(() => {
-        this.syncUiSnapshotNow()
-      })
-    }, delayMs)
-  }
-
-  pushUnlocked(unlockedNow) {
-    if (unlockedNow.length) {
-      this.achievementQueue.push(...unlockedNow)
-    }
-  }
-
-  commitState(nextState, unlockedNow = [], options = {}) {
-    const { uiSync = 'default' } = options
+  commitState(nextState) {
     this._state = nextState
-    this.pushUnlocked(unlockedNow)
-
-    if (uiSync === 'immediate') {
-      this.syncUiSnapshotNow()
-    } else {
-      this.scheduleUiSnapshotSync(
-        uiSync === 'passive'
-          ? PASSIVE_UI_SNAPSHOT_DELAY_MS
-          : UI_SNAPSHOT_DELAY_MS,
-      )
-    }
-
+    this.uiSnapshotState = nextState
     this.markStateChanged()
   }
 
-  transact(updater, options) {
-    const result = unlockAchievements(updater(this._state))
-    this.commitState(result.state, result.unlockedNow, options)
-  }
-
-  buyEconomyItem(items, collectionKey, id, currencyOverride = null) {
-    this.recordActivity()
-    const item = items.find((entry) => entry.id === id)
-    if (!item) return
-
-    const unlock = getUnlockStatus(this._state, item.id)
-    if (!unlock.unlocked) return
-
-    const level = this._state[collectionKey][item.id] ?? 0
-    const cost = getScaledCost(item.baseCost, item.costScale, level)
-    const currency = currencyOverride ?? item.currency
-    const balance = this._state[currency]
-
-    if (balance < cost) return
-
-    this.transact((state) => ({
-      ...state,
-      [currency]: state[currency] - cost,
-      seenShopItems: {
-        ...state.seenShopItems,
-        [id]: true,
-      },
-      seenBuyableShopItems: {
-        ...state.seenBuyableShopItems,
-        [id]: true,
-      },
-      [collectionKey]: {
-        ...state[collectionKey],
-        [id]: (state[collectionKey][id] ?? 0) + 1,
-      },
-    }))
-  }
-
   replaceState(nextState, { markDirty = false, updatedAt = null } = {}) {
-    this.achievementQueue = []
     this._state = nextState
-    this.syncUiSnapshotNow()
+    this.uiSnapshotState = nextState
 
     if (markDirty) {
       this.markStateChanged(updatedAt ?? new Date().toISOString())
@@ -649,14 +408,28 @@ export default class GameStore {
   }
 
   applyPassiveIncome(seconds) {
-    if (seconds <= 0) return
+    if (!Number.isFinite(seconds) || seconds <= 0) {
+      return
+    }
 
     startTransition(() => {
       runInAction(() => {
-        const result = unlockAchievements(applyIncome(this._state, seconds))
-        this.commitState(result.state, result.unlockedNow, {
-          uiSync: 'passive',
-        })
+        let nextState = clearExpiredEvent(clearExpiredCampaign(this._state))
+        const previousEventId = nextState.activeEvent?.id ?? null
+        nextState = spawnTimedEvent(nextState, seconds)
+        if (!previousEventId && nextState.activeEvent?.id) {
+          const eventToast = buildEventToastPayload(nextState.activeEvent)
+          if (eventToast) {
+            this.eventToastQueue = [...this.eventToastQueue, eventToast]
+          }
+        }
+        nextState = accrueTarLumps(nextState, seconds * 1000)
+        nextState = advanceMarketPrices(nextState)
+        nextState = gainShishki(
+          nextState,
+          deriveProduction(nextState).shishkiPerSecond * seconds,
+        )
+        this.commitState(nextState)
       })
     })
   }
@@ -665,32 +438,14 @@ export default class GameStore {
     const now = performance.now()
     const seconds = Math.min(2.5, (now - this.lastTickAt) / 1000)
     this.lastTickAt = now
-    this.pendingPassiveSeconds += seconds
-    const isForeground = document.visibilityState !== 'hidden'
-    const isIdleForeground =
-      isForeground &&
-      !this.isInteracting &&
-      now - this.lastActivityAt >= IDLE_THRESHOLD_MS
+    this.applyPassiveIncome(seconds)
 
-    if (isForeground && this.isInteracting) {
-      this.tickTimeoutId = window.setTimeout(this.tickStep, ACTIVE_TICK_MS)
-      return
+    if (typeof window !== 'undefined') {
+      this.tickTimeoutId = window.setTimeout(
+        this.tickStep,
+        document.visibilityState === 'hidden' ? IDLE_TICK_MS : ACTIVE_TICK_MS,
+      )
     }
-
-    const secondsToApply = this.pendingPassiveSeconds
-    this.pendingPassiveSeconds = 0
-    this.applyPassiveIncome(secondsToApply)
-
-    this.tickTimeoutId = window.setTimeout(
-      this.tickStep,
-      document.visibilityState === 'hidden' || isIdleForeground
-        ? IDLE_TICK_MS
-        : ACTIVE_TICK_MS,
-    )
-  }
-
-  recordActivity() {
-    this.lastActivityAt = performance.now()
   }
 
   getSaveMeta() {
@@ -700,134 +455,132 @@ export default class GameStore {
     }
   }
 
-  handleInteraction() {
-    this.recordActivity()
-    this.isInteracting = true
-    window.clearTimeout(this.interactionTimeoutId)
-    this.interactionTimeoutId = window.setTimeout(() => {
-      this.isInteracting = false
-    }, 180)
-  }
-
   mineShishki() {
-    this.recordActivity()
-    const snapshot = this._state
-    const megaClickChance = getMegaClickChance(snapshot)
-    const isMega = Math.random() < megaClickChance
-    const isEmojiBurst = isMega && Math.random() < getMegaEmojiChance(snapshot)
-    const emoji = isEmojiBurst ? getRandomMegaEmoji() : '🌰'
-    const rates = deriveEconomy(snapshot)
-    const rawClickValue = isMega ? rates.clickPower * 5 : rates.clickPower
-    const clickValue = Number.isFinite(rawClickValue)
-      ? Math.max(rawClickValue, 0.1)
-      : 0.1
-    const emojiExplosionPool = [
-      '😀',
-      '😎',
-      '🥳',
-      '🤯',
-      '😈',
-      '🤖',
-      '👾',
-      '🦄',
-      '🪩',
-      '🔥',
-      '⚡',
-      '🌈',
-      '💥',
-      '🎉',
-      '✨',
-      '🍄',
-      '🐸',
-      '🐙',
-      '🐲',
-      '🦊',
-      '🍓',
-      '🍍',
-      '🍕',
-      '🍩',
-      '🧃',
-      '🌟',
-      '⭐',
-      '💫',
-      '🎊',
-      '🎵',
-      '🎮',
-      '🛸',
-      '🌸',
-      '🌻',
-      '🌴',
-      '❄️',
-      '☁️',
-      '🌋',
-      '🦋',
-      '🐣',
-      '🐼',
-      '🪅',
-      '💎',
-      '🍀',
-      '🫧',
-      '🧠',
-      '👑',
-      '🫶',
-      '🎯',
-      '🏆',
-    ]
+    const clickValue = Math.max(0.1, this.derived.clickPower)
+    let nextState = {
+      ...clearExpiredEvent(clearExpiredCampaign(this._state)),
+      manualClicks: this._state.manualClicks + 1,
+    }
 
-    const result = unlockAchievements({
-      ...snapshot,
-      shishki: snapshot.shishki + clickValue,
-      manualClicks: snapshot.manualClicks + 1,
-      megaClicks: snapshot.megaClicks + (isMega ? 1 : 0),
-      emojiBursts: snapshot.emojiBursts + (isEmojiBurst ? 1 : 0),
-      megaClickStreak: isMega ? (snapshot.megaClickStreak ?? 0) + 1 : 0,
-      emojiBurstStreak: isEmojiBurst ? (snapshot.emojiBurstStreak ?? 0) + 1 : 0,
-      totalShishkiEarned: snapshot.totalShishkiEarned + clickValue,
-      lifetimeShishkiEarned: snapshot.lifetimeShishkiEarned + clickValue,
-    })
+    if (nextState.activeEvent?.kind === 'chain') {
+      const nextStep = (nextState.activeEvent.chainStep ?? 0) + 1
+      const chainGoal = nextState.activeEvent.chainGoal ?? 0
 
-    this.commitState(result.state, result.unlockedNow)
+      if (nextStep >= chainGoal) {
+        nextState = gainShishki(
+          {
+            ...nextState,
+            activeEvent: null,
+          },
+          nextState.activeEvent.chainRewardShishki ?? nextState.activeEvent.rewardShishki ?? 0,
+        )
+      } else {
+        nextState = {
+          ...nextState,
+          activeEvent: {
+            ...nextState.activeEvent,
+            chainStep: nextStep,
+          },
+        }
+      }
+    }
 
-    const particleCount = Math.round(
-      clickValue * (isEmojiBurst ? 1.35 : isMega ? 1.1 : 1),
-    )
+    nextState = gainShishki(nextState, clickValue)
+
+    this.commitState(nextState)
 
     return {
       amount: clickValue,
-      particleCount: Math.max(
-        isEmojiBurst ? 6 : isMega ? 3 : 1,
-        Math.min(isEmojiBurst ? 68 : isMega ? 32 : 10, particleCount),
-      ),
-      symbols: isEmojiBurst
-        ? emojiExplosionPool
-        : isMega
-          ? ['⚡', '⚡️', '⚡', '⚡️']
-          : [emoji, '✨'],
-      isMega,
-      isEmojiExplosion: isEmojiBurst,
+      particleCount: Math.max(1, Math.round(clickValue)),
+      symbols: ['🌰', '✨'],
+      isMega: false,
+      isEmojiExplosion: false,
     }
   }
 
-  buySubscription(id) {
-    this.buyEconomyItem(SUBSCRIPTIONS, 'subscriptions', id, 'money')
-  }
+  buyBuilding(id) {
+    const snapshot = buildEconomySnapshot(this._state, this.derived)
+    const buildingCard = snapshot.buildings.find((item) => item.id === id)
+    const building = BUILDINGS.find((item) => item.id === id)
+    if (!building) {
+      return
+    }
+    if (!buildingCard?.unlocked) {
+      return
+    }
 
-  buyUpgrade(id) {
-    this.buyEconomyItem(UPGRADES, 'upgrades', id)
-  }
-
-  buyPrestigeUpgrade(id) {
-    this.recordActivity()
-    const item = PRESTIGE_UPGRADES.find((entry) => entry.id === id)
-    if (!item) return
-
-    const level = this._state.prestigeUpgrades[item.id] ?? 0
-    const cost = getPrestigeUpgradeCost(item, level)
-    if ((this._state.prestigeShards ?? 0) < cost) return
+    const owned = this._state.buildings[id] ?? 0
+    const cost = Math.max(
+      1,
+      Math.floor(
+        getBuildingCost(building.baseCost, owned) *
+          (1 - getPurchaseDiscount(this._state)),
+      ),
+    )
+    if (this._state.shishki < cost) {
+      return
+    }
 
     this.commitState({
       ...this._state,
-      prestigeShards: this._state.prestigeShards - cost,
+      shishki: this._state.shishki - cost,
+      buildings: {
+        ...this._state.buildings,
+        [id]: owned + 1,
+      },
+      market: {
+        ...this._state.market,
+        unlocked:
+          this._state.market.unlocked ||
+          (id === 'resaleStall' && owned + 1 > 0),
+      },
+    })
+  }
+
+  buySubscription(id) {
+    this.buyBuilding(id)
+  }
+
+  buyUpgrade(id) {
+    const snapshot = buildEconomySnapshot(this._state, this.derived)
+    const upgradeCard = snapshot.upgrades.find((item) => item.id === id)
+    const upgrade = RUN_UPGRADES.find((item) => item.id === id)
+    const cost = upgrade
+      ? Math.max(
+          1,
+          Math.floor(upgrade.cost * (1 - getPurchaseDiscount(this._state))),
+        )
+      : null
+
+    if (!upgrade || !upgradeCard?.unlocked || this._state.shishki < cost) {
+      return
+    }
+
+    this.commitState({
+      ...this._state,
+      shishki: this._state.shishki - cost,
+      upgrades: {
+        ...this._state.upgrades,
+        [id]: (this._state.upgrades[id] ?? 0) + 1,
+      },
+    })
+  }
+
+  buyPrestigeUpgrade(id) {
+    const item = PRESTIGE_UPGRADES.find((entry) => entry.id === id)
+    if (!item) {
+      return
+    }
+
+    const level = this._state.prestigeUpgrades[id] ?? 0
+    const cost = getPrestigeUpgradeCost(item, level)
+    if (this._state.heavenlyShishki < cost) {
+      return
+    }
+
+    this.commitState({
+      ...this._state,
+      heavenlyShishki: this._state.heavenlyShishki - cost,
       prestigeUpgrades: {
         ...this._state.prestigeUpgrades,
         [id]: level + 1,
@@ -835,62 +588,131 @@ export default class GameStore {
     })
   }
 
-  markShopItemSeen(id) {
-    this.recordActivity()
-    const result = markSeenItems(this._state, [id])
-    if (!result.changed) return
-    this.commitState(result.state)
-  }
+  upgradeBuildingLevel(id) {
+    const building = getBuildingById(id)
+    if (!building) {
+      return false
+    }
 
-  markShopItemsSeen(ids) {
-    this.recordActivity()
-    const result = markSeenItems(this._state, ids)
-    if (!result.changed) return
-    this.commitState(result.state)
-  }
+    const currentLevel = this._state.buildingLevels[id] ?? 0
+    const cost = getBuildingLevelCost(currentLevel)
 
-  markAutoClicker() {
-    if (this._state.achievements?.autoclicker_reached) return
+    if (cost === null || this._state.tarLumps < cost) {
+      return false
+    }
 
-    const result = unlockAchievements({
+    this.commitState({
       ...this._state,
-      achievements: {
-        ...this._state.achievements,
-        autoclicker_reached: true,
+      tarLumps: this._state.tarLumps - cost,
+      buildingLevels: {
+        ...this._state.buildingLevels,
+        [id]: currentLevel + 1,
       },
     })
 
-    this.commitState(result.state, result.unlockedNow)
+    return true
+  }
+
+  buyMarketGood(goodId, quantity = 1) {
+    if (!this._state.market.unlocked) {
+      return
+    }
+    const snapshot = buildEconomySnapshot(this._state, this.derived)
+    const goodCard = snapshot.marketGoods.find((item) => item.id === goodId)
+    if (!goodCard?.unlocked) {
+      return
+    }
+
+    const trade = applyMarketTrade({
+      state: this._state,
+      goodId,
+      quantity,
+      side: 'buy',
+    })
+
+    this.commitState(trade.nextState)
+  }
+
+  sellMarketGood(goodId, quantity = 1) {
+    if (!this._state.market.unlocked) {
+      return
+    }
+    const snapshot = buildEconomySnapshot(this._state, this.derived)
+    const goodCard = snapshot.marketGoods.find((item) => item.id === goodId)
+    if (!goodCard?.unlocked) {
+      return
+    }
+
+    const trade = applyMarketTrade({
+      state: this._state,
+      goodId,
+      quantity,
+      side: 'sell',
+    })
+
+    this.commitState(gainQuotaCredit(trade.nextState, trade.realizedProfit))
+  }
+
+  activateCampaign(campaignId) {
+    if (!this._state.market.unlocked) {
+      return
+    }
+    const snapshot = buildEconomySnapshot(this._state, this.derived)
+    const campaignCard = snapshot.campaigns.find((item) => item.id === campaignId)
+
+    const campaign = getCampaignById(campaignId)
+    const launchCost = campaign
+      ? getCampaignLaunchCost(this._state, campaign)
+      : null
+
+    if (!campaign || !campaignCard?.unlocked || this._state.shishki < launchCost) {
+      return
+    }
+
+    this.commitState({
+      ...this._state,
+      shishki: this._state.shishki - launchCost,
+      activeCampaign: {
+        ...campaign,
+        label: getEventPresentation(campaignId),
+        launchCost,
+        endsAt: Date.now() + campaign.durationMs,
+      },
+    })
   }
 
   prestigeReset() {
-    this.recordActivity()
-    const preview = getPrestigePreview(this._state)
-    if (!preview.canRebirth || preview.shards <= 0) return
+    const quota = getQuotaPreview(this._state)
+    const hasPrestigeProgress =
+      this._state.quotaIndex > 0 || this._state.currentRunShishki >= quota.current
 
-    const result = unlockAchievements({
-      ...STARTING_STATE,
-      achievements: this._state.achievements,
-      seenShopItems: buildSeenShopItems(STARTING_STATE),
-      seenBuyableShopItems: buildSeenBuyableShopItems(STARTING_STATE),
-      prestigeUpgrades: this._state.prestigeUpgrades,
-      prestigeShards: this._state.prestigeShards + preview.shards,
-      totalPrestigeShardsEarned:
-        this._state.totalPrestigeShardsEarned + preview.shards,
+    if (!hasPrestigeProgress) {
+      return false
+    }
+
+    const nextState = createFreshState()
+    const startBonus = getPrestigeStartBonus(this._state)
+
+    this.commitState({
+      ...nextState,
+      shishki: startBonus,
+      heavenlyShishki: this._state.heavenlyShishki,
+      totalHeavenlyShishkiEarned: this._state.totalHeavenlyShishkiEarned,
+      tarLumps: this._state.tarLumps,
+      tarLumpProgressMs: this._state.tarLumpProgressMs,
+      buildingLevels: { ...this._state.buildingLevels },
+      prestigeUpgrades: { ...this._state.prestigeUpgrades },
+      achievements: { ...this._state.achievements },
       rebirths: this._state.rebirths + 1,
+      manualClicks: this._state.manualClicks,
       lifetimeShishkiEarned: this._state.lifetimeShishkiEarned,
-      lifetimeMoneyEarned: this._state.lifetimeMoneyEarned,
-      lifetimeKnowledgeEarned: this._state.lifetimeKnowledgeEarned,
-      megaClicks: this._state.megaClicks,
-      emojiBursts: this._state.emojiBursts,
     })
 
-    this.commitState(result.state, result.unlockedNow)
+    return true
   }
 
   resetGame() {
-    const nextState = createFreshState()
-    this.replaceState(nextState, { markDirty: true })
+    this.replaceState(createFreshState(), { markDirty: true })
   }
 
   exportGameSave() {
@@ -898,16 +720,21 @@ export default class GameStore {
   }
 
   importGameSave(saveData, options = {}) {
-    const nextState = mergeState(saveData)
-    this.replaceState(nextState, options)
+    this.replaceState(mergeState(saveData), options)
   }
 
   dismissAchievement() {
     this.achievementQueue = this.achievementQueue.slice(1)
   }
 
+  dismissEventToast() {
+    this.eventToastQueue = this.eventToastQueue.slice(1)
+  }
+
   _devGiveResource(key, amount) {
-    if (!DEV_RESOURCE_KEYS.includes(key) || !Number.isFinite(amount)) return
+    if (!DEV_RESOURCE_KEYS.includes(key) || !Number.isFinite(amount)) {
+      return
+    }
 
     this.commitState({
       ...this._state,
@@ -916,7 +743,9 @@ export default class GameStore {
   }
 
   _devSetResource(key, value) {
-    if (!DEV_RESOURCE_KEYS.includes(key) || !Number.isFinite(value)) return
+    if (!DEV_RESOURCE_KEYS.includes(key) || !Number.isFinite(value)) {
+      return
+    }
 
     this.commitState({
       ...this._state,

@@ -1,385 +1,359 @@
-import {
-  memo,
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
 import { observer } from 'mobx-react-lite'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import '../../styles/shop-screen.css'
-import {
-  Coin,
-  Gem,
-  MagicWand,
-  PxlKitIcon,
-  Scroll,
-  SocialStar,
-  Target,
-  Trophy,
-  Community,
-  Package,
-} from '../../lib/pxlkit'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
-import { ShopCard } from './ShopCard'
+import { formatNumber } from '../../lib/format'
+import { EntityPlaceholderIcon } from '../ui/EntityPlaceholderIcon.jsx'
+import { useSound } from '../../hooks/useSound.js'
+import buySound from '../../assets/audio/ui/blip1.mp3'
+import denySound from '../../assets/audio/ui/wpn_denyselect.mp3'
 
-const pxl = (icon, label, size = 18) => (
-  <PxlKitIcon
-    icon={icon}
-    size={size}
-    colorful
-    className="pixel-inline-icon"
-    aria-label={label}
-  />
-)
-
-const SCREEN_META = {
-  subscriptions: {
-    kicker: 'Магазин',
-    title: 'Подписки',
-    desc: 'Подписки ускоряют добычу денег и знаний.',
-    accent: 'orange',
-    emptyText: 'Подписки загружаются...',
-    categories: [
-      {
-        id: 'starter',
-        title: 'Стартовые ассистенты',
-        desc: 'Ранние сервисы для первого разгона и мягкого входа в AI-экономику.',
-        icon: Community,
-      },
-      {
-        id: 'production',
-        title: 'Рабочие модели',
-        desc: 'Основной производственный слой: стабильный доход, наука и поддержка билда.',
-        icon: Scroll,
-      },
-      {
-        id: 'research',
-        title: 'Исследовательские сервисы',
-        desc: 'Сервисы, которые сильнее всего толкают знания и помогают готовить престиж.',
-        icon: Gem,
-      },
-      {
-        id: 'frontier',
-        title: 'Фронтир-кластеры',
-        desc: 'Дорогие late-game модели для глубокой меты и финального разгона.',
-        icon: SocialStar,
-      },
-    ],
+const PURCHASE_VIEWS = {
+  buildings: {
+    id: 'buildings',
+    kicker: 'Покупки',
+    title: 'Здания',
+    desc: 'Строй шишечную машину от гаражей до системного абсурда.',
   },
   upgrades: {
-    kicker: 'Магазин',
-    title: 'Апгрейды',
-    desc: 'Апгрейды дают бонусы к добыче и открывают новые контуры прогрессии.',
-    accent: 'orange',
-    emptyText: 'Апгрейды загружаются...',
-    categories: [
-      {
-        id: 'manual',
-        title: 'Ручной темп',
-        desc: 'Клик, ранняя стабильность и активная игра.',
-        icon: Target,
-      },
-      {
-        id: 'industry',
-        title: 'Производство и логистика',
-        desc: 'Контур шишек, денег и инфраструктуры для ровной средней игры.',
-        icon: Package,
-      },
-      {
-        id: 'research',
-        title: 'Обучение и исследования',
-        desc: 'Ветка, усиливающая AI, науку и стратегические решения.',
-        icon: Scroll,
-      },
-      {
-        id: 'capital',
-        title: 'Рост и капитал',
-        desc: 'Поздние ускорители экономики, престижа и длинной дистанции.',
-        icon: Coin,
-      },
-    ],
+    id: 'upgrades',
+    kicker: 'Покупки',
+    title: 'Усиления',
+    desc: 'Подкручивай клик, рынок и темп очередного шишечного цикла.',
   },
 }
 
-const ITEM_CATEGORIES = {
-  subscriptions: {
-    gigachat: 'starter',
-    yandex_alisa: 'starter',
-    gpt: 'production',
-    claude: 'production',
-    copilot: 'production',
-    perplexity: 'research',
-    gemini: 'research',
-    deepseek: 'frontier',
-    mistral: 'frontier',
-  },
-  upgrades: {
-    textbooks: 'manual',
-    coffee: 'manual',
-    autoClicker: 'manual',
-    focusMode: 'manual',
-    internship: 'industry',
-    pickupPointShift: 'industry',
-    courierRush: 'industry',
-    coneSorting: 'industry',
-    resinWorkshop: 'industry',
-    logisticsHub: 'industry',
-    serverRack: 'industry',
-    campusExchange: 'industry',
-    studyGroup: 'research',
-    promptEngineering: 'research',
-    researchLab: 'research',
-    grantProgram: 'research',
-    memeMarketing: 'capital',
-    brandStudio: 'capital',
-    franchiseNetwork: 'capital',
-    ventureFund: 'capital',
-    quantFund: 'capital',
-  },
-}
-
-function groupItemsByCategory(items, type, categories) {
-  const categoryByItem = ITEM_CATEGORIES[type] ?? {}
-
-  return categories
-    .map((category) => ({
-      ...category,
-      items: items.filter(
-        (item) => (categoryByItem[item.id] ?? 'misc') === category.id,
-      ),
-    }))
-    .filter((category) => category.items.length > 0)
-}
-
-const ShopCategory = memo(function ShopCategory({
-  category,
-  onBuy,
-  onInspect,
-  eagerlyRender = false,
-  isLockedGroup = false,
-}) {
-  const sectionRef = useRef(null)
-  const [hasRendered, setHasRendered] = useState(eagerlyRender)
-
-  useEffect(() => {
-    if (hasRendered || typeof window === 'undefined') return
-
-    const node = sectionRef.current
-    if (!node) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry?.isIntersecting) return
-        setHasRendered(true)
-        observer.disconnect()
-      },
-      { rootMargin: '280px 0px' },
-    )
-
-    observer.observe(node)
-    return () => observer.disconnect()
-  }, [hasRendered])
+function LockBlock({ item }) {
+  if (item.unlocked) return null
 
   return (
-    <section
-      ref={sectionRef}
-      className={`shop-category pixel-surface ${isLockedGroup ? 'shop-category--virtualized-locked' : 'shop-category--virtualized'}`}
-      style={{
-        '--shop-placeholder-count': Math.min(
-          Math.max(category.items.length, 1),
-          4,
-        ),
-      }}
-    >
-      <div className="shop-category__head">
-        <h4 className="shop-category__title">
-          <span className="shop-category__icon">
-            {pxl(category.icon, category.title)}
-          </span>
-          {category.title}
-        </h4>
-        <p className="shop-category__desc">{category.desc}</p>
-      </div>
-
-      {hasRendered ? (
-        <div className="shop-grid shop-grid--category">
-          {category.items.map((item) => (
-            <ShopCard
-              key={item.id}
-              itemId={item.id}
-              item={item}
-              canBuy={item.canBuy}
-              balance={item.balance}
-              onBuy={onBuy}
-              onInspect={onInspect}
-            />
-          ))}
-        </div>
-      ) : (
-        <div
-          className="shop-grid shop-grid--category shop-grid--deferred"
-          aria-hidden="true"
-        >
-          <div className="shop-grid__placeholder">
-            Категория будет отрисована при прокрутке.
+    <div className="shop-card__lock">
+      <div className="shop-card__lock-title">Заблокировано</div>
+      <div className="shop-card__lock-text">{item.unlockText}</div>
+      {item.unlockProgress && item.unlockRule ? (
+        <div className="shop-card__lock-progress">
+          <div className="shop-card__lock-row">
+            <span className="shop-card__lock-label">Прогресс</span>
+            <span className="shop-card__lock-value">
+              {formatNumber(item.unlockProgress.shishki)} /{' '}
+              {formatNumber(item.unlockRule.shishki)}
+            </span>
           </div>
         </div>
-      )}
-    </section>
-  )
-})
-
-function ShopCategoryList({
-  groupedItems,
-  onBuy,
-  onInspect,
-  isLockedGroup = false,
-}) {
-  return (
-    <div
-      className={`shop-categories${isLockedGroup ? ' shop-categories--locked' : ''}`}
-    >
-      {groupedItems.map((category, index) => (
-        <ShopCategory
-          key={category.id}
-          category={category}
-          onBuy={onBuy}
-          onInspect={onInspect}
-          eagerlyRender={index < 2}
-          isLockedGroup={isLockedGroup}
-        />
-      ))}
+      ) : null}
     </div>
   )
 }
 
-function ShopCardGrid({ items, onBuy, onInspect, locked = false }) {
-  return (
-    <div className={`shop-grid${locked ? ' shop-grid--locked' : ''}`}>
-      {items.map((item) => (
-        <ShopCard
-          key={item.id}
-          itemId={item.id}
-          item={item}
-          canBuy={item.canBuy}
-          balance={item.balance}
-          onBuy={onBuy}
-          onInspect={onInspect}
-        />
-      ))}
-    </div>
-  )
+function getEconomyCardFlags(item) {
+  const locked = item.unlocked === false
+
+  return {
+    locked,
+  }
 }
 
-export const ShopScreen = observer(function ShopScreen({ type }) {
-  const {
-    uiEconomy,
-    buySubscription,
-    buyUpgrade,
-    markShopItemSeen,
-    markShopItemsSeen,
-  } = useGameStore()
-  const meta = SCREEN_META[type]
-  const hasItemCategories = type === 'upgrades'
+function EconomyCard({ item, action, visualType, levelText, desc, meta }) {
+  const { locked } = getEconomyCardFlags(item)
+  const disabled = locked
+  const { play: playBuySound } = useSound(buySound, { volume: 0.2 })
+  const { play: playDenySound } = useSound(denySound, { volume: 0.26 })
+  const cardRef = useRef(null)
+  const buttonRef = useRef(null)
+  const deniedCardAnimationRef = useRef(null)
+  const deniedButtonAnimationRef = useRef(null)
 
-  const items =
-    type === 'subscriptions' ? uiEconomy.subscriptions : uiEconomy.upgrades
-  const deferredItems = useDeferredValue(items)
-  const onBuy = type === 'subscriptions' ? buySubscription : buyUpgrade
+  useEffect(
+    () => () => {
+      deniedCardAnimationRef.current?.cancel()
+      deniedButtonAnimationRef.current?.cancel()
+    },
+    [],
+  )
 
-  const { unlockedItems, lockedItems, unlockedByCategory, lockedByCategory } =
-    useMemo(() => {
-      const unlocked = deferredItems.filter((item) => item.unlocked)
-      const locked = deferredItems.filter((item) => !item.unlocked)
+  const playDeniedFeedback = () => {
+    deniedCardAnimationRef.current?.cancel()
+    deniedButtonAnimationRef.current?.cancel()
 
-      return {
-        unlockedItems: unlocked,
-        lockedItems: locked,
-        unlockedByCategory: hasItemCategories
-          ? groupItemsByCategory(unlocked, type, meta.categories)
-          : [],
-        lockedByCategory: hasItemCategories
-          ? groupItemsByCategory(locked, type, meta.categories)
-          : [],
-      }
-    }, [deferredItems, hasItemCategories, meta.categories, type])
-
-  useEffect(() => {
-    const idsToMark = items
-      .filter((item) => item.isNew || item.isBuyableNew)
-      .map((item) => item.id)
-
-    if (idsToMark.length) {
-      markShopItemsSeen(idsToMark)
+    if (cardRef.current) {
+      deniedCardAnimationRef.current = cardRef.current.animate(
+        [
+          { transform: 'translateX(0)', borderColor: 'rgba(255, 122, 122, 0.16)' },
+          { transform: 'translateX(-2px)', borderColor: 'rgba(255, 122, 122, 0.5)' },
+          { transform: 'translateX(2px)', borderColor: 'rgba(255, 122, 122, 0.5)' },
+          { transform: 'translateX(0)', borderColor: 'rgba(255, 122, 122, 0.16)' },
+        ],
+        { duration: 280, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+      )
     }
-  }, [items, markShopItemsSeen])
+
+    if (buttonRef.current) {
+      deniedButtonAnimationRef.current = buttonRef.current.animate(
+        [
+          { transform: 'translate(0, 0) scale(1)' },
+          { transform: 'translate(-1px, 1px) scale(0.98)' },
+          { transform: 'translate(1px, -1px) scale(1.02)' },
+          { transform: 'translate(0, 0) scale(1)' },
+        ],
+        { duration: 320, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+      )
+    }
+  }
+
+  const handleBuy = () => {
+    if (locked) return
+    if (!item.canBuy) {
+      playDenySound()
+      playDeniedFeedback()
+      return
+    }
+
+    playBuySound()
+    action()
+  }
+
+  const cardClassName = [
+    'shop-card',
+    'shop-card--shishki',
+    'shop-card--rarity-common',
+    locked ? 'shop-card--locked' : '',
+    !locked && item.canBuy ? 'shop-card--can-buy' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
-    <section className={`screen shop-screen shop-screen--${meta.accent}`}>
+    <article ref={cardRef} className={cardClassName}>
+      <div className="shop-card__head">
+        <div className="shop-card__badge-wrap">
+          <span
+            className="shop-card__visual"
+            aria-hidden="true"
+            data-field-code={item.fieldCode}
+          >
+            <EntityPlaceholderIcon
+              code={item.fieldCode}
+              label={item.title}
+              type={visualType}
+              state={locked ? 'locked' : item.canBuy ? 'available' : 'owned'}
+              size={32}
+            />
+          </span>
+          <div className="shop-card__meta">
+            <div>
+              <h3 className="shop-card__title">{item.title}</h3>
+              <p className="shop-card__desc">{desc}</p>
+            </div>
+          </div>
+        </div>
+        <div className="shop-card__chips">
+          <span className="shop-card__tier">{levelText}</span>
+        </div>
+      </div>
+      <div className="shop-card__body">
+        {!locked ? (
+          <div className="shop-card__effect-box">
+            {meta.map((line) => (
+              <div key={line} className="shop-card__effect-line">
+                {line}
+              </div>
+            ))}
+          </div>
+        ) : null}
+        <LockBlock item={item} />
+      </div>
+      <div className="shop-card__footer">
+        <button
+          ref={buttonRef}
+          type="button"
+          className="shop-card__btn"
+          data-state={locked ? 'locked' : item.canBuy ? 'ready' : 'denied'}
+          onClick={handleBuy}
+          disabled={disabled}
+        >
+          {locked ? 'Закрыто' : item.canBuy ? 'Купить' : 'Не хватает шишек'}
+        </button>
+      </div>
+    </article>
+  )
+}
+
+export const ShopScreen = observer(function ShopScreen({
+  initialView = 'buildings',
+}) {
+  const { uiEconomy, buySubscription, buyUpgrade } = useGameStore()
+  const [activeView, setActiveView] = useState(
+    PURCHASE_VIEWS[initialView] ? initialView : 'buildings',
+  )
+
+  const itemsByView = useMemo(
+    () => ({
+      buildings: uiEconomy.subscriptions,
+      upgrades: uiEconomy.upgrades,
+    }),
+    [uiEconomy.subscriptions, uiEconomy.upgrades],
+  )
+
+  const upgradesUnlocked = uiEconomy.upgrades.some((item) => item.unlocked)
+  const firstLockedUpgrade = uiEconomy.upgrades.find((item) => item.unlocked === false)
+  const viewLocks = {
+    buildings: null,
+    upgrades: upgradesUnlocked
+      ? null
+      : {
+          text: 'Вкладка откроется после первых 80 шишек за все жизни.',
+          progress: Math.min(
+            Math.max(0, Number(firstLockedUpgrade?.unlockProgress?.shishki ?? 0)),
+            80,
+          ),
+          goal: 80,
+        },
+  }
+
+  const activeViewLock = viewLocks[activeView]
+  const meta = PURCHASE_VIEWS[activeView]
+  const isBuildingsView = activeView === 'buildings'
+  const items = itemsByView[activeView]
+  const unlockedItems = items.filter((item) => item.unlocked !== false)
+  const lockedItems = items.filter((item) => item.unlocked === false)
+  const onBuy = isBuildingsView ? buySubscription : buyUpgrade
+
+  return (
+    <section className="screen shop-screen shop-screen--orange">
       <div className="screen__header">
         <span className="screen__kicker">{meta.kicker}</span>
         <h2 className="screen__title">{meta.title}</h2>
         <p className="screen__desc">{meta.desc}</p>
       </div>
 
-      {items.length === 0 ? (
-        <div className="shop-empty">{meta.emptyText}</div>
-      ) : null}
+      <div
+        className="pixel-tabbar pixel-tabbar--shop"
+        role="tablist"
+        aria-label="Разделы покупок"
+      >
+        {Object.values(PURCHASE_VIEWS).map((view) => {
+          const isActive = view.id === activeView
+          const isLocked = Boolean(viewLocks[view.id])
 
-      {unlockedItems.length > 0 ? (
-        <section className="shop-group shop-group--active">
-          {lockedItems.length > 0 ? (
-            <div className="shop-group__head">
-              <h3 className="shop-group__title"> {pxl(MagicWand, 'available now', 16)} Разблокированные</h3>
-            </div>
-          ) : null}
+          return (
+            <button
+              key={view.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              disabled={isLocked}
+              className={`pixel-tabbar__btn ${isActive ? 'pixel-tabbar__btn--active' : ''} ${isLocked ? 'pixel-tabbar__btn--locked' : ''}`.trim()}
+              onClick={() => setActiveView(view.id)}
+            >
+              {view.title}
+            </button>
+          )
+        })}
+      </div>
 
-          {hasItemCategories ? (
-            <ShopCategoryList
-              groupedItems={unlockedByCategory}
-              onBuy={onBuy}
-              onInspect={markShopItemSeen}
-            />
-          ) : (
-            <ShopCardGrid
-              items={unlockedItems}
-              onBuy={onBuy}
-              onInspect={markShopItemSeen}
-            />
-          )}
-        </section>
-      ) : null}
-
-      {lockedItems.length > 0 ? (
-        <section className="shop-group shop-group--locked">
-          <div className="shop-group__head">
-            <span className="shop-group__eyebrow">
-              {pxl(Trophy, 'next goals', 16)} Следующие цели
+      {activeViewLock ? (
+        <section className="shop-panel-lock pixel-surface">
+          <strong>Раздел закрыт</strong>
+          <p>{activeViewLock.text}</p>
+          <div className="shop-panel-lock__progress">
+            <span>Прогресс</span>
+            <span>
+              {formatNumber(activeViewLock.progress)} /{' '}
+              {formatNumber(activeViewLock.goal)}
             </span>
-            <h3 className="shop-group__title">Заблокированные</h3>
-            <p className="shop-group__desc">
-              Эти товары откроются по мере твоего прогресса.
-            </p>
           </div>
-
-          {hasItemCategories ? (
-            <ShopCategoryList
-              groupedItems={lockedByCategory}
-              onBuy={onBuy}
-              onInspect={markShopItemSeen}
-              isLockedGroup
-            />
-          ) : (
-            <ShopCardGrid
-              items={lockedItems}
-              onBuy={onBuy}
-              onInspect={markShopItemSeen}
-              locked
-            />
-          )}
         </section>
       ) : null}
+
+      <div className="shop-categories">
+        {unlockedItems.length > 0 ? (
+          <section className="shop-group shop-group--active">
+            <div className="shop-group__head">
+              <span className="shop-group__eyebrow">Доступно сейчас</span>
+              <h3 className="shop-group__title">
+                {isBuildingsView ? 'Открытые здания' : 'Открытые усиления'}
+              </h3>
+              <p className="shop-group__desc">
+                {isBuildingsView
+                  ? 'Эти слоты уже открыты по прогрессу и готовы к покупке.'
+                  : 'Эти усиления уже вышли в ротацию текущего забега.'}
+              </p>
+            </div>
+            <div className="shop-grid shop-grid--category">
+              {unlockedItems.map((item) => (
+                <EconomyCard
+                  key={item.id}
+                  item={item}
+                  desc={isBuildingsView ? item.perkSummary : `Тип: ${item.kind}`}
+                  meta={
+                    isBuildingsView
+                      ? [
+                          `Куплено: ${formatNumber(item.owned)}`,
+                          `Уровень смолы: ${formatNumber(item.level)}`,
+                          `Цена: ${formatNumber(item.cost)} шишек`,
+                        ]
+                      : [
+                          `Уровень: ${formatNumber(item.level)}`,
+                          `Цена: ${formatNumber(item.cost)} шишек`,
+                          `Эффект: ${item.kind}`,
+                        ]
+                  }
+                  action={() => onBuy(item.id)}
+                  visualType={isBuildingsView ? 'building' : 'upgrade'}
+                  levelText={
+                    isBuildingsView
+                      ? `здание ${formatNumber(item.owned)}`
+                      : `ур. ${formatNumber(item.level)}`
+                  }
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {lockedItems.length > 0 ? (
+          <section className="shop-group shop-group--locked">
+            <div className="shop-group__head">
+              <span className="shop-group__eyebrow">Закрыто</span>
+              <h3 className="shop-group__title">
+                {isBuildingsView ? 'Закрытые здания' : 'Закрытые усиления'}
+              </h3>
+              <p className="shop-group__desc">
+                Эти товары откроются по мере прогресса, как следующая ступень экономики.
+              </p>
+            </div>
+            <div className="shop-grid shop-grid--category shop-grid--locked">
+              {lockedItems.map((item) => (
+                <EconomyCard
+                  key={item.id}
+                  item={item}
+                  desc={isBuildingsView ? item.perkSummary : `Тип: ${item.kind}`}
+                  meta={
+                    isBuildingsView
+                      ? [
+                          `Куплено: ${formatNumber(item.owned)}`,
+                          `Уровень смолы: ${formatNumber(item.level)}`,
+                          `Цена: ${formatNumber(item.cost)} шишек`,
+                        ]
+                      : [
+                          `Уровень: ${formatNumber(item.level)}`,
+                          `Цена: ${formatNumber(item.cost)} шишек`,
+                          `Эффект: ${item.kind}`,
+                        ]
+                  }
+                  action={() => onBuy(item.id)}
+                  visualType={isBuildingsView ? 'building' : 'upgrade'}
+                  levelText={
+                    isBuildingsView
+                      ? `здание ${formatNumber(item.owned)}`
+                      : `ур. ${formatNumber(item.level)}`
+                  }
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+      </div>
     </section>
   )
 })

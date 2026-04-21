@@ -1,6 +1,7 @@
 import { BottomNav } from '../bottom/BottomNav.jsx'
 import { AchievementToast } from '../ui/AchievementToast.jsx'
 import { DevConsole } from '../ui/DevConsole.jsx'
+import { EventToast } from '../ui/EventToast.jsx'
 import { StatsBar } from '../stats/StatsBar.jsx'
 import { Suspense, lazy, memo, useEffect, useSyncExternalStore } from 'react'
 import { observer } from 'mobx-react-lite'
@@ -21,11 +22,12 @@ export const loadClickerScreen = () => import('../clicker/ClickerScreen')
 export const loadShopScreen = () => import('../shop/ShopScreen')
 export const loadSettingsScreen = () => import('../settings/SettingsScreen')
 export const loadMetaScreen = () => import('../meta/MetaScreen')
+export const loadMarketScreen = () => import('../market/MarketScreen')
 
 const screenLoaders = {
   clicker: loadClickerScreen,
-  subscriptions: loadShopScreen,
-  upgrades: loadShopScreen,
+  purchases: loadShopScreen,
+  market: loadMarketScreen,
   meta: loadMetaScreen,
   settings: loadSettingsScreen,
 }
@@ -50,14 +52,18 @@ function registerLoadedModule(tabId, module) {
     return
   }
 
-  if (tabId === 'subscriptions' || tabId === 'upgrades') {
-    registerLoadedScreen('subscriptions', module.ShopScreen)
-    registerLoadedScreen('upgrades', module.ShopScreen)
+  if (tabId === 'purchases') {
+    registerLoadedScreen('purchases', module.ShopScreen)
     return
   }
 
   if (tabId === 'meta') {
     registerLoadedScreen('meta', module.MetaScreen)
+    return
+  }
+
+  if (tabId === 'market') {
+    registerLoadedScreen('market', module.MarketScreen)
     return
   }
 
@@ -87,18 +93,12 @@ export function preloadTabScreen(tabId) {
     })
     .finally(() => {
       screenLoadPromises.delete(tabId)
-      if (tabId === 'subscriptions' || tabId === 'upgrades') {
-        screenLoadPromises.delete('subscriptions')
-        screenLoadPromises.delete('upgrades')
+      if (tabId === 'purchases') {
+        screenLoadPromises.delete('purchases')
       }
     })
 
   screenLoadPromises.set(tabId, promise)
-
-  if (tabId === 'subscriptions' || tabId === 'upgrades') {
-    screenLoadPromises.set('subscriptions', promise)
-    screenLoadPromises.set('upgrades', promise)
-  }
 
   return promise
 }
@@ -123,11 +123,11 @@ function renderLoadedScreen(tabId) {
   switch (tabId) {
     case 'clicker':
       return <ScreenComponent />
-    case 'subscriptions':
-      return <ScreenComponent type="subscriptions" />
-    case 'upgrades':
-      return <ScreenComponent type="upgrades" />
+    case 'purchases':
+      return <ScreenComponent />
     case 'meta':
+      return <ScreenComponent />
+    case 'market':
       return <ScreenComponent />
     case 'settings':
       return <ScreenComponent />
@@ -231,7 +231,8 @@ export const AppWrapper = observer(function AppWrapper() {
 
   useEffect(() => {
     const preloadScreens = () => {
-      void preloadTabScreen('subscriptions')
+      void preloadTabScreen('purchases')
+      void preloadTabScreen('market')
       void preloadTabScreen('settings')
       void preloadTabScreen('meta')
     }
@@ -291,6 +292,7 @@ export const AppWrapper = observer(function AppWrapper() {
       </div>
 
       <AchievementToast />
+      <EventToast />
       <DevConsole />
       {showBootScreen ? null : <BottomNav />}
     </div>

@@ -1,8 +1,11 @@
 import { normalizeSettings } from './settingsStorage'
 
 export const SAVE_EXPORT_FORMAT = 'shishka-clicker-save'
-export const SAVE_EXPORT_VERSION = 1
+export const SAVE_EXPORT_VERSION = 2
 export const SAVE_FILE_EXTENSION = '.shishka-save.json'
+
+export const LEGACY_SAVE_ERROR =
+  'Это сохранение создано в старой версии игры и больше не поддерживается.'
 
 export function buildSaveFileName(date = new Date()) {
   const stamp = [
@@ -44,12 +47,37 @@ function hasGameStateShape(value) {
     value &&
     typeof value === 'object' &&
     !Array.isArray(value) &&
-    ('shishki' in value ||
-      'money' in value ||
-      'knowledge' in value ||
-      'subscriptions' in value ||
-      'upgrades' in value ||
-      'prestigeUpgrades' in value),
+    'shishki' in value &&
+    'heavenlyShishki' in value &&
+    'tarLumps' in value &&
+    value.buildings &&
+    typeof value.buildings === 'object' &&
+    !Array.isArray(value.buildings) &&
+    value.market &&
+    typeof value.market === 'object' &&
+    !Array.isArray(value.market) &&
+    value.prestigeUpgrades &&
+    typeof value.prestigeUpgrades === 'object' &&
+    !Array.isArray(value.prestigeUpgrades),
+  )
+}
+
+export function isObsoleteSaveBundle(rawValue) {
+  if (!rawValue || typeof rawValue !== 'object' || Array.isArray(rawValue)) {
+    return false
+  }
+
+  if (rawValue.format === SAVE_EXPORT_FORMAT) {
+    return Number(rawValue.version) !== SAVE_EXPORT_VERSION
+  }
+
+  return Boolean(
+    rawValue.version ||
+      rawValue.payload ||
+      'money' in rawValue ||
+      'knowledge' in rawValue ||
+      'subscriptions' in rawValue ||
+      'prestigeShards' in rawValue,
   )
 }
 
@@ -59,9 +87,13 @@ export function normalizeImportedBundle(rawValue) {
   }
 
   if (rawValue.format === SAVE_EXPORT_FORMAT) {
+    if (isObsoleteSaveBundle(rawValue)) {
+      throw new Error(LEGACY_SAVE_ERROR)
+    }
+
     const game = rawValue.payload?.game
     if (!hasGameStateShape(game)) {
-      throw new Error('В файле не найден игровой прогресс.')
+      throw new Error(LEGACY_SAVE_ERROR)
     }
 
     return {
@@ -75,14 +107,8 @@ export function normalizeImportedBundle(rawValue) {
     }
   }
 
-  if (hasGameStateShape(rawValue)) {
-    return {
-      appVersion: 'legacy',
-      exportedAt: null,
-      game: rawValue,
-      settings: null,
-      isLegacy: true,
-    }
+  if (isObsoleteSaveBundle(rawValue)) {
+    throw new Error(LEGACY_SAVE_ERROR)
   }
 
   throw new Error('Неизвестный формат сохранения.')

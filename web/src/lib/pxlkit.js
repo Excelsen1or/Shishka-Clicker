@@ -3,6 +3,7 @@ import { PxlKitIcon as RawPxlKitIcon } from '@pxlkit/core'
 
 export const PxlKitIcon = memo(RawPxlKitIcon)
 
+export * from '@pxlkit/core'
 export * from '@pxlkit/gamification'
 export * from '@pxlkit/social'
 export * from '@pxlkit/ui'

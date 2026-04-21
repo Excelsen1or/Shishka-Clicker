@@ -1,59 +1,43 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { observer } from 'mobx-react-lite'
-import { Coin, Gem, Lightning, PxlKitIcon, Scroll } from '../../lib/pxlkit'
+import { Gem, Lightning, PxlKitIcon, Scroll } from '../../lib/pxlkit'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { formatNumber } from '../../lib/format'
 import wrongImg from '../../assets/wrong.png'
 import { useSound } from '../../hooks/useSound.js'
 import denySound from '../../assets/audio/ui/wpn_denyselect.mp3'
 import { ConeIcon } from './ConeIcon.jsx'
-
-const RESOURCES = [
-  { key: 'shishki', label: 'Шишки', icon: <ConeIcon /> },
-  {
-    key: 'money',
-    label: 'Деньги',
-    icon: (
-      <PxlKitIcon
-        icon={Coin}
-        size={16}
-        colorful
-        className="pixel-inline-icon"
-      />
-    ),
-  },
-  {
-    key: 'knowledge',
-    label: 'Знания',
-    icon: (
-      <PxlKitIcon
-        icon={Scroll}
-        size={16}
-        colorful
-        className="pixel-inline-icon"
-      />
-    ),
-  },
-  {
-    key: 'prestigeShards',
-    label: 'Осколки',
-    icon: (
-      <PxlKitIcon icon={Gem} size={16} colorful className="pixel-inline-icon" />
-    ),
-  },
-]
+import {
+  DEV_CONSOLE_COMMANDS_DESC,
+  DEV_CONSOLE_EMPTY_LOG_HINT,
+  DEV_CONSOLE_RESOURCES,
+  buildDevConsoleStatusLine,
+  getDevConsoleCheatsHelpLines,
+  parseDevCommand,
+} from './devConsoleCommands.js'
 
 const PRESETS = [1e3, 1e4, 100e3, 1e6, 1e9]
 
-const COMMANDS_DESC = {
-  date: 'показывает текущую дату',
-  clear: 'очищает консоль',
-  help: 'выводит список команд',
+const RESOURCE_ICONS = {
+  shishki: <ConeIcon />,
+  heavenly: (
+    <PxlKitIcon icon={Gem} size={16} colorful className="pixel-inline-icon" />
+  ),
+  lumps: (
+    <PxlKitIcon
+      icon={Scroll}
+      size={16}
+      colorful
+      className="pixel-inline-icon"
+    />
+  ),
 }
 
-const EMPTY_LOG_HINT = {
-  disabled: ['Короче, читы - бан, кемперство - бан, оскорбление - бан, оскорбление администрации - расстрел потом бан. Всем удачи.', 'Введите help для помощи.'],
-  enabled: ['Введите help для списка команд.', 'Доступны give, set, status и sv.cheats false.'],
+function getResourceAlias(storeKey) {
+  return (
+    DEV_CONSOLE_RESOURCES.find((resource) => resource.storeKey === storeKey)?.id ??
+    storeKey
+  )
 }
 
 const DevConsolePanel = observer(function DevConsolePanel() {
@@ -68,7 +52,10 @@ const DevConsolePanel = observer(function DevConsolePanel() {
   const { play } = useSound(denySound, { volume: 0.1 })
 
   const pushLog = useCallback((text, type = 'info') => {
-    setLog((prev) => [...prev.slice(-63), { text, type, ts: Date.now() + Math.random() }])
+    setLog((prev) => [
+      ...prev.slice(-63),
+      { text, type, ts: Date.now() + Math.random() },
+    ])
   }, [])
 
   const commands = {
@@ -76,9 +63,11 @@ const DevConsolePanel = observer(function DevConsolePanel() {
     clear: () => setLog([]),
     help: () => {
       pushLog('AVAILABLE COMMANDS', 'meta')
-      Object.entries(COMMANDS_DESC).forEach(([command, description]) => {
-        pushLog(`${command} :: ${description}`, 'info')
-      })
+      Object.entries(DEV_CONSOLE_COMMANDS_DESC).forEach(
+        ([command, description]) => {
+          pushLog(`${command} :: ${description}`, 'info')
+        },
+      )
     },
     'sv.cheats true': () => {
       setCheatsEnabled(true)
@@ -101,7 +90,10 @@ const DevConsolePanel = observer(function DevConsolePanel() {
   const flashWrongOverlay = useCallback(async () => {
     setShowWrongOverlay(true)
     window.clearTimeout(overlayTimerRef.current)
-    overlayTimerRef.current = window.setTimeout(() => setShowWrongOverlay(false), 1600)
+    overlayTimerRef.current = window.setTimeout(
+      () => setShowWrongOverlay(false),
+      1600,
+    )
     await play()
   }, [play])
 
@@ -131,42 +123,31 @@ const DevConsolePanel = observer(function DevConsolePanel() {
     }
 
     if (cmd === 'help') {
-      pushLog('give <ресурс> <число> | set <ресурс> <число> | status | sv.cheats false', 'info')
-      pushLog('Ресурсы: shishki, money, knowledge, shards', 'info')
+      getDevConsoleCheatsHelpLines().forEach((line) => pushLog(line, 'info'))
       return
     }
 
-    if (cmd === 'status') {
+    const parsed = parseDevCommand(cmd)
+    if (parsed.type === 'status') {
+      pushLog(buildDevConsoleStatusLine(devConsoleResources), 'info')
+      return
+    }
+
+    if (parsed.type === 'give') {
+      _devGiveResource(parsed.key, parsed.value)
       pushLog(
-        `Шишки: ${devConsoleResources.shishkiText} | Деньги: ${devConsoleResources.moneyText} | Знания: ${devConsoleResources.knowledgeText} | Осколки: ${devConsoleResources.prestigeShardsText}`,
-        'info',
+        `+${formatNumber(parsed.value)} к ${getResourceAlias(parsed.key)}`,
+        'success',
       )
       return
     }
 
-    const giveMatch = cmd.match(/^give\s+(shishki|money|knowledge|shards)\s+([0-9eE+.]+)$/i)
-    if (giveMatch) {
-      const key = giveMatch[1].toLowerCase() === 'shards' ? 'prestigeShards' : giveMatch[1].toLowerCase()
-      const amount = Number(giveMatch[2])
-      if (!Number.isFinite(amount) || amount <= 0) {
-        pushLog('Невалидное число.', 'error')
-        return
-      }
-      _devGiveResource(key, amount)
-      pushLog(`+${formatNumber(amount)} к ${key}`, 'success')
-      return
-    }
-
-    const setMatch = cmd.match(/^set\s+(shishki|money|knowledge|shards)\s+([0-9eE+.]+)$/i)
-    if (setMatch) {
-      const key = setMatch[1].toLowerCase() === 'shards' ? 'prestigeShards' : setMatch[1].toLowerCase()
-      const amount = Number(setMatch[2])
-      if (!Number.isFinite(amount) || amount < 0) {
-        pushLog('Невалидное число.', 'error')
-        return
-      }
-      _devSetResource(key, amount)
-      pushLog(`${key} = ${formatNumber(amount)}`, 'success')
+    if (parsed.type === 'set') {
+      _devSetResource(parsed.key, parsed.value)
+      pushLog(
+        `${getResourceAlias(parsed.key)} = ${formatNumber(parsed.value)}`,
+        'success',
+      )
       return
     }
 
@@ -176,15 +157,17 @@ const DevConsolePanel = observer(function DevConsolePanel() {
 
   function giveResource(key, amount) {
     _devGiveResource(key, amount)
-    pushLog(`+${formatNumber(amount)} к ${key}`, 'success')
+    pushLog(`+${formatNumber(amount)} к ${getResourceAlias(key)}`, 'success')
   }
 
   function setResource(key, value) {
     _devSetResource(key, value)
-    pushLog(`${key} = ${formatNumber(value)}`, 'success')
+    pushLog(`${getResourceAlias(key)} = ${formatNumber(value)}`, 'success')
   }
 
-  const hints = cheatsEnabled ? EMPTY_LOG_HINT.enabled : EMPTY_LOG_HINT.disabled
+  const hints = cheatsEnabled
+    ? DEV_CONSOLE_EMPTY_LOG_HINT.enabled
+    : DEV_CONSOLE_EMPTY_LOG_HINT.disabled
 
   return (
     <div className="dev-console">
@@ -245,7 +228,9 @@ const DevConsolePanel = observer(function DevConsolePanel() {
           className="dev-console__input"
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
-          placeholder={cheatsEnabled ? 'help / give / set / status' : 'Введите команду...'}
+          placeholder={
+            cheatsEnabled ? 'help / give / set / status' : 'Введите команду...'
+          }
           spellCheck={false}
           autoComplete="off"
         />
@@ -255,13 +240,13 @@ const DevConsolePanel = observer(function DevConsolePanel() {
         <div className="dev-admin">
           <div className="dev-admin__title">Resource Patches</div>
           <div className="dev-admin__grid">
-            {RESOURCES.map((resource) => (
-              <div key={resource.key} className="dev-admin__card">
+            {DEV_CONSOLE_RESOURCES.map((resource) => (
+              <div key={resource.id} className="dev-admin__card">
                 <div className="dev-admin__card-head">
-                  <span>{resource.icon}</span>
+                  <span>{RESOURCE_ICONS[resource.id]}</span>
                   <span className="dev-admin__card-label">{resource.label}</span>
                   <span className="dev-admin__card-value">
-                    {devConsoleResources[`${resource.key}Text`]}
+                    {devConsoleResources[resource.textKey]}
                   </span>
                 </div>
                 <div className="dev-admin__presets">
@@ -270,7 +255,7 @@ const DevConsolePanel = observer(function DevConsolePanel() {
                       key={amount}
                       type="button"
                       className="dev-admin__btn dev-admin__btn--add"
-                      onClick={() => giveResource(resource.key, amount)}
+                      onClick={() => giveResource(resource.storeKey, amount)}
                     >
                       +{formatNumber(amount)}
                     </button>
@@ -280,14 +265,14 @@ const DevConsolePanel = observer(function DevConsolePanel() {
                   <button
                     type="button"
                     className="dev-admin__btn dev-admin__btn--set"
-                    onClick={() => setResource(resource.key, 0)}
+                    onClick={() => setResource(resource.storeKey, 0)}
                   >
                     Обнулить
                   </button>
                   <button
                     type="button"
                     className="dev-admin__btn dev-admin__btn--set"
-                    onClick={() => setResource(resource.key, 1e12)}
+                    onClick={() => setResource(resource.storeKey, 1e12)}
                   >
                     Max (1T)
                   </button>
@@ -306,7 +291,11 @@ export function DevConsole() {
 
   useEffect(() => {
     function onKeyDown(event) {
-      if (event.key === '`' || event.key === '~' || event.code === 'Backquote') {
+      if (
+        event.key === '`' ||
+        event.key === '~' ||
+        event.code === 'Backquote'
+      ) {
         event.preventDefault()
         setConsoleOpen((value) => !value)
       }

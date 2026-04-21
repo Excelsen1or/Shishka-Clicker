@@ -1,7 +1,9 @@
 import { isValidElement, memo, useEffect, useMemo, useRef } from 'react'
 import {
+  AnimatedPxlKitIcon,
   Coin,
   Gem,
+  isAnimatedIcon,
   Lightning,
   PxlKitIcon,
   Scroll,
@@ -77,6 +79,7 @@ function getChangedDigitIndexes(previousValue, nextValue) {
 export const StatCard = memo(function StatCard({
   icon = null,
   iconKey = '',
+  pixelIcon = null,
   variant = 'default',
   label,
   value,
@@ -104,19 +107,29 @@ export const StatCard = memo(function StatCard({
     typeof icon === 'string'
       ? (ICON_MAP[icon] ?? icon)
       : (icon ?? (iconKey ? (ICON_MAP[iconKey] ?? iconKey) : null))
-  const pixelIcon = iconKey ? (PIXEL_ICON_MAP[iconKey] ?? null) : null
+  const resolvedPixelIcon = pixelIcon ?? (iconKey ? (PIXEL_ICON_MAP[iconKey] ?? null) : null)
   const iconNode =
-    variant === 'pixel' && pixelIcon ? (
-      <PxlKitIcon
-        icon={pixelIcon}
-        size={18}
-        colorful
-        className="stat-card__pixel-icon"
-        aria-label={label ?? iconKey}
-      />
-    ) : (
-      resolvedIcon
-    )
+    variant === 'pixel' && resolvedPixelIcon
+      ? (
+          isAnimatedIcon(resolvedPixelIcon) ? (
+            <AnimatedPxlKitIcon
+              icon={resolvedPixelIcon}
+              size={18}
+              colorful
+              className="stat-card__pixel-icon"
+              aria-label={label ?? iconKey}
+            />
+          ) : (
+            <PxlKitIcon
+              icon={resolvedPixelIcon}
+              size={18}
+              colorful
+              className="stat-card__pixel-icon"
+              aria-label={label ?? iconKey}
+            />
+          )
+        )
+      : resolvedIcon
   const items = compact
     ? (contributions?.items?.slice(0, 3) ?? [])
     : (contributions?.items ?? [])

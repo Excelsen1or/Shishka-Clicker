@@ -85,29 +85,6 @@
     forwards;
 }
 
-.clicker-btn__aura {
-  animation: pulseHalo 2.9s ease-in-out infinite;
-}
-
-.clicker-btn__hero-motion {
-  animation: heroFloat 3.6s ease-in-out infinite;
-  will-change: transform;
-}
-
-.clicker-btn__hero {
-  animation: heroTilt 4.8s ease-in-out infinite;
-  transform-origin: 50% 72%;
-  will-change: transform;
-}
-
-.clicker-btn__core-ring--outer {
-  animation: spinRing 14s linear infinite;
-}
-
-.clicker-btn__core-ring--inner {
-  animation: spinRing 9s linear infinite reverse;
-}
-
 :root[data-fx-reveal='false'] .screen-stage {
   animation: none !important;
 }
@@ -153,25 +130,10 @@
 }
 
 :root[data-fx-click-animations='false'] .clicker-btn,
-:root[data-fx-click-animations='false'] .clicker-btn__aura,
 :root[data-fx-click-animations='false'] .clicker-btn__hero-motion,
 :root[data-fx-click-animations='false'] .clicker-btn__hero,
-:root[data-fx-click-animations='false'] .clicker-btn__core-ring--outer,
-:root[data-fx-click-animations='false'] .clicker-btn__core-ring--inner,
 :root[data-fx-click-animations='false'] .clicker-btn__content--shake {
   animation: none !important;
-}
-
-.clicker-btn--tap {
-  animation: clickerTap 240ms var(--ease-bounce);
-}
-
-.clicker-btn--mega {
-  animation: clickerMega 680ms var(--ease-bounce);
-}
-
-.clicker-btn--prism {
-  animation: clickerPrism 1300ms var(--ease-standard);
 }
 
 @keyframes revealUp {
@@ -217,34 +179,6 @@
   to {
     opacity: 1;
     transform: perspective(1200px) translate3d(0, 0, 0) rotateY(0deg) scale(1);
-  }
-}
-
-@keyframes pulseHalo {
-  0% {
-    opacity: 0.1;
-    transform: scale(0.85);
-  }
-  45% {
-    opacity: 0.54;
-    transform: scale(1.15);
-  }
-  72% {
-    opacity: 0.24;
-    transform: scale(1.05);
-  }
-  100% {
-    opacity: 0.12;
-    transform: scale(1);
-  }
-}
-
-@keyframes spinRing {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
   }
 }
 
@@ -479,94 +413,3 @@
   }
 }
 
-@keyframes clickerTap {
-  0% {
-    transform: scale(1);
-  }
-  22% {
-    transform: scale(0.952);
-  }
-  60% {
-    transform: scale(1.022);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@keyframes clickerMega {
-  0% {
-    transform: scale(1) rotate(0deg);
-  }
-  18% {
-    transform: scale(0.928) rotate(-2.8deg);
-  }
-  46% {
-    transform: scale(1.052) rotate(1.9deg);
-  }
-  72% {
-    transform: scale(1.014) rotate(-0.5deg);
-  }
-  100% {
-    transform: scale(1) rotate(0deg);
-  }
-}
-
-@keyframes clickerPrism {
-  0% {
-    transform: scale(1);
-  }
-  30% {
-    transform: scale(0.97);
-  }
-  65% {
-    transform: scale(1.03);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@keyframes heroFloat {
-  0%,
-  100% {
-    transform: translate3d(0, -2px, 0);
-  }
-  25% {
-    transform: translate3d(0, -11px, 0);
-  }
-  50% {
-    transform: translate3d(0, -22px, 0);
-  }
-  75% {
-    transform: translate3d(0, -11px, 0);
-  }
-}
-
-@keyframes heroTilt {
-  0%,
-  100% {
-    transform: rotate(-0.5deg) scale(1);
-  }
-  25% {
-    transform: rotate(-1.35deg) scale(1.008);
-  }
-  50% {
-    transform: rotate(0.35deg) scale(1.014);
-  }
-  75% {
-    transform: rotate(1.2deg) scale(1.008);
-  }
-}
-
-@keyframes innerGlow {
-  0%,
-  100% {
-    opacity: 0.4;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
-}

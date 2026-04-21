@@ -5,7 +5,13 @@ import {
   useMemo,
   useState,
 } from 'react'
-import { PxlKitIcon, Trophy, Scroll, Community, Settings } from '../lib/pxlkit'
+import {
+  PxlKitIcon,
+  Trophy,
+  Community,
+  Settings,
+  Coin,
+} from '../lib/pxlkit'
 import { ConeIcon } from '../components/ui/ConeIcon'
 
 const PixelNavIcon = ({ icon, label }) => (
@@ -26,22 +32,22 @@ export const TABS = [
     description: 'Кликай шишку, следи за прогрессом',
   },
   {
-    id: 'subscriptions',
-    icon: <PixelNavIcon icon={Community} label="Подписки" />,
-    label: 'Подписки',
-    description: 'AI-сервисы для пассивного дохода',
+    id: 'purchases',
+    icon: <PixelNavIcon icon={Community} label="Покупки" />,
+    label: 'Покупки',
+    description: 'Здания и усиления в одном пиксель-магазине',
   },
   {
-    id: 'upgrades',
-    icon: <PixelNavIcon icon={Scroll} label="Апгрейды" />,
-    label: 'Апгрейды',
-    description: 'Инвестиции, автоматизация и мемы',
+    id: 'market',
+    icon: <PixelNavIcon icon={Coin} label="Рынок" />,
+    label: 'Рынок',
+    description: 'Торгуй серым дефицитом и шумом',
   },
   {
     id: 'meta',
     icon: <PixelNavIcon icon={Trophy} label="Мета" />,
     label: 'Мета',
-    description: 'Достижения, ребёрс и престиж',
+    description: 'Небесные шишки и комочки',
   },
   {
     id: 'settings',

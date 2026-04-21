@@ -3,6 +3,11 @@ import { formatNumber } from '../../lib/format.js'
 import { ConeIcon } from '../ui/ConeIcon'
 
 export const LockBadge = ({ item }) => {
+  const hasShishkiRequirement =
+    item.unlockProgress?.shishki != null || item.unlockRule?.shishki != null
+  const hasKnowledgeRequirement =
+    item.unlockProgress?.knowledge != null || item.unlockRule?.knowledge != null
+
   return (
     <div className="shop-card__lock">
       <div className="shop-card__lock-title">
@@ -18,31 +23,35 @@ export const LockBadge = ({ item }) => {
       <div className="shop-card__lock-text">{item.unlockText}</div>
 
       <div className="shop-card__lock-progress">
-        <div className="shop-card__lock-row">
-          <span className="shop-card__lock-label">
-            <ConeIcon /> Шишки
-          </span>
-          <span className="shop-card__lock-value">
-            {formatNumber(item.unlockProgress.shishki)} /{' '}
-            {formatNumber(item.unlockRule.shishki)}
-          </span>
-        </div>
+        {hasShishkiRequirement ? (
+          <div className="shop-card__lock-row">
+            <span className="shop-card__lock-label">
+              <ConeIcon /> Шишки
+            </span>
+            <span className="shop-card__lock-value">
+              {formatNumber(item.unlockProgress?.shishki ?? 0)} /{' '}
+              {formatNumber(item.unlockRule?.shishki ?? 0)}
+            </span>
+          </div>
+        ) : null}
 
-        <div className="shop-card__lock-row">
-          <span className="shop-card__lock-label">
-            <PxlKitIcon
-              icon={Scroll}
-              size={16}
-              colorful
-              className="pixel-inline-icon"
-            />
-            Знания
-          </span>
-          <span className="shop-card__lock-value">
-            {formatNumber(item.unlockProgress.knowledge)} /{' '}
-            {formatNumber(item.unlockRule.knowledge)}
-          </span>
-        </div>
+        {hasKnowledgeRequirement ? (
+          <div className="shop-card__lock-row">
+            <span className="shop-card__lock-label">
+              <PxlKitIcon
+                icon={Scroll}
+                size={16}
+                colorful
+                className="pixel-inline-icon"
+              />
+              Знания
+            </span>
+            <span className="shop-card__lock-value">
+              {formatNumber(item.unlockProgress?.knowledge ?? 0)} /{' '}
+              {formatNumber(item.unlockRule?.knowledge ?? 0)}
+            </span>
+          </div>
+        ) : null}
       </div>
     </div>
   )

@@ -28,6 +28,11 @@
 - `web/src/components/market/__tests__/MarketScreen.test.jsx` — smoke test for market rendering.
 - `web/src/components/ui/devConsoleCommands.js` — parse and execute console commands against the new resources.
 - `web/src/components/ui/__tests__/devConsoleCommands.test.js` — console command parser tests.
+- `web/src/components/clicker/ProgressFieldPanel.jsx` — left/right/bottom field zones around the clicker.
+- `web/src/components/clicker/ProgressSprite.jsx` — one 32x32 field sprite with state badges.
+- `web/src/components/ui/EntityPlaceholderIcon.jsx` — shared placeholder tile system for cards and field entities.
+- `web/src/components/clicker/__tests__/ProgressFieldPanel.test.jsx` — clicker field smoke test.
+- `web/src/components/ui/__tests__/EntityPlaceholderIcon.test.jsx` — placeholder rendering contract tests.
 
 **Modify:**
 - `web/package.json`
@@ -44,7 +49,11 @@
 - `web/src/components/clicker/ProgressOverview.jsx`
 - `web/src/components/clicker/ClickerScreen.jsx`
 - `web/src/components/ui/DevConsole.jsx`
+- `web/src/components/market/MarketTicker.jsx`
+- `web/src/components/market/MarketTradePanel.jsx`
 - `web/src/lib/discordPresence.js`
+- `web/src/styles/layout.css`
+- `web/src/styles/shop-screen.css`
 - `api/leaderboard.js`
 - `server/sql/2026-04-15_player_leaderboard_rpc.sql`
 
@@ -1626,9 +1635,430 @@ git add web/src/components/ui/devConsoleCommands.js web/src/components/ui/__test
 git commit -m "feat: rewrite ui for the new shishki economy"
 ```
 
+## Task 7: Expand Economy Content To Spec Scale
+
+**Files:**
+- Modify: `web/src/game/economyConfig.js`
+- Modify: `web/src/game/economyMath.js`
+- Modify: `web/src/game/metaConfig.js`
+- Test: `web/src/game/__tests__/economyMath.test.js`
+
+- [ ] **Step 1: Write the failing test**
+
+Extend `web/src/game/__tests__/economyMath.test.js`:
+
+```js
+it('defines the full late-game building ladder and richer content pools', () => {
+  expect(BUILDINGS).toHaveLength(15)
+  expect(BUILDINGS.map((item) => item.id)).toContain('greyImportExchange')
+  expect(BUILDINGS.map((item) => item.id)).toContain('shishkaLogisticsMinistry')
+  expect(RUN_UPGRADES.length).toBeGreaterThanOrEqual(8)
+  expect(PRESTIGE_UPGRADES.length).toBeGreaterThanOrEqual(6)
+  expect(MARKET_GOODS.length).toBeGreaterThanOrEqual(8)
+  expect(RAP_CAMPAIGNS.length).toBeGreaterThanOrEqual(4)
+  expect(EVENT_DEFINITIONS.length).toBeGreaterThanOrEqual(6)
+})
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `pnpm --dir web exec vitest run web/src/game/__tests__/economyMath.test.js`
+
+Expected: FAIL because the current config is still MVP-sized.
+
+- [ ] **Step 3: Write minimal implementation**
+
+Expand `web/src/game/economyConfig.js`:
+
+```js
+export const BUILDINGS = [
+  { id: 'garagePicker', title: 'Сборщик шишек у гаражей', baseCost: 15, baseOutput: 0.1, fieldCode: 'GR' },
+  { id: 'pickupPoint', title: 'ПВЗ на окраине', baseCost: 100, baseOutput: 1, fieldCode: 'PV' },
+  { id: 'greySorting', title: 'Серая сортировка', baseCost: 1_100, baseOutput: 8, fieldCode: 'GS' },
+  { id: 'selfEmployedCrew', title: 'Бригада самозанятых', baseCost: 12_000, baseOutput: 47, fieldCode: 'SE' },
+  { id: 'resaleStall', title: 'Ларёк перепродажи', baseCost: 130_000, baseOutput: 260, fieldCode: 'RS' },
+  { id: 'tarBoiler', title: 'Смоляной цех', baseCost: 1_400_000, baseOutput: 1_400, fieldCode: 'TB' },
+  { id: 'shadowFulfillment', title: 'Подпольный фулфилмент', baseCost: 20_000_000, baseOutput: 7_800, fieldCode: 'SF' },
+  { id: 'cardFactory', title: 'Фабрика карточек товара', baseCost: 330_000_000, baseOutput: 44_000, fieldCode: 'CF' },
+  { id: 'noiseAgency', title: 'Агентство инфошума', baseCost: 5_100_000_000, baseOutput: 210_000, fieldCode: 'NA' },
+  { id: 'creditConveyor', title: 'Кредитный конвейер', baseCost: 78_000_000_000, baseOutput: 1_100_000, fieldCode: 'CC' },
+  { id: 'lastMileFleet', title: 'Автопарк последней мили', baseCost: 1_100_000_000_000, baseOutput: 5_400_000, fieldCode: 'LM' },
+  { id: 'optimizationTemple', title: 'Храм оптимизации', baseCost: 16_000_000_000_000, baseOutput: 28_000_000, fieldCode: 'OT' },
+  { id: 'neuroFarm', title: 'Нейро-ферма контента', baseCost: 240_000_000_000_000, baseOutput: 130_000_000, fieldCode: 'NF' },
+  { id: 'greyImportExchange', title: 'Биржа серого импорта', baseCost: 3_600_000_000_000_000, baseOutput: 710_000_000, fieldCode: 'GI' },
+  { id: 'shishkaLogisticsMinistry', title: 'Министерство шишечной логистики', baseCost: 52_000_000_000_000_000, baseOutput: 4_000_000_000, fieldCode: 'ML' },
+]
+
+export const RUN_UPGRADES = [
+  { id: 'warehouseRhythm', title: 'Складской ритм', kind: 'globalMultiplier', cost: 250, value: 0.2, fieldCode: 'WR' },
+  { id: 'cashbackBug', title: 'Ошибочный кэшбэк', kind: 'clickMultiplier', cost: 600, value: 1, fieldCode: 'CB' },
+  { id: 'boxPanic', title: 'Паника коробок', kind: 'buildingMultiplier', target: 'greySorting', cost: 4_000, value: 0.35, fieldCode: 'BP' },
+  { id: 'pickupRush', title: 'Пятничный разбор ПВЗ', kind: 'buildingMultiplier', target: 'pickupPoint', cost: 9_000, value: 0.45, fieldCode: 'PR' },
+  { id: 'feedHijack', title: 'Захват ленты', kind: 'eventBoost', cost: 60_000, value: 0.15, fieldCode: 'FH' },
+  { id: 'greyMargin', title: 'Серая маржа', kind: 'marketDiscount', cost: 140_000, value: 0.02, fieldCode: 'GM' },
+  { id: 'conveyorMadness', title: 'Конвейер без тормозов', kind: 'lateMultiplier', cost: 1_800_000, value: 0.25, fieldCode: 'CM' },
+  { id: 'viralDust', title: 'Пыль рекомендации', kind: 'campaignBoost', cost: 6_500_000, value: 0.2, fieldCode: 'VD' },
+]
+
+export const PRESTIGE_UPGRADES = [
+  { id: 'heavenlyTar', title: 'Небесная смола', baseCost: 1, value: 0.15, fieldCode: 'HT' },
+  { id: 'taxBlindness', title: 'Налоговая слепота', baseCost: 2, value: 0.01, fieldCode: 'TB' },
+  { id: 'warehouseCult', title: 'Культ складского чуда', baseCost: 4, value: 0.2, fieldCode: 'WC' },
+  { id: 'greyAccreditation', title: 'Серая аккредитация', baseCost: 6, value: 1, fieldCode: 'GA' },
+  { id: 'hyperLogistics', title: 'Гиперлогистика', baseCost: 10, value: 0.2, fieldCode: 'HL' },
+  { id: 'archiveDust', title: 'Пыль архивов', baseCost: 16, value: 0.15, fieldCode: 'AD' },
+]
+
+export const MARKET_GOODS = [
+  { id: 'pickupPointLeftovers', title: 'Остатки с ПВЗ', basePrice: 40, profile: 'stable', fieldCode: 'OP' },
+  { id: 'parallelImport', title: 'Параллельный завоз', basePrice: 100, profile: 'volatile', fieldCode: 'PI' },
+  { id: 'neuroCover', title: 'Нейро-обложки', basePrice: 75, profile: 'hype', fieldCode: 'NC' },
+  { id: 'counterfeitDrop', title: 'Паль', basePrice: 55, profile: 'trash', fieldCode: 'PL' },
+  { id: 'cashbackCoupons', title: 'Кэшбэк-купоны', basePrice: 90, profile: 'manipulated', fieldCode: 'KC' },
+  { id: 'returnCargo', title: 'Возвратный товар', basePrice: 120, profile: 'volatile', fieldCode: 'VT' },
+  { id: 'courierSlots', title: 'Курьерские слоты', basePrice: 160, profile: 'scarcity', fieldCode: 'KS' },
+  { id: 'deficitBoxes', title: 'Дефицитные коробки', basePrice: 210, profile: 'hype', fieldCode: 'DK' },
+  { id: 'marketplaceCourse', title: 'Инфокурс по маркетплейсам', basePrice: 310, profile: 'manipulated', fieldCode: 'IK' },
+  { id: 'greySupplies', title: 'Серые расходники', basePrice: 260, profile: 'stable', fieldCode: 'SR' },
+]
+
+export const RAP_CAMPAIGNS = [
+  { id: 'iceFlexer', title: 'Ледяной флексер', cost: 8_000, durationMs: 90_000, productionBoost: 0, clickBoost: 2, eventBoost: 0.1, fieldCode: 'IF' },
+  { id: 'sundayProphet', title: 'Воскресный пророк', cost: 15_000, durationMs: 180_000, productionBoost: 0.35, clickBoost: 0, eventBoost: 0.15, fieldCode: 'VP' },
+  { id: 'promoBadBoy', title: 'Плохой парень с промо', cost: 140_000, durationMs: 120_000, productionBoost: 0.15, clickBoost: 1, eventBoost: 0.25, fieldCode: 'PB' },
+  { id: 'districtRomantic', title: 'Мрачный романтик района', cost: 600_000, durationMs: 240_000, productionBoost: 0.5, clickBoost: 0, eventBoost: 0.05, fieldCode: 'DR' },
+]
+
+export const EVENT_DEFINITIONS = [
+  { id: 'cashbackMist', title: 'Ошибочный кэшбэк', kind: 'instantBurst', fieldCode: 'OK' },
+  { id: 'greyArrival', title: 'Серый завоз', kind: 'marketSpike', fieldCode: 'SZ' },
+  { id: 'bugSale', title: 'Распродажа с багом', kind: 'discount', fieldCode: 'RB' },
+  { id: 'warehouseFlood', title: 'Склад прорвало товаром', kind: 'productionBoost', fieldCode: 'SP' },
+  { id: 'infoWarmup', title: 'Инфоцыганский прогрев', kind: 'clickBoost', fieldCode: 'IP' },
+  { id: 'neuroConversion', title: 'Нейросеть выдала конверсию', kind: 'chain', fieldCode: 'NK' },
+]
+```
+
+Export `EVENT_DEFINITIONS` from `web/src/game/config.js` and teach `web/src/game/metaConfig.js` to map the extra prestige upgrades.
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `pnpm --dir web exec vitest run web/src/game/__tests__/economyMath.test.js`
+
+Expected: PASS with the richer content pools.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add web/src/game/economyConfig.js web/src/game/economyMath.js web/src/game/metaConfig.js web/src/game/__tests__/economyMath.test.js
+git commit -m "feat: expand shishka economy content"
+```
+
+## Task 8: Add Clicker Field Panels And Shared Placeholder Sprites
+
+**Files:**
+- Create: `web/src/components/clicker/ProgressFieldPanel.jsx`
+- Create: `web/src/components/clicker/ProgressSprite.jsx`
+- Create: `web/src/components/ui/EntityPlaceholderIcon.jsx`
+- Create: `web/src/components/clicker/__tests__/ProgressFieldPanel.test.jsx`
+- Create: `web/src/components/ui/__tests__/EntityPlaceholderIcon.test.jsx`
+- Modify: `web/src/stores/gameStoreSnapshots.js`
+- Modify: `web/src/components/clicker/ClickerScreen.jsx`
+- Modify: `web/src/styles/layout.css`
+
+- [ ] **Step 1: Write the failing test**
+
+Create `web/src/components/clicker/__tests__/ProgressFieldPanel.test.jsx`:
+
+```jsx
+import { describe, expect, it } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import { ProgressFieldPanel } from '../ProgressFieldPanel.jsx'
+
+describe('ProgressFieldPanel', () => {
+  it('renders 32x32 field entities with state labels', () => {
+    render(
+      <ProgressFieldPanel
+        title="Здания"
+        items={[
+          { id: 'garagePicker', title: 'Сборщик', code: 'GR', type: 'building', state: 'owned', count: 3 },
+          { id: 'pickupPoint', title: 'ПВЗ', code: 'PV', type: 'building', state: 'locked', count: 0 },
+        ]}
+      />,
+    )
+
+    expect(screen.getByText('Здания')).toBeInTheDocument()
+    expect(screen.getByLabelText('Сборщик')).toBeInTheDocument()
+    expect(screen.getByLabelText('ПВЗ')).toBeInTheDocument()
+  })
+})
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `pnpm --dir web exec vitest run web/src/components/clicker/__tests__/ProgressFieldPanel.test.jsx`
+
+Expected: FAIL because the field components do not exist.
+
+- [ ] **Step 3: Write minimal implementation**
+
+Create `web/src/components/ui/EntityPlaceholderIcon.jsx`:
+
+```jsx
+const TYPE_CLASS = {
+  building: 'entity-placeholder--building',
+  market: 'entity-placeholder--market',
+  campaign: 'entity-placeholder--campaign',
+  upgrade: 'entity-placeholder--upgrade',
+  meta: 'entity-placeholder--meta',
+}
+
+export function EntityPlaceholderIcon({ code, label, type, state = 'owned' }) {
+  return (
+    <span
+      className={['entity-placeholder', TYPE_CLASS[type], `is-${state}`].filter(Boolean).join(' ')}
+      aria-label={label}
+      title={label}
+    >
+      <span>{code}</span>
+    </span>
+  )
+}
+```
+
+Create `web/src/components/clicker/ProgressSprite.jsx`:
+
+```jsx
+import { EntityPlaceholderIcon } from '../ui/EntityPlaceholderIcon.jsx'
+
+export function ProgressSprite({ item }) {
+  return (
+    <div className="progress-sprite">
+      <EntityPlaceholderIcon
+        code={item.code}
+        label={item.title}
+        type={item.type}
+        state={item.state}
+      />
+      {item.count > 1 ? <span className="progress-sprite__count">x{item.count}</span> : null}
+    </div>
+  )
+}
+```
+
+Create `web/src/components/clicker/ProgressFieldPanel.jsx`:
+
+```jsx
+import { ProgressSprite } from './ProgressSprite.jsx'
+
+export function ProgressFieldPanel({ title, items }) {
+  return (
+    <section className="progress-field-panel pixel-surface">
+      <h3>{title}</h3>
+      <div className="progress-field-panel__grid">
+        {items.map((item) => (
+          <ProgressSprite key={item.id} item={item} />
+        ))}
+      </div>
+    </section>
+  )
+}
+```
+
+Extend `web/src/stores/gameStoreSnapshots.js`:
+
+```js
+export function buildClickerFieldData(state) {
+  return {
+    buildingsFieldItems: BUILDINGS.map((item) => ({
+      id: item.id,
+      title: item.title,
+      code: item.fieldCode,
+      type: 'building',
+      state: (state.buildings[item.id] ?? 0) > 0 ? 'owned' : 'locked',
+      count: Math.min(9, Math.max(0, state.buildings[item.id] ?? 0)),
+    })),
+    marketFieldItems: MARKET_GOODS.slice(0, 6).map((item) => ({
+      id: item.id,
+      title: item.title,
+      code: item.fieldCode,
+      type: 'market',
+      state: (state.market.positions[item.id] ?? 0) > 0 ? 'active' : 'locked',
+      count: Math.min(9, Math.max(0, state.market.positions[item.id] ?? 0)),
+    })),
+    metaFieldItems: PRESTIGE_UPGRADES.map((item) => ({
+      id: item.id,
+      title: item.title,
+      code: item.fieldCode,
+      type: 'meta',
+      state: (state.prestigeUpgrades[item.id] ?? 0) > 0 ? 'upgraded' : 'locked',
+      count: state.prestigeUpgrades[item.id] ?? 0,
+    })),
+  }
+}
+```
+
+Rewrite `web/src/components/clicker/ClickerScreen.jsx`:
+
+```jsx
+import { observer } from 'mobx-react-lite'
+import { ClickerButton } from './ClickerButton'
+import { ProgressOverview } from './ProgressOverview'
+import { ProgressFieldPanel } from './ProgressFieldPanel.jsx'
+import { useGameStore } from '../../stores/StoresProvider.jsx'
+
+export const ClickerScreen = observer(function ClickerScreen() {
+  const { clickerFieldData } = useGameStore()
+
+  return (
+    <section className="screen clicker-screen clicker-screen--field">
+      <div className="clicker-field-layout">
+        <ProgressFieldPanel title="Здания" items={clickerFieldData.buildingsFieldItems} />
+        <div className="clicker-field-layout__center">
+          <ClickerButton />
+        </div>
+        <ProgressFieldPanel title="Рынок и шум" items={clickerFieldData.marketFieldItems} />
+      </div>
+      <div className="clicker-field-layout__bottom">
+        <ProgressFieldPanel title="Мета и усиления" items={clickerFieldData.metaFieldItems} />
+      </div>
+      <ProgressOverview />
+    </section>
+  )
+})
+```
+
+Update `web/src/styles/layout.css` with adaptive left/center/right plus bottom layout and fixed `32x32` placeholder size.
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `pnpm --dir web exec vitest run web/src/components/clicker/__tests__/ProgressFieldPanel.test.jsx`
+
+Expected: PASS with the new clicker field smoke test.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add web/src/components/clicker/ProgressFieldPanel.jsx web/src/components/clicker/ProgressSprite.jsx web/src/components/ui/EntityPlaceholderIcon.jsx web/src/components/clicker/__tests__/ProgressFieldPanel.test.jsx web/src/components/ui/__tests__/EntityPlaceholderIcon.test.jsx web/src/stores/gameStoreSnapshots.js web/src/components/clicker/ClickerScreen.jsx web/src/styles/layout.css
+git commit -m "feat: add clicker progress field"
+```
+
+## Task 9: Add Placeholder Slots To Economy Cards And Market UI
+
+**Files:**
+- Modify: `web/src/components/shop/ShopScreen.jsx`
+- Modify: `web/src/components/market/MarketTicker.jsx`
+- Modify: `web/src/components/market/MarketTradePanel.jsx`
+- Modify: `web/src/styles/shop-screen.css`
+- Test: `web/src/components/market/__tests__/MarketScreen.test.jsx`
+
+- [ ] **Step 1: Write the failing test**
+
+Extend `web/src/components/market/__tests__/MarketScreen.test.jsx`:
+
+```jsx
+it('renders placeholder tiles for goods and campaigns', () => {
+  render(
+    <StoresContext.Provider value={store}>
+      <MarketScreen />
+    </StoresContext.Provider>,
+  )
+
+  expect(screen.getAllByText(/PI|IF|NC/).length).toBeGreaterThan(0)
+})
+```
+
+- [ ] **Step 2: Run test to verify it fails**
+
+Run: `pnpm --dir web exec vitest run web/src/components/market/__tests__/MarketScreen.test.jsx`
+
+Expected: FAIL because cards and market buttons still have no placeholder slots.
+
+- [ ] **Step 3: Write minimal implementation**
+
+Update `web/src/components/shop/ShopScreen.jsx`:
+
+```jsx
+import { EntityPlaceholderIcon } from '../ui/EntityPlaceholderIcon.jsx'
+
+function EconomyCard({ title, desc, meta, action, disabled, levelText, placeholderCode, placeholderType }) {
+  return (
+    <article className="shop-card shop-card--shishki shop-card--rarity-common">
+      <div className="shop-card__head">
+        <div className="shop-card__visual">
+          <EntityPlaceholderIcon code={placeholderCode} label={title} type={placeholderType} state={disabled ? 'locked' : 'owned'} />
+        </div>
+        <div className="shop-card__meta">
+          <div>
+            <h3 className="shop-card__title">{title}</h3>
+            <p className="shop-card__desc">{desc}</p>
+          </div>
+        </div>
+        <div className="shop-card__chips">
+          <span className="shop-card__tier">{levelText}</span>
+        </div>
+      </div>
+```
+
+Pass codes from `item.fieldCode`.
+
+Update `web/src/components/market/MarketTicker.jsx`:
+
+```jsx
+import { EntityPlaceholderIcon } from '../ui/EntityPlaceholderIcon.jsx'
+
+<li key={good.id}>
+  <EntityPlaceholderIcon code={good.fieldCode} label={good.title} type="market" state={good.owned > 0 ? 'active' : 'owned'} />
+  <strong>{good.title}</strong> · {formatFullNumber(good.price)} шишек
+</li>
+```
+
+Update `web/src/components/market/MarketTradePanel.jsx`:
+
+```jsx
+<button key={good.id} type="button" onClick={() => onBuy(good.id, 1)} disabled={disabled}>
+  <EntityPlaceholderIcon code={good.fieldCode} label={good.title} type="market" state={disabled ? 'locked' : 'owned'} />
+  Купить 1 {good.title} · {formatFullNumber(total)} шишек
+</button>
+```
+
+```jsx
+<button key={campaign.id} type="button" onClick={() => onCampaign(campaign.id)} disabled={disabled}>
+  <EntityPlaceholderIcon code={campaign.fieldCode} label={campaign.title} type="campaign" state={campaign.active ? 'active' : 'owned'} />
+  {campaign.active ? 'Активно: ' : ''}
+  {campaign.title} · {formatFullNumber(campaign.cost)} шишек
+</button>
+```
+
+Update `web/src/styles/shop-screen.css` to add aligned `32x32` visual slots in cards and compact inline placeholders in market rows/buttons.
+
+- [ ] **Step 4: Run test to verify it passes**
+
+Run: `pnpm --dir web exec vitest run web/src/components/market/__tests__/MarketScreen.test.jsx`
+
+Expected: PASS with placeholder assertions green.
+
+- [ ] **Step 5: Run integration verification**
+
+Run: `pnpm --dir web test`
+Expected: PASS.
+
+Run: `pnpm --dir web build`
+Expected: PASS.
+
+Run: `pnpm -C web lint`
+Expected: PASS.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add web/src/components/shop/ShopScreen.jsx web/src/components/market/MarketTicker.jsx web/src/components/market/MarketTradePanel.jsx web/src/styles/shop-screen.css web/src/components/market/__tests__/MarketScreen.test.jsx
+git commit -m "feat: add placeholder visuals across economy cards"
+```
+
 ## Verification Runbook
 
-After Task 6, run the full project checks from the repo root:
+After Task 9, run the full project checks from the repo root:
 
 ```bash
 pnpm --dir web test
@@ -1652,3 +2082,5 @@ Then manually verify in `pnpm --dir web dev`:
 6. Media hype campaign buttons start temporary buffs.
 7. Dev console accepts `shishki`, `heavenly`, and `lumps`, and rejects `money`.
 8. Importing an old save throws `legacy_saves_not_supported`.
+9. The clicker hero has no extra banner clutter and renders left/right/bottom progress zones.
+10. Shop and market cards show `32x32` placeholder tiles.

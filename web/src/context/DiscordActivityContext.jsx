@@ -12,6 +12,7 @@ import { setDiscordRichPresence, setupDiscord } from '../discord.js'
 import { APP_VERSION } from '../config/appMeta.js'
 import {
   createSaveBundle,
+  isObsoleteSaveBundle,
   normalizeImportedBundle,
 } from '../lib/saveTransfer.js'
 import {
@@ -19,7 +20,6 @@ import {
   initializeCloudSession,
   uploadCloudSave,
 } from '../lib/cloudSave.js'
-import { clearLegacyGame, loadLegacyGameRecord } from '../lib/storage.js'
 import { resolvePlayerId } from '../lib/playerId.js'
 
 const DiscordActivityContext = createContext(null)
@@ -47,85 +47,103 @@ function countUnlockedAchievements(achievements) {
   )
 }
 
-function getProgressScore(gameState) {
+function scoreModernEconomy(gameState) {
+  return (
+    Math.log10(1 + Math.max(0, Number(gameState.shishki ?? 0))) * 6 +
+    Math.log10(1 + Math.max(0, Number(gameState.totalShishkiEarned ?? 0))) *
+      12 +
+    Math.log10(1 + Math.max(0, Number(gameState.lifetimeShishkiEarned ?? 0))) *
+      12 +
+    Math.log10(1 + Math.max(0, Number(gameState.heavenlyShishki ?? 0))) * 240 +
+    Math.log10(
+      1 + Math.max(0, Number(gameState.totalHeavenlyShishkiEarned ?? 0)),
+    ) *
+      340 +
+    Math.log10(1 + Math.max(0, Number(gameState.tarLumps ?? 0))) * 520 +
+    Math.max(0, Number(gameState.rebirths ?? 0)) * 180 +
+    Math.max(0, Number(gameState.quotaIndex ?? 0)) * 420 +
+    Math.max(0, Number(gameState.currentRunShishki ?? 0)) * 0.05 +
+    sumLevels(gameState.buildings) * 180 +
+    sumLevels(gameState.buildingLevels) * 60 +
+    sumLevels(gameState.upgrades) * 30 +
+    sumLevels(gameState.prestigeUpgrades) * 140 +
+    sumLevels(gameState.market?.positions) * 10 +
+    countUnlockedAchievements(gameState.achievements) * 18
+  )
+}
+
+function scoreLegacyEconomy(gameState) {
   if (!gameState || typeof gameState !== 'object') {
     return 0
   }
 
   return (
-    Math.log10(
-      1 +
-        Math.max(
-          0,
-          Number(
-            gameState.lifetimeShishkiEarned ??
-              gameState.totalShishkiEarned ??
-              0,
-          ),
-        ),
-    ) *
-      120 +
-    Math.log10(
-      1 +
-        Math.max(
-          0,
-          Number(
-            gameState.lifetimeMoneyEarned ?? gameState.totalMoneyEarned ?? 0,
-          ),
-        ),
-    ) *
-      80 +
-    Math.log10(
-      1 +
-        Math.max(
-          0,
-          Number(
-            gameState.lifetimeKnowledgeEarned ??
-              gameState.totalKnowledgeEarned ??
-              0,
-          ),
-        ),
-    ) *
-      95 +
-    Math.log10(
-      1 +
-        Math.max(
-          0,
-          Number(
-            gameState.totalPrestigeShardsEarned ??
-              gameState.prestigeShards ??
-              0,
-          ),
-        ),
-    ) *
-      220 +
-    Math.max(0, Number(gameState.rebirths ?? 0)) * 180 +
-    Math.max(0, Number(gameState.megaClicks ?? 0)) * 0.4 +
+    Math.log10(1 + Math.max(0, Number(gameState.money ?? 0))) * 9 +
+    Math.log10(1 + Math.max(0, Number(gameState.knowledge ?? 0))) * 12 +
+    Math.log10(1 + Math.max(0, Number(gameState.prestigeShards ?? 0))) * 120 +
     Math.max(0, Number(gameState.manualClicks ?? 0)) * 0.02 +
-    sumLevels(gameState.subscriptions) * 8 +
-    sumLevels(gameState.upgrades) * 5 +
-    sumLevels(gameState.prestigeUpgrades) * 30 +
-    countUnlockedAchievements(gameState.achievements) * 18
+    sumLevels(gameState.subscriptions) * 8
   )
 }
 
-function getGameStateFromCloudSave(cloudSave) {
-  if (!cloudSave?.save) return null
+function classifyCloudSave(cloudSave) {
+  if (!cloudSave?.save) {
+    return {
+      gameState: null,
+      isLegacy: false,
+      hasValidSave: false,
+    }
+  }
+
+  if (isObsoleteSaveBundle(cloudSave.save)) {
+    return {
+      gameState: null,
+      isLegacy: true,
+      hasValidSave: false,
+    }
+  }
 
   try {
-    return normalizeImportedBundle(cloudSave.save).game
+    return {
+      gameState: normalizeImportedBundle(cloudSave.save).game,
+      isLegacy: false,
+      hasValidSave: true,
+    }
   } catch (error) {
     console.warn('Failed to extract cloud save payload:', error)
-    return null
+    return {
+      gameState: null,
+      isLegacy: false,
+      hasValidSave: false,
+    }
   }
 }
 
+export function getProgressScore(gameState) {
+  if (!gameState || typeof gameState !== 'object') {
+    return 0
+  }
+
+  const modernScore = scoreModernEconomy(gameState)
+  if (
+    modernScore > 0 ||
+    'buildings' in gameState ||
+    'buildingLevels' in gameState ||
+    'prestigeUpgrades' in gameState
+  ) {
+    return modernScore
+  }
+
+  return scoreLegacyEconomy(gameState)
+}
+
 function chooseSyncWinner(localGameState, remoteCloudSave) {
-  const remoteGameState = getGameStateFromCloudSave(remoteCloudSave)
+  const remoteSnapshot = classifyCloudSave(remoteCloudSave)
+  const remoteGameState = remoteSnapshot.gameState
   const localScore = getProgressScore(localGameState)
   const remoteScore = getProgressScore(remoteGameState)
 
-  if (!remoteGameState) {
+  if (!remoteSnapshot.hasValidSave) {
     return 'local'
   }
 
@@ -140,6 +158,8 @@ function chooseSyncWinner(localGameState, remoteCloudSave) {
   const remoteUpdatedAt = Date.parse(remoteCloudSave?.updatedAt ?? '') || 0
   return remoteUpdatedAt > 0 ? 'remote' : 'local'
 }
+
+export { classifyCloudSave, chooseSyncWinner }
 
 export function DiscordActivityProvider({ children }) {
   const gameStore = useGameStore()
@@ -258,10 +278,10 @@ export function DiscordActivityProvider({ children }) {
 
   const applyRemoteSave = useCallback(
     (cloudSave) => {
-      if (!cloudSave?.save) return false
+      const imported = classifyCloudSave(cloudSave)
+      if (!imported.hasValidSave || !imported.gameState) return false
 
-      const imported = normalizeImportedBundle(cloudSave.save)
-      gameStore.importGameSave(imported.game, {
+      gameStore.importGameSave(imported.gameState, {
         markDirty: false,
         updatedAt: cloudSave.updatedAt ?? new Date().toISOString(),
       })
@@ -363,7 +383,7 @@ export function DiscordActivityProvider({ children }) {
   }, [getLocalSnapshot, state.playerId])
 
   const synchronizeNow = useCallback(
-    async ({ forceDownload = false, allowLegacyMigration = false } = {}) => {
+    async ({ forceDownload = false } = {}) => {
       if (offlineModeRef.current) return false
 
       if (!state.playerId) return false
@@ -383,34 +403,16 @@ export function DiscordActivityProvider({ children }) {
         hasCompletedInitialSync &&
         localSnapshot.clientRevision !== syncedClientRevisionRef.current
       const knownRemoteVersion = remoteVersionRef.current
-      const cloudSave = await downloadCloudSave()
+      let cloudSave = await downloadCloudSave()
 
       if (offlineModeRef.current) return false
 
+      const remoteSnapshot = classifyCloudSave(cloudSave)
+      if (!remoteSnapshot.hasValidSave) {
+        cloudSave = null
+      }
+
       if (!cloudSave?.save) {
-        if (allowLegacyMigration) {
-          const legacyRecord = loadLegacyGameRecord()
-          const legacyProgressScore = getProgressScore(legacyRecord.state)
-
-          if (legacyProgressScore > EMPTY_PROGRESS_SCORE_THRESHOLD) {
-            gameStore.importGameSave(legacyRecord.state, {
-              markDirty: true,
-              updatedAt: legacyRecord.updatedAt ?? new Date().toISOString(),
-            })
-
-            const migrated = await uploadLatestSave({
-              expectedVersionOverride: null,
-              source: 'migration',
-            })
-
-            if (migrated) {
-              clearLegacyGame()
-            }
-
-            return migrated
-          }
-        }
-
         if (localIsNearlyEmpty) {
           markSynced({
             remoteUpdatedAt: localSnapshot.updatedAt,
@@ -425,7 +427,7 @@ export function DiscordActivityProvider({ children }) {
         })
       }
 
-      const remoteGameState = getGameStateFromCloudSave(cloudSave)
+      const remoteGameState = remoteSnapshot.gameState
       const remoteProgressScore = getProgressScore(remoteGameState)
       const remoteIsNearlyEmpty =
         remoteProgressScore <= EMPTY_PROGRESS_SCORE_THRESHOLD
@@ -435,19 +437,16 @@ export function DiscordActivityProvider({ children }) {
 
       if (forceDownload) {
         const applied = applyRemoteSave(cloudSave)
-        if (allowLegacyMigration) clearLegacyGame()
         return applied
       }
 
       if (!hasCompletedInitialSync) {
         const applied = applyRemoteSave(cloudSave)
-        if (allowLegacyMigration) clearLegacyGame()
         return applied
       }
 
       if (localIsNearlyEmpty && !remoteIsNearlyEmpty) {
         const applied = applyRemoteSave(cloudSave)
-        if (allowLegacyMigration) clearLegacyGame()
         return applied
       }
 
@@ -455,18 +454,14 @@ export function DiscordActivityProvider({ children }) {
         const uploaded = await uploadLatestSave({
           expectedVersionOverride: remoteVersion,
         })
-        if (allowLegacyMigration) clearLegacyGame()
         return uploaded
       }
 
       if (!localDirty) {
         if (remoteVersion !== knownRemoteVersion) {
           const applied = applyRemoteSave(cloudSave)
-          if (allowLegacyMigration) clearLegacyGame()
           return applied
         }
-
-        if (allowLegacyMigration) clearLegacyGame()
 
         markSynced({
           remoteUpdatedAt: cloudSave.updatedAt,
@@ -489,7 +484,6 @@ export function DiscordActivityProvider({ children }) {
               ? 'override'
               : 'upload',
         })
-        if (allowLegacyMigration) clearLegacyGame()
         return uploaded
       } catch (error) {
         if (error?.code === 'cloud_conflict') {
@@ -508,7 +502,6 @@ export function DiscordActivityProvider({ children }) {
             chooseSyncWinner(localSnapshot.state, conflictSave) === 'remote'
           ) {
             const applied = applyRemoteSave(conflictSave)
-            if (allowLegacyMigration) clearLegacyGame()
             return applied
           }
 
@@ -517,7 +510,6 @@ export function DiscordActivityProvider({ children }) {
             expectedVersionOverride: null,
             source: 'override',
           })
-          if (allowLegacyMigration) clearLegacyGame()
           return uploaded
         }
 
@@ -526,7 +518,6 @@ export function DiscordActivityProvider({ children }) {
     },
     [
       applyRemoteSave,
-      gameStore,
       getLocalSnapshot,
       markSynced,
       setSyncState,
@@ -597,9 +588,7 @@ export function DiscordActivityProvider({ children }) {
           presenceError: null,
         }))
 
-        const syncPromise = synchronizeNow({
-          allowLegacyMigration: true,
-        })
+        const syncPromise = synchronizeNow()
 
         await waitForBootGrace(syncPromise, BOOT_SYNC_GRACE_MS)
 
