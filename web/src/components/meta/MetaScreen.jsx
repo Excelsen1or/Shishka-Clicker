@@ -37,7 +37,7 @@ export const MetaScreen = observer(function MetaScreen() {
       iconKey: 'knowledge',
       label: 'Комочки',
       value: formatNumber(uiState.tarLumps),
-      hint: 'редкий мета-ресурс',
+      hint: 'редкий ресурс',
     },
   ]
 

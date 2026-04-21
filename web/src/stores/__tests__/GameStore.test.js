@@ -103,7 +103,7 @@ describe('GameStore', () => {
     store.importGameSave({
       ...base,
       shishki: 500,
-      currentRunShishki: 15_000,
+      currentRunShishki: 35_000,
       heavenlyShishki: 2,
       totalHeavenlyShishkiEarned: 2,
       tarLumps: 3,
@@ -196,6 +196,10 @@ describe('GameStore', () => {
     store.importGameSave({
       ...base,
       shishki: 200_000,
+      buildings: {
+        ...base.buildings,
+        selfEmployedCrew: 1,
+      },
     })
 
     store.buyBuilding('resaleStall')
@@ -224,6 +228,49 @@ describe('GameStore', () => {
     store.activateCampaign('iceFlexer')
 
     expect(store.exportGameSave()).toEqual(before)
+  })
+
+  it('refuses to buy locked market goods even if the market is unlocked', () => {
+    const base = createFreshState()
+    const store = createStore()
+
+    store.importGameSave({
+      ...base,
+      shishki: 10_000,
+      market: {
+        ...base.market,
+        unlocked: true,
+      },
+    })
+
+    const before = store.exportGameSave()
+    store.buyMarketGood('grayBrokerNotes', 1)
+
+    expect(store.exportGameSave()).toEqual(before)
+  })
+
+  it('refuses to launch locked hype campaigns before their building gates are met', () => {
+    const base = createFreshState()
+    const store = createStore()
+
+    store.importGameSave({
+      ...base,
+      shishki: 50_000,
+      market: {
+        ...base.market,
+        unlocked: true,
+      },
+      buildings: {
+        ...base.buildings,
+        resaleStall: 1,
+      },
+    })
+
+    store.activateCampaign('sundayProphet')
+    expect(store.state.activeCampaign).toBe(null)
+
+    store.activateCampaign('grayTour')
+    expect(store.state.activeCampaign).toBe(null)
   })
 
   it('lets packing line levels discount campaign launches', () => {
@@ -391,7 +438,7 @@ describe('GameStore', () => {
 
     store.importGameSave({
       ...base,
-      currentRunShishki: 15_000,
+      currentRunShishki: 35_000,
       heavenlyShishki: 4,
       totalHeavenlyShishkiEarned: 4,
       prestigeUpgrades: {

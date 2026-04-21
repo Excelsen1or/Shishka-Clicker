@@ -517,6 +517,6 @@ describe('economy math', () => {
   })
 
   it('sets a hard first quota for the first life', () => {
-    expect(getQuotaPreview(STARTING_STATE).current).toBeGreaterThanOrEqual(10_000)
+    expect(getQuotaPreview(STARTING_STATE).current).toBeGreaterThanOrEqual(30_000)
   })
 })

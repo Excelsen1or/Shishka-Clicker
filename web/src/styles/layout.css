@@ -508,18 +508,29 @@
 
 .clicker-deck-layout {
   display: grid;
-  justify-items: center;
   gap: clamp(0.75rem, 1.5vw, 1rem);
 }
 
 .clicker-deck-layout__hero {
-  width: min(100%, 72rem);
+  width: 100%;
   display: grid;
-  justify-items: center;
+  min-width: 0;
+  min-height: clamp(20rem, 34vw, 26rem);
+  aspect-ratio: 16 / 9;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.clicker-deck-layout__hero > * {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
 }
 
 .clicker-deck {
-  width: min(100%, 72rem);
+  width: 100%;
+  max-width: 72rem;
   display: grid;
   gap: 0.8rem;
   padding: 1rem;
@@ -748,6 +759,39 @@
   color: var(--text-muted);
   font-size: 0.72rem;
   line-height: 1.35;
+}
+
+.market-panel {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.market-action-tile {
+  align-items: start;
+}
+
+.market-action-tile__body {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.market-action-tile__buttons,
+.market-portfolio__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.market-action-tile__buttons button,
+.market-portfolio__actions button {
+  min-height: 2rem;
+  padding: 0.35rem 0.6rem;
+  border: 2px solid rgb(var(--white-rgb) / 0.1);
+  background: rgb(var(--white-rgb) / 0.04);
+  color: var(--text-base);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
 }
 
 .progress-field-panel--deck {

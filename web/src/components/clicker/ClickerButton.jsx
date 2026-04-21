@@ -1,17 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { observer } from 'mobx-react-lite'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { useSettingsVisuals } from '../../context/SettingsContext'
 import { useNav } from '../../context/NavContext'
 import { useSound } from '../../hooks/useSound'
-import { formatNumber } from '../../lib/format'
 import raccoonHeroGif from '../../assets/hero-raccoon/def-anim.gif'
 import firstLayerImage from '../../assets/background/firstlayer.png'
 import secondLayerImage from '../../assets/background/secondlayer.png'
 import behindCloudsImage from '../../assets/background/behindclouds.png'
 import shishkaSound from '../../assets/audio/ui/shishka.mp3'
-import { Lightning, PxlKitIcon, SparkleSmall } from '../../lib/pxlkit'
-import { ConeIcon } from '../ui/ConeIcon'
 import { buildClickEffectPoints } from './clickEffects'
 import { ClickerEffectsOverlay } from './ClickerEffectsOverlay.jsx'
 import {
@@ -44,7 +41,7 @@ export const ClickerButton = observer(function ClickerButton() {
   const effectsOverlayRef = useRef(null)
   const buttonRef = useRef(null)
 
-  const { clickerMetrics, mineShishki, markAutoClicker } = useGameStore()
+  const { mineShishki, markAutoClicker } = useGameStore()
   const { visualEffectToggles } = useSettingsVisuals()
   const { activeTab } = useNav()
   const { play } = useSound(shishkaSound, {
@@ -54,60 +51,8 @@ export const ClickerButton = observer(function ClickerButton() {
 
   const prevTabRef = useRef(activeTab)
 
-  const metricItems = useMemo(
-    () => [
-      {
-        label: 'Сила клика',
-        value: (
-          <>
-            <span>+{clickerMetrics.clickPowerText}</span> <ConeIcon />
-          </>
-        ),
-      },
-      {
-        label: 'Мега-клик',
-        value: (
-          <>
-            <PxlKitIcon
-              icon={Lightning}
-              size={16}
-              colorful
-              className="pixel-inline-icon"
-            />
-            <span>{clickerMetrics.megaClickChanceText}</span>
-          </>
-        ),
-        streak: clickerMetrics.megaClickStreak,
-      },
-      {
-        label: 'Эмодзи',
-        value: (
-          <>
-            <PxlKitIcon
-              icon={SparkleSmall}
-              size={16}
-              colorful
-              className="pixel-inline-icon"
-            />
-            <span>{clickerMetrics.emojiMegaChanceText}</span>
-          </>
-        ),
-        streak: clickerMetrics.emojiBurstStreak,
-      },
-    ],
-    [clickerMetrics],
-  )
-
   const isCharged =
     visualEffectToggles.clickAnimations && visualState !== 'idle'
-  const scenicStyle = useMemo(
-    () => ({
-      '--clicker-layer-front': `url(${firstLayerImage})`,
-      '--clicker-layer-mid': `url(${secondLayerImage})`,
-      '--clicker-layer-clouds': `url(${behindCloudsImage})`,
-    }),
-    [],
-  )
 
   useEffect(() => {
     return () => {
@@ -230,10 +175,7 @@ export const ClickerButton = observer(function ClickerButton() {
   }
 
   return (
-    <div
-      className="clicker-wrap clicker-wrap--pixel clicker-wrap--scene"
-      style={scenicStyle}
-    >
+    <div className="clicker-wrap clicker-wrap--pixel clicker-wrap--scene">
       <button
         ref={buttonRef}
         type="button"
@@ -245,9 +187,38 @@ export const ClickerButton = observer(function ClickerButton() {
         aria-label="Добыть шишки"
       >
         <div className="clicker-wrap__scene" aria-hidden="true">
-          <span className="clicker-wrap__scene-layer clicker-wrap__scene-layer--clouds" />
-          <span className="clicker-wrap__scene-layer clicker-wrap__scene-layer--mid" />
-          <span className="clicker-wrap__scene-layer clicker-wrap__scene-layer--front" />
+          <span className="clicker-wrap__scene-layer clicker-wrap__scene-layer--clouds">
+            <span className="clicker-wrap__cloud-band">
+              <img
+                src={behindCloudsImage}
+                alt=""
+                className="clicker-wrap__scene-image clicker-wrap__scene-image--clouds"
+                draggable={false}
+              />
+              <img
+                src={behindCloudsImage}
+                alt=""
+                className="clicker-wrap__scene-image clicker-wrap__scene-image--clouds"
+                draggable={false}
+              />
+            </span>
+          </span>
+          <span className="clicker-wrap__scene-layer clicker-wrap__scene-layer--mid">
+            <img
+              src={secondLayerImage}
+              alt=""
+              className="clicker-wrap__scene-image clicker-wrap__scene-image--mid"
+              draggable={false}
+            />
+          </span>
+          <span className="clicker-wrap__scene-layer clicker-wrap__scene-layer--front">
+            <img
+              src={firstLayerImage}
+              alt=""
+              className="clicker-wrap__scene-image clicker-wrap__scene-image--front"
+              draggable={false}
+            />
+          </span>
         </div>
 
         <span
@@ -266,23 +237,6 @@ export const ClickerButton = observer(function ClickerButton() {
           className="clicker-btn__pixel-corner clicker-btn__pixel-corner--br"
           aria-hidden="true"
         />
-
-        <div className="clicker-wrap__metrics" aria-label="Показатели клика">
-          {metricItems.map((item) => (
-            <div
-              key={item.label}
-              className="clicker-wrap__metric clicker-wrap__metric--pixel"
-            >
-              {item.streak > 0 && (
-                <span className="clicker-wrap__metric-streak pixel-badge">
-                  x{formatNumber(item.streak)}
-                </span>
-              )}
-              <b>{item.value}</b>
-              <small>{item.label}</small>
-            </div>
-          ))}
-        </div>
 
         <div className="clicker-btn__core">
           <span className="clicker-btn__hero-motion">

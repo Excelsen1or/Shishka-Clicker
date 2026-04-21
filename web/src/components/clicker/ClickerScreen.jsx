@@ -79,7 +79,6 @@ export const ClickerScreen = observer(function ClickerScreen() {
         <section className="clicker-deck pixel-surface" aria-label="Пульт прогресса">
           <header className="clicker-deck__header">
             <div>
-              <span className="clicker-deck__kicker">Характеристики</span>
               <h3 className="clicker-deck__title">Прогресс, покупки и мета-петля</h3>
             </div>
             <div className="clicker-deck__status">
@@ -113,14 +112,12 @@ export const ClickerScreen = observer(function ClickerScreen() {
             <div className="clicker-deck__body">
               <div className="clicker-deck__stats">
                 <ClickerDeckStat
-                  label="Линий собрано"
+                  label="Зданий приобретено"
                   value={formatNumber(buildingCount)}
-                  hint="активных строительных веток"
                 />
                 <ClickerDeckStat
-                  label="Суммарный темп"
+                  label="Шишек в секунду"
                   value={`+${formatNumber(uiEconomy.shishkiPerSecond)}`}
-                  hint="шишек в секунду"
                   tone="accent"
                 />
               </div>
@@ -164,14 +161,12 @@ export const ClickerScreen = observer(function ClickerScreen() {
               <div className="clicker-deck__body">
                 <div className="clicker-deck__stats">
                   <ClickerDeckStat
-                    label="Усилений взято"
+                    label="Усилений приобретено"
                     value={formatNumber(upgradeCount)}
-                    hint="активных run-апгрейдов"
                   />
                   <ClickerDeckStat
                     label="Сила клика"
                     value={formatNumber(uiState.clickPower)}
-                    hint="ручной импульс"
                     tone="accent"
                   />
                 </div>

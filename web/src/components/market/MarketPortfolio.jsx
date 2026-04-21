@@ -18,9 +18,20 @@ export function MarketPortfolio({ goods, shishki, onSell }) {
                 <strong>{good.title}</strong> · {good.owned} шт. · средняя{' '}
                 {formatFullNumber(good.averageBuyPrice)} · спот{' '}
                 {formatFullNumber(good.price)} · P/L {deltaLabel}
-                <button type="button" onClick={() => onSell(good.id, 1)}>
-                  Продать 1
-                </button>
+                <span className="market-portfolio__actions">
+                  <button type="button" onClick={() => onSell(good.id, 1)}>
+                    Продать 1
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onSell(good.id, Math.min(5, good.owned))}
+                  >
+                    Продать до 5
+                  </button>
+                  <button type="button" onClick={() => onSell(good.id, good.owned)}>
+                    Слить всё
+                  </button>
+                </span>
               </li>
             )
           })}

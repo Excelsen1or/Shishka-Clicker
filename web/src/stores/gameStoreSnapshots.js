@@ -84,7 +84,7 @@ function getUpgradeUnlockRule(state, item) {
     streetPromoBurst: {
       threshold: 10_000,
       buildingId: 'resaleStall',
-      buildingTitle: 'Ларек перепродажи',
+      buildingTitle: 'Ларёк перепродажи',
     },
     tarCacheMerge: {
       threshold: 40_000,
@@ -99,7 +99,7 @@ function getUpgradeUnlockRule(state, item) {
     shadowCourierLine: {
       threshold: 750_000,
       buildingId: 'logisticsDepot',
-      buildingTitle: 'Логистический депо',
+      buildingTitle: 'Автопарк последней мили',
     },
   }
 
@@ -134,14 +134,15 @@ function getMarketGoodUnlockRule(state, item) {
   if (!state.market?.unlocked) {
     return {
       unlocked: false,
-      unlockText: 'Откроется после первой покупки "Ларька перепродажи".',
+      unlockText:
+        'Открой "Покупки" -> "Здания" и купи первый "Ларёк перепродажи". После этого откроются сделки, портфель и прогревы.',
       unlockProgress: {
         shishki: Math.min(getLifetimeProgress(state), BUILDINGS[4].baseCost),
         previousOwned: Number(state.buildings?.resaleStall ?? 0),
       },
       unlockRule: {
         shishki: BUILDINGS[4].baseCost,
-        previousTitle: 'Ларек перепродажи',
+        previousTitle: 'Ларёк перепродажи',
       },
     }
   }
@@ -154,7 +155,7 @@ function getMarketGoodUnlockRule(state, item) {
         'Бригада самозанятых',
       )
     case 'railSlotTokens':
-      return buildOwnedUnlockRule(state, 'resaleStall', 'Ларек перепродажи', 3)
+      return buildOwnedUnlockRule(state, 'resaleStall', 'Ларёк перепродажи', 3)
     case 'grayBrokerNotes':
       return buildOwnedUnlockRule(state, 'packingLine', 'Смоляной цех')
     case 'pineSealant':
@@ -200,21 +201,22 @@ function getCampaignUnlockRule(state, item) {
   if (!state.market?.unlocked) {
     return {
       unlocked: false,
-      unlockText: 'Откроется вместе с серой биржей после "Ларька перепродажи".',
+      unlockText:
+        'Сначала открой рынок через "Покупки" -> "Здания" -> "Ларёк перепродажи". Затем станут доступны кампании и прогревы.',
       unlockProgress: {
         shishki: Math.min(getLifetimeProgress(state), BUILDINGS[4].baseCost),
         previousOwned: Number(state.buildings?.resaleStall ?? 0),
       },
       unlockRule: {
         shishki: BUILDINGS[4].baseCost,
-        previousTitle: 'Ларек перепродажи',
+        previousTitle: 'Ларёк перепродажи',
       },
     }
   }
 
   switch (item.id) {
     case 'sundayProphet':
-      return buildOwnedUnlockRule(state, 'resaleStall', 'Ларек перепродажи', 2)
+      return buildOwnedUnlockRule(state, 'resaleStall', 'Ларёк перепродажи', 2)
     case 'nightDistrict':
       return buildOwnedUnlockRule(state, 'packingLine', 'Смоляной цех')
     case 'grayTour':
@@ -401,7 +403,8 @@ export function buildClickerFieldData(state) {
       },
       market: {
         unlocked: marketUnlocked,
-        text: 'Откроется после первой покупки "Ларька перепродажи".',
+        text:
+          'Открой "Покупки" -> "Здания" и купи первый "Ларёк перепродажи". После этого включатся сделки, портфель и прогревы.',
         progress: Math.min(Number(state.buildings?.resaleStall ?? 0), 1),
         goal: 1,
       },

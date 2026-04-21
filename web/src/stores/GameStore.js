@@ -310,13 +310,13 @@ export default class GameStore {
         icon: 'rebirth',
         label: 'Небесные',
         value: this.uiState.heavenlyShishki,
-        hint: 'за текущую и прошлые жизни',
+        hint: 'за всё время',
       },
       {
         icon: 'knowledge',
         label: 'Комочки',
         value: this.uiState.tarLumps,
-        hint: 'редкий мета-ресурс',
+        hint: 'редкий ресурс',
       },
       {
         icon: 'power',
@@ -485,8 +485,13 @@ export default class GameStore {
   }
 
   buyBuilding(id) {
+    const snapshot = buildEconomySnapshot(this._state, this.derived)
+    const buildingCard = snapshot.buildings.find((item) => item.id === id)
     const building = BUILDINGS.find((item) => item.id === id)
     if (!building) {
+      return
+    }
+    if (!buildingCard?.unlocked) {
       return
     }
 
@@ -523,6 +528,8 @@ export default class GameStore {
   }
 
   buyUpgrade(id) {
+    const snapshot = buildEconomySnapshot(this._state, this.derived)
+    const upgradeCard = snapshot.upgrades.find((item) => item.id === id)
     const upgrade = RUN_UPGRADES.find((item) => item.id === id)
     const cost = upgrade
       ? Math.max(
@@ -531,7 +538,7 @@ export default class GameStore {
         )
       : null
 
-    if (!upgrade || this._state.shishki < cost) {
+    if (!upgrade || !upgradeCard?.unlocked || this._state.shishki < cost) {
       return
     }
 
@@ -596,6 +603,11 @@ export default class GameStore {
     if (!this._state.market.unlocked) {
       return
     }
+    const snapshot = buildEconomySnapshot(this._state, this.derived)
+    const goodCard = snapshot.marketGoods.find((item) => item.id === goodId)
+    if (!goodCard?.unlocked) {
+      return
+    }
 
     const trade = applyMarketTrade({
       state: this._state,
@@ -609,6 +621,11 @@ export default class GameStore {
 
   sellMarketGood(goodId, quantity = 1) {
     if (!this._state.market.unlocked) {
+      return
+    }
+    const snapshot = buildEconomySnapshot(this._state, this.derived)
+    const goodCard = snapshot.marketGoods.find((item) => item.id === goodId)
+    if (!goodCard?.unlocked) {
       return
     }
 
@@ -626,13 +643,15 @@ export default class GameStore {
     if (!this._state.market.unlocked) {
       return
     }
+    const snapshot = buildEconomySnapshot(this._state, this.derived)
+    const campaignCard = snapshot.campaigns.find((item) => item.id === campaignId)
 
     const campaign = getCampaignById(campaignId)
     const launchCost = campaign
       ? getCampaignLaunchCost(this._state, campaign)
       : null
 
-    if (!campaign || this._state.shishki < launchCost) {
+    if (!campaign || !campaignCard?.unlocked || this._state.shishki < launchCost) {
       return
     }
 

@@ -176,6 +176,26 @@ export function getEffectiveBrokerLevel(state) {
   return Math.min(8, Math.max(explicitLevel, derivedLevel))
 }
 
+export function getMarketFeeRate(state) {
+  const prestigeFeeReduction =
+    (state?.prestigeUpgrades?.taxBlindness ?? 0) *
+      (PRESTIGE_UPGRADE_BY_ID.taxBlindness?.value ?? 0) +
+    (state?.prestigeUpgrades?.shadowBrokerage ?? 0) *
+      (PRESTIGE_UPGRADE_BY_ID.shadowBrokerage?.value ?? 0)
+
+  return Math.max(
+    0.02,
+    0.08 -
+      getEffectiveBrokerLevel(state) * 0.005 -
+      prestigeFeeReduction -
+      getBuildingPerkValue(
+        'selfEmployedCrew',
+        state?.buildingLevels?.selfEmployedCrew ?? 0,
+        'feeReduction',
+      ),
+  )
+}
+
 export function getBuildingCost(baseCost, owned) {
   return Math.floor(baseCost * Math.pow(1.15, owned) + 1e-9)
 }
@@ -424,22 +444,7 @@ export function applyMarketTrade({ state, goodId, quantity, side }) {
   }
 
   const rawValue = unitPrice * normalizedQuantity
-  const prestigeFeeReduction =
-    (state?.prestigeUpgrades?.taxBlindness ?? 0) *
-      (PRESTIGE_UPGRADE_BY_ID.taxBlindness?.value ?? 0) +
-    (state?.prestigeUpgrades?.shadowBrokerage ?? 0) *
-      (PRESTIGE_UPGRADE_BY_ID.shadowBrokerage?.value ?? 0)
-  const feeRate = Math.max(
-    0.02,
-    0.08 -
-      getEffectiveBrokerLevel(state) * 0.005 -
-      prestigeFeeReduction -
-      getBuildingPerkValue(
-        'selfEmployedCrew',
-        state?.buildingLevels?.selfEmployedCrew ?? 0,
-        'feeReduction',
-      ),
-  )
+  const feeRate = getMarketFeeRate(state)
   const feePaid = Math.ceil(rawValue * feeRate)
   const owned = state?.market?.positions?.[goodId] ?? 0
   const averageBuyPrice = state?.market?.averageBuyPrice?.[goodId] ?? 0
