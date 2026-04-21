@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
+import { SettingsProvider } from '../../../context/SettingsContext.jsx'
 import { StoresContext } from '../../../stores/StoresProvider.jsx'
 import { MarketScreen } from '../MarketScreen.jsx'
 
@@ -49,47 +50,62 @@ const store = {
 describe('MarketScreen', () => {
   it('renders market goods and hype campaigns', () => {
     const html = renderToStaticMarkup(
-      <StoresContext.Provider value={store}>
-        <MarketScreen />
-      </StoresContext.Provider>,
+      <SettingsProvider>
+        <StoresContext.Provider value={store}>
+          <MarketScreen />
+        </StoresContext.Provider>
+      </SettingsProvider>,
     )
 
+    expect(html).toContain('market-screen market-screen--open')
+    expect(html).toContain('Терминал')
+    expect(html).toContain('Лента котировок')
+    expect(html).toContain('Торговый слот')
     expect(html).toContain('Параллельный завоз')
     expect(html).toContain('Ледяной флексер')
     expect(html).toContain('500')
+    expect(html).toContain('330')
     expect(html).toContain('Ликвидность')
+    expect(html).toContain('Баланс')
     expect(html).toContain('Брокер')
     expect(html).toContain('Районный хайп')
-    expect(html).toContain('Купить 1')
+    expect(html).toContain('Куп 1')
     expect(html).toContain('Комиссия')
-    expect(html).toContain('Продать 1')
+    expect(html).toContain('Прод 1')
+    expect(html).toContain('До 5')
+    expect(html).toContain('Всё')
     expect(html).toContain('>MP<')
     expect(html).toContain('>CI<')
   })
 
   it('renders a locked-state message before the market is unlocked', () => {
     const html = renderToStaticMarkup(
-      <StoresContext.Provider
-        value={{
-          gameStore: {
-            ...store.gameStore,
-            uiState: {
-              ...store.gameStore.uiState,
-              market: {
-                unlocked: false,
+      <SettingsProvider>
+        <StoresContext.Provider
+          value={{
+            gameStore: {
+              ...store.gameStore,
+              uiState: {
+                ...store.gameStore.uiState,
+                market: {
+                  unlocked: false,
+                },
               },
             },
-          },
-        }}
-      >
-        <MarketScreen />
-      </StoresContext.Provider>,
+          }}
+        >
+          <MarketScreen />
+        </StoresContext.Provider>
+      </SettingsProvider>,
     )
 
+    expect(html).toContain('market-screen market-screen--locked')
     expect(html).toContain('Рынок пока закрыт')
+    expect(html).toContain('Терминал биржи недоступен')
     expect(html).toContain('Ларёк перепродажи')
     expect(html).toContain('Покупки')
     expect(html).toContain('Здания')
+    expect(html).toContain('Прогресс разблокировки')
     expect(html).not.toContain('Купить 1 Параллельный завоз')
   })
 })

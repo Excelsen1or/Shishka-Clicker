@@ -1,4 +1,8 @@
-import { formatFullNumber } from '../../lib/format.js'
+import { useSound } from '../../hooks/useSound.js'
+import buySound from '../../assets/audio/ui/wpn_select.mp3'
+import sellSound from '../../assets/audio/ui/button3.wav'
+import denySound from '../../assets/audio/ui/wpn_denyselect.mp3'
+import { formatFullNumber, formatNumber } from '../../lib/format.js'
 import { EntityPlaceholderIcon } from '../ui/EntityPlaceholderIcon.jsx'
 
 export function MarketTradePanel({
@@ -10,9 +14,43 @@ export function MarketTradePanel({
   onSell,
   onCampaign,
 }) {
+  const { play: playBuySound } = useSound(buySound, { volume: 0.14 })
+  const { play: playSellSound } = useSound(sellSound, { volume: 0.18 })
+  const { play: playDenySound } = useSound(denySound, { volume: 0.14 })
+
+  function handleBuy(goodId, quantity, enabled) {
+    if (!enabled) {
+      playDenySound()
+      return
+    }
+    playBuySound()
+    onBuy(goodId, quantity)
+  }
+
+  function handleSell(goodId, quantity, enabled) {
+    if (!enabled) {
+      playDenySound()
+      return
+    }
+    playSellSound()
+    onSell(goodId, quantity)
+  }
+
+  function handleCampaign(campaignId, enabled) {
+    if (!enabled) {
+      playDenySound()
+      return
+    }
+    playBuySound()
+    onCampaign(campaignId)
+  }
+
   return (
-    <section className="market-panel pixel-surface">
-      <h3>Сделки и прогревы</h3>
+    <section className="market-panel market-trade-panel pixel-surface">
+      <div className="market-panel__head">
+        <h3>Торговый слот</h3>
+        <span className="market-panel__eyebrow">Баланс: {formatNumber(shishki)} ш.</span>
+      </div>
       <p>
         Комиссия: {Math.round(feeRate * 1000) / 10}% за вход и выход. Чем выше
         брокер и мета-пассивки, тем меньше срез.
@@ -54,27 +92,36 @@ export function MarketTradePanel({
                       : `Спот ${formatFullNumber(good.price)} · в портфеле ${good.owned} шт.`}
                   </span>
                   {good.unlocked ? (
-                    <span className="market-action-tile__buttons">
+                    <span className="market-action-tile__buttons market-action-tile__buttons--trade">
                       <button
                         type="button"
-                        onClick={() => onBuy(good.id, 1)}
-                        disabled={!canBuyOne}
+                        className="market-action-btn market-action-btn--buy"
+                        onClick={() => handleBuy(good.id, 1, canBuyOne)}
+                        aria-disabled={!canBuyOne}
+                        aria-label={`Купить 1 ${good.title}`}
+                        title={`Купить 1 ${good.title}`}
                       >
-                        Купить 1
+                        Куп 1
                       </button>
                       <button
                         type="button"
-                        onClick={() => onBuy(good.id, 5)}
-                        disabled={!canBuyFive}
+                        className="market-action-btn market-action-btn--buy"
+                        onClick={() => handleBuy(good.id, 5, canBuyFive)}
+                        aria-disabled={!canBuyFive}
+                        aria-label={`Купить 5 ${good.title}`}
+                        title={`Купить 5 ${good.title}`}
                       >
-                        Купить 5
+                        Куп 5
                       </button>
                       <button
                         type="button"
-                        onClick={() => onSell(good.id, 1)}
-                        disabled={!canSell}
+                        className="market-action-btn market-action-btn--sell"
+                        onClick={() => handleSell(good.id, 1, canSell)}
+                        aria-disabled={!canSell}
+                        aria-label={`Продать 1 ${good.title}`}
+                        title={`Продать 1 ${good.title}`}
                       >
-                        Продать 1
+                        Прод 1
                       </button>
                     </span>
                   ) : null}
@@ -96,9 +143,9 @@ export function MarketTradePanel({
               <button
                 key={campaign.id}
                 type="button"
-                onClick={() => onCampaign(campaign.id)}
-                disabled={disabled}
-                className="market-entity-row market-action-tile"
+                onClick={() => handleCampaign(campaign.id, !disabled)}
+                aria-disabled={disabled}
+                className="market-entity-row market-action-tile market-action-tile--campaign"
               >
                 <span
                   className="market-entity-slot"
@@ -121,7 +168,7 @@ export function MarketTradePanel({
                     size={32}
                   />
                 </span>
-                <span>
+                <span className="market-action-tile__body">
                   {!campaign.unlocked
                     ? campaign.unlockText
                     : `${campaign.active ? 'Активно: ' : ''}${campaign.title} · ${formatFullNumber(launchCost)} шишек`}

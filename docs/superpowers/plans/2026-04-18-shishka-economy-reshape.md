@@ -1316,7 +1316,7 @@ export const MarketScreen = observer(function MarketScreen() {
     <section className="screen market-screen">
       <div className="screen__header">
         <span className="screen__kicker">Рынок</span>
-        <h2 className="screen__title">Серая биржа и прогревы</h2>
+        <h2 className="screen__title">Торговая биржа</h2>
         <p className="screen__desc">
           Торгуй дефицитом, двигай цены и покупай подозрительный шум.
         </p>
