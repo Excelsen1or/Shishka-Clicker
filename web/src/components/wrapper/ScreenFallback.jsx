@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Lightning, PxlKitIcon, Robot, SparkleSmall } from '../../lib/pxlkit'
 
 function resolveTargetProgress(phase) {
@@ -79,12 +79,7 @@ export const ScreenFallback = ({
   onSkipSync = null,
 }) => {
   const copy = useMemo(() => resolveLoadingCopy(phase, mode), [mode, phase])
-  const target = progressTarget ?? resolveTargetProgress(phase)
-  const [progress, setProgress] = useState(target)
-
-  useEffect(() => {
-    setProgress(target)
-  }, [target])
+  const progress = progressTarget ?? resolveTargetProgress(phase)
 
   const completedSteps = steps.filter((step) => step.state === 'done').length
   const activeStep = steps.find((step) => step.state === 'active')
