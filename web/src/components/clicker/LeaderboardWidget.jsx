@@ -6,7 +6,7 @@ import { formatNumber } from '../../lib/format.js'
 
 const LEADERBOARD_TABS = [
   { id: 'shishki', label: 'шишки', icon: null },
-  { id: 'shards', label: 'осколки', icon: Gem },
+  { id: 'shards', label: 'небесные', icon: Gem },
   { id: 'clicks', label: 'клики', icon: Lightning },
 ]
 
