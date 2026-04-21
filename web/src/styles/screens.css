@@ -105,7 +105,7 @@
   max-width: 72rem;
   min-height: clamp(22rem, 34vw, 28rem);
   overflow: hidden;
-  padding: clamp(0.75rem, 1.8vw, 1rem);
+  padding: 0;
   border: 2px solid rgb(var(--accent-primary-rgb) / 0.24);
   background:
     linear-gradient(
@@ -131,17 +131,17 @@
 .clicker-wrap__scene-layer {
   position: absolute;
   inset: 0;
-  background-position: center bottom;
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
+  width: 100%;
+  height: 100%;
   image-rendering: pixelated;
 }
 
 .clicker-wrap__scene-layer--clouds {
-  inset: -1px;
-  opacity: 0.92;
+  inset: 0;
+  opacity: 1;
   overflow: hidden;
   z-index: 0;
+  background: none !important;
 }
 
 .clicker-wrap__scene-layer--clouds::before,
@@ -149,31 +149,43 @@
   content: '';
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
   background-image: var(--clicker-layer-clouds);
-  background-position: center bottom;
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
+  background-repeat: repeat-x;
+  background-size: auto 100%;
+  background-position: left center;
   image-rendering: pixelated;
-  will-change: transform, opacity;
+  will-change: background-position;
 }
 
 .clicker-wrap__scene-layer--clouds::before {
-  animation: clickerCloudsDrift 26s linear infinite;
+  animation: cloudScroll 60s linear infinite;
 }
 
 .clicker-wrap__scene-layer--clouds::after {
-  animation: clickerCloudsDrift 26s linear infinite -13s;
+  animation: cloudScroll 60s linear infinite -30s;
 }
 
 .clicker-wrap__scene-layer--mid {
   background-image: var(--clicker-layer-mid);
-  opacity: 0.94;
+  background-size: 100% 100%;
+  background-position: center center;
+  background-repeat: no-repeat;
+  opacity: 1;
   z-index: 1;
+  width: 100%;
+  height: 100%;
 }
 
 .clicker-wrap__scene-layer--front {
   background-image: var(--clicker-layer-front);
+  background-size: 100% 100%;
+  background-position: center center;
+  background-repeat: no-repeat;
   z-index: 2;
+  width: 100%;
+  height: 100%;
 }
 
 .clicker-wrap--scene > *:not(.clicker-wrap__scene) {
@@ -199,6 +211,8 @@
   grid-auto-rows: 1fr;
   gap: 0.48rem;
   align-items: stretch;
+  padding-inline: clamp(0.75rem, 1.8vw, 1rem);
+  padding-bottom: clamp(0.75rem, 1.8vw, 1rem);
 }
 
 @media (pointer: fine) and (min-width: 760px) {
@@ -415,7 +429,7 @@
   align-content: start;
   gap: 0.9rem;
   margin: 0;
-  padding: clamp(0.75rem, 1.8vw, 1rem);
+  padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -431,7 +445,7 @@
 }
 
 .clicker-btn--pixel {
-  padding: clamp(0.75rem, 1.8vw, 1rem);
+  padding: 0;
 }
 
 .clicker-btn__pixel-corner {
@@ -499,12 +513,14 @@
   display: grid;
   place-items: center;
   z-index: 1;
+  padding-inline: clamp(0.75rem, 1.8vw, 1rem);
+  padding-top: clamp(0.75rem, 1.8vw, 1rem);
 }
 
 .clicker-btn__hero-motion {
   position: relative;
-  width: min(100%, 15rem);
-  min-height: clamp(11rem, 18vw, 14rem);
+  width: min(100%, 11rem);
+  min-height: clamp(8rem, 13vw, 10rem);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -516,7 +532,7 @@
 .clicker-btn__hero {
   --hero-facing: 1;
   width: 96%;
-  max-width: 15rem;
+  max-width: 11rem;
   aspect-ratio: auto;
   object-fit: contain;
   filter: drop-shadow(0 10px 18px rgb(var(--black-rgb) / 0.22));
@@ -629,30 +645,12 @@
     2px 2px 0 rgb(var(--black-rgb) / 0.3);
 }
 
-@keyframes clickerCloudsDrift {
+@keyframes cloudScroll {
   0% {
-    transform: translate3d(-4%, 0, 0);
-    opacity: 1;
-  }
-  45% {
-    transform: translate3d(4%, 0, 0);
-    opacity: 1;
-  }
-  50% {
-    transform: translate3d(4%, 0, 0);
-    opacity: 0;
-  }
-  50.01% {
-    transform: translate3d(-4%, 0, 0);
-    opacity: 0;
-  }
-  55% {
-    transform: translate3d(-4%, 0, 0);
-    opacity: 1;
+    background-position: left bottom;
   }
   100% {
-    transform: translate3d(4%, 0, 0);
-    opacity: 1;
+    background-position: -100% bottom;
   }
 }
 
