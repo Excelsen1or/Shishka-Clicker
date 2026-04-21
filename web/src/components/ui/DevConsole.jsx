@@ -69,11 +69,29 @@ const DevConsolePanel = observer(function DevConsolePanel() {
         },
       )
     },
-    'sv.cheats true': () => {
+    'sv.www true': () => {
       setCheatsEnabled(true)
       pushLog('success')
     },
   }
+
+    const commands = {
+    date: () => pushLog(new Date().toLocaleString(), 'info'),
+    clear: () => setLog([]),
+    help: () => {
+      pushLog('AVAILABLE COMMANDS', 'meta')
+      Object.entries(DEV_CONSOLE_COMMANDS_DESC).forEach(
+        ([command, description]) => {
+          pushLog(`${command} :: ${description}`, 'info')
+        },
+      )
+    },
+    'sv.cheats true': () => {
+      setCheatsEnabled(false)
+      pushLog('Пошел нахуй гнида :)')
+    },
+  }
+
 
   useEffect(() => {
     const timerId = window.setTimeout(() => inputRef.current?.focus(), 50)
