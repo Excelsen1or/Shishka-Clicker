@@ -40,6 +40,7 @@
 ### Task 1: Add shared sizing tokens and CSS regression scaffold
 
 **Files:**
+
 - Modify: `web/src/styles/theme.css`
 - Create: `web/src/styles/__tests__/screenSizing.test.js`
 
@@ -49,8 +50,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
-const read = (path) =>
-  readFileSync(new URL(path, import.meta.url), 'utf8')
+const read = (path) => readFileSync(new URL(path, import.meta.url), 'utf8')
 
 describe('screen sizing tokens', () => {
   it('defines the shared sizing tokens in theme.css', () => {
@@ -127,6 +127,7 @@ git commit -m "test: add shared screen sizing token scaffold"
 ### Task 2: Move shared screen rhythm into token-driven layout rules
 
 **Files:**
+
 - Modify: `web/src/styles/layout.css`
 - Modify: `web/src/styles/__tests__/screenSizing.test.js`
 
@@ -212,6 +213,7 @@ git commit -m "refactor: tokenise shared screen layout rhythm"
 ### Task 3: Migrate shop to the shared sizing model
 
 **Files:**
+
 - Modify: `web/src/styles/shop-screen.css`
 - Modify: `web/src/styles/__tests__/screenSizing.test.js`
 
@@ -222,8 +224,12 @@ it('maps shop sizing to shared panel, card, and text tiers', () => {
   const shopCss = read('../shop-screen.css')
 
   expect(shopCss).toContain('--screen-density: var(--ui-density-shop);')
-  expect(shopCss).toContain('padding: calc(var(--ui-card-pad) * var(--screen-density));')
-  expect(shopCss).toContain('gap: calc(var(--ui-card-gap) * var(--screen-density));')
+  expect(shopCss).toContain(
+    'padding: calc(var(--ui-card-pad) * var(--screen-density));',
+  )
+  expect(shopCss).toContain(
+    'gap: calc(var(--ui-card-gap) * var(--screen-density));',
+  )
   expect(shopCss).toContain('font-size: var(--ui-body-size-sm);')
   expect(shopCss).toContain('min-height: var(--ui-control-height);')
 })
@@ -293,6 +299,7 @@ git commit -m "refactor: align shop sizing to shared tiers"
 ### Task 4: Align meta and settings to the same panel and grid tiers
 
 **Files:**
+
 - Modify: `web/src/styles/screens.css`
 - Modify: `web/src/styles/__tests__/screenSizing.test.js`
 
@@ -304,9 +311,15 @@ it('applies shared token-based panel tiers to meta and settings', () => {
 
   expect(screensCss).toContain('--screen-density: var(--ui-density-meta);')
   expect(screensCss).toContain('--screen-density: var(--ui-density-settings);')
-  expect(screensCss).toContain('padding: calc(var(--ui-panel-pad) * var(--screen-density));')
-  expect(screensCss).toContain('gap: calc(var(--ui-grid-gap) * var(--screen-density));')
-  expect(screensCss).toContain('padding: calc(var(--ui-panel-pad-compact) * var(--screen-density));')
+  expect(screensCss).toContain(
+    'padding: calc(var(--ui-panel-pad) * var(--screen-density));',
+  )
+  expect(screensCss).toContain(
+    'gap: calc(var(--ui-grid-gap) * var(--screen-density));',
+  )
+  expect(screensCss).toContain(
+    'padding: calc(var(--ui-panel-pad-compact) * var(--screen-density));',
+  )
 })
 ```
 
@@ -331,7 +344,8 @@ Expected: FAIL because `screens.css` still hard-codes panel padding and grid gap
   --screen-density: var(--ui-density-settings);
 }
 
-.settings-screen :is(.settings-card, .settings-info-box, .settings-save-text-box),
+.settings-screen
+  :is(.settings-card, .settings-info-box, .settings-save-text-box),
 .meta-screen :is(.meta-card, .prestige-lab-card, .achievement-category) {
   padding: calc(var(--ui-panel-pad) * var(--screen-density));
   gap: calc(var(--ui-grid-gap) * var(--screen-density));
@@ -368,6 +382,7 @@ git commit -m "refactor: standardize meta and settings panel sizing"
 ### Task 5: Align market and clicker coefficients and run final verification
 
 **Files:**
+
 - Modify: `web/src/styles/layout.css`
 - Modify: `web/src/styles/__tests__/screenSizing.test.js`
 
@@ -381,7 +396,9 @@ it('assigns density coefficients to market and clicker layouts', () => {
   expect(layoutCss).toContain('--screen-density: var(--ui-density-market);')
   expect(layoutCss).toContain('.clicker-screen {')
   expect(layoutCss).toContain('--screen-density: var(--ui-density-clicker);')
-  expect(layoutCss).toContain('gap: calc(var(--ui-grid-gap) * var(--screen-density));')
+  expect(layoutCss).toContain(
+    'gap: calc(var(--ui-grid-gap) * var(--screen-density));',
+  )
 })
 ```
 

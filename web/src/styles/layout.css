@@ -744,11 +744,7 @@
   padding: 0.72rem 0.8rem;
   border-width: 2px;
   background:
-    linear-gradient(
-      180deg,
-      rgb(var(--white-rgb) / 0.05),
-      transparent 42%
-    ),
+    linear-gradient(180deg, rgb(var(--white-rgb) / 0.05), transparent 42%),
     rgb(var(--surface-2-rgb) / 0.92);
   box-shadow:
     inset 0 0 0 1px rgb(var(--black-rgb) / 0.2),
@@ -932,15 +928,35 @@
 
 .market-screen--open::before {
   background:
-    radial-gradient(circle at top right, rgb(var(--accent-primary-rgb) / 0.14), transparent 34%),
-    radial-gradient(circle at 0% 100%, rgb(var(--accent-cyan-rgb) / 0.08), transparent 28%),
-    linear-gradient(180deg, rgb(var(--accent-primary-rgb) / 0.05), transparent 26%);
+    radial-gradient(
+      circle at top right,
+      rgb(var(--accent-primary-rgb) / 0.14),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 0% 100%,
+      rgb(var(--accent-cyan-rgb) / 0.08),
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      rgb(var(--accent-primary-rgb) / 0.05),
+      transparent 26%
+    );
 }
 
 .market-screen--locked::before {
   background:
-    radial-gradient(circle at top right, rgb(var(--accent-danger-rgb) / 0.12), transparent 34%),
-    radial-gradient(circle at 0% 100%, rgb(var(--accent-primary-rgb) / 0.08), transparent 28%),
+    radial-gradient(
+      circle at top right,
+      rgb(var(--accent-danger-rgb) / 0.12),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 0% 100%,
+      rgb(var(--accent-primary-rgb) / 0.08),
+      transparent 28%
+    ),
     linear-gradient(180deg, rgb(var(--white-rgb) / 0.04), transparent 26%);
 }
 
@@ -1078,11 +1094,7 @@
   padding: 0.72rem 0.76rem;
   border: 2px solid rgb(var(--white-rgb) / 0.08);
   background:
-    linear-gradient(
-      180deg,
-      rgb(var(--white-rgb) / 0.06),
-      transparent 42%
-    ),
+    linear-gradient(180deg, rgb(var(--white-rgb) / 0.06), transparent 42%),
     rgb(var(--surface-2-rgb) / 0.92);
   box-shadow:
     inset 0 0 0 1px rgb(var(--black-rgb) / 0.2),
@@ -1268,11 +1280,7 @@
   padding: calc(var(--ui-panel-pad) * var(--screen-density));
   border: 2px solid rgb(var(--white-rgb) / 0.08);
   background:
-    linear-gradient(
-      180deg,
-      rgb(var(--white-rgb) / 0.05),
-      transparent 32%
-    ),
+    linear-gradient(180deg, rgb(var(--white-rgb) / 0.05), transparent 32%),
     rgb(var(--surface-2-rgb) / 0.92);
   box-shadow:
     inset 0 0 0 1px rgb(var(--black-rgb) / 0.2),
@@ -1311,11 +1319,7 @@
   padding: 0.48rem;
   border: 2px solid rgb(var(--white-rgb) / 0.08);
   background:
-    linear-gradient(
-      180deg,
-      rgb(var(--white-rgb) / 0.06),
-      transparent 36%
-    ),
+    linear-gradient(180deg, rgb(var(--white-rgb) / 0.06), transparent 36%),
     rgb(var(--surface-1-rgb) / 0.88);
   box-shadow:
     inset 0 0 0 1px rgb(var(--black-rgb) / 0.18),
@@ -1329,11 +1333,7 @@
 
 .market-action-tile--locked {
   background:
-    linear-gradient(
-      180deg,
-      rgb(var(--white-rgb) / 0.04),
-      transparent 30%
-    ),
+    linear-gradient(180deg, rgb(var(--white-rgb) / 0.04), transparent 30%),
     repeating-linear-gradient(
       -45deg,
       rgb(var(--white-rgb) / 0.018) 0 8px,
@@ -2028,14 +2028,13 @@
 
 .entity-placeholder-icon::before {
   inset: 0;
-  background:
-    linear-gradient(
-      135deg,
-      transparent 47%,
-      rgb(var(--white-rgb) / 0.08) 47%,
-      rgb(var(--white-rgb) / 0.08) 53%,
-      transparent 53%
-    );
+  background: linear-gradient(
+    135deg,
+    transparent 47%,
+    rgb(var(--white-rgb) / 0.08) 47%,
+    rgb(var(--white-rgb) / 0.08) 53%,
+    transparent 53%
+  );
   opacity: 0.5;
 }
 
@@ -3382,7 +3381,6 @@
   }
 }
 
-
 /* ── Dev Console ── */
 .dev-console-overlay {
   position: fixed;
@@ -3424,11 +3422,7 @@
   overflow: hidden;
   border-radius: 0;
   border: 3px solid rgb(var(--accent-emerald-rgb) / 0.32);
-  background: linear-gradient(
-    180deg,
-    rgb(8 21 13 / 0.985),
-    rgb(5 12 8 / 0.96)
-  );
+  background: linear-gradient(180deg, rgb(8 21 13 / 0.985), rgb(5 12 8 / 0.96));
   box-shadow:
     inset 0 0 0 2px rgb(var(--black-rgb) / 0.28),
     0 0 40px rgb(var(--accent-emerald-rgb) / 0.14),
@@ -3555,7 +3549,11 @@
   font-size: 0.78rem;
   line-height: 1.55;
   background:
-    linear-gradient(180deg, rgb(var(--accent-emerald-rgb) / 0.05), transparent 16%),
+    linear-gradient(
+      180deg,
+      rgb(var(--accent-emerald-rgb) / 0.05),
+      transparent 16%
+    ),
     rgb(var(--black-rgb) / 0.1);
 }
 
