@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite'
-import {  getMarketFeeRate } from '../../game/economyMath.js'
+import { getMarketFeeRate } from '../../game/economyMath.js'
 
 import { formatNumber } from '../../lib/format.js'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
@@ -56,14 +56,16 @@ export const MarketScreen = observer(function MarketScreen() {
             <div className="market-exchange__copy">
               <span className="market-exchange__kicker">Терминал</span>
               <p className="market-exchange__desc">
-                Покупай активы дешевле, жди рост цены и продавай в плюс. Следи за ивентами и прогревами: они меняют рынок.
+                Покупай активы дешевле, жди рост цены и продавай в плюс. Следи
+                за ивентами и прогревами: они меняют рынок.
               </p>
-              <div className="market-exchange__copy-strip">
-              </div>
+              <div className="market-exchange__copy-strip"></div>
             </div>
 
             <div className="market-exchange__stats">
-              <article className={`market-exchange__stat market-exchange__stat--${brokerTone}`.trim()}>
+              <article
+                className={`market-exchange__stat market-exchange__stat--${brokerTone}`.trim()}
+              >
                 <span>Брокер</span>
                 <strong>{brokerLevel} ур.</strong>
               </article>
@@ -71,11 +73,15 @@ export const MarketScreen = observer(function MarketScreen() {
                 <span>Комиссия</span>
                 <strong>{Math.round(feeRate * 1000) / 10}%</strong>
               </article>
-              <article className={`market-exchange__stat ${hasActiveWindow ? 'market-exchange__stat--live' : 'market-exchange__stat--idle'}`.trim()}>
+              <article
+                className={`market-exchange__stat ${hasActiveWindow ? 'market-exchange__stat--live' : 'market-exchange__stat--idle'}`.trim()}
+              >
                 <span>Окно</span>
                 <strong>{activeEvent ? activeEvent.title : 'Тихо'}</strong>
               </article>
-              <article className={`market-exchange__stat ${hasActiveCampaign ? 'market-exchange__stat--live' : 'market-exchange__stat--idle'}`.trim()}>
+              <article
+                className={`market-exchange__stat ${hasActiveCampaign ? 'market-exchange__stat--live' : 'market-exchange__stat--idle'}`.trim()}
+              >
                 <span>Прогрев</span>
                 <strong>{activeCampaign ? activeCampaign.title : 'Нет'}</strong>
               </article>
@@ -94,20 +100,20 @@ export const MarketScreen = observer(function MarketScreen() {
               onSell={sellMarketGood}
               onCampaign={activateCampaign}
             />
-            <MarketPortfolio
-              goods={goods}
-              onSell={sellMarketGood}
-            />
+            <MarketPortfolio goods={goods} onSell={sellMarketGood} />
           </div>
         </section>
       ) : (
         <section className="market-locker pixel-surface">
           <div className="market-locker__hero">
-            <span className="market-locker__badge">Терминал биржи недоступен</span>
+            <span className="market-locker__badge">
+              Терминал биржи недоступен
+            </span>
             <h3>Рынок пока закрыт</h3>
             <p>
-              Чтобы открыть рынок, зайди в <strong>Покупки</strong>, открой вкладку{' '}
-              <strong>Здания</strong> и купи первый <strong>Ларёк перепродажи</strong>.
+              Чтобы открыть рынок, зайди в <strong>Покупки</strong>, открой
+              вкладку <strong>Здания</strong> и купи первый{' '}
+              <strong>Ларёк перепродажи</strong>.
             </p>
           </div>
 
@@ -126,10 +132,15 @@ export const MarketScreen = observer(function MarketScreen() {
             <article className="market-locker__card">
               <span className="market-locker__label">Цена входа</span>
               <strong>{unlockPrice} шишек</strong>
-              <p>Купи <strong>"Ларёк перепродажи"</strong> и откроешь сделки, портфель и прогревы.</p>
+              <p>
+                Купи <strong>"Ларёк перепродажи"</strong> и откроешь сделки,
+                портфель и прогревы.
+              </p>
             </article>
             <article className="market-locker__card">
-              <span className="market-locker__label">Прогресс разблокировки</span>
+              <span className="market-locker__label">
+                Прогресс разблокировки
+              </span>
               <strong>{unlockProgress} / 1</strong>
               <div className="market-locker__progress">
                 <span

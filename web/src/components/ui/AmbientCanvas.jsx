@@ -107,7 +107,13 @@ export const AmbientCanvas = memo(function AmbientCanvas({
     ]
 
     const resize = () => {
-      resizeCanvas(canvas, ctx, bufferCanvas, window.innerWidth, window.innerHeight)
+      resizeCanvas(
+        canvas,
+        ctx,
+        bufferCanvas,
+        window.innerWidth,
+        window.innerHeight,
+      )
     }
 
     const draw = (time) => {
@@ -149,5 +155,7 @@ export const AmbientCanvas = memo(function AmbientCanvas({
     }
   }, [showAmbient, showNoise])
 
-  return <canvas ref={canvasRef} className="ambient-canvas" aria-hidden="true" />
+  return (
+    <canvas ref={canvasRef} className="ambient-canvas" aria-hidden="true" />
+  )
 })

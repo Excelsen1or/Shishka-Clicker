@@ -27,21 +27,31 @@ export function MarketPortfolio({ goods, onSell }) {
         <ul className="market-portfolio">
           {heldGoods.map((good) => {
             const deltaPerUnit = good.price - good.averageBuyPrice
-            const deltaLabel = deltaPerUnit > 0 ? `+${deltaPerUnit}` : `${deltaPerUnit}`
+            const deltaLabel =
+              deltaPerUnit > 0 ? `+${deltaPerUnit}` : `${deltaPerUnit}`
             const deltaTone =
               deltaPerUnit > 0 ? 'up' : deltaPerUnit < 0 ? 'down' : 'flat'
 
             return (
-              <li key={good.id} className={`market-portfolio__item market-portfolio__item--${deltaTone}`.trim()}>
+              <li
+                key={good.id}
+                className={`market-portfolio__item market-portfolio__item--${deltaTone}`.trim()}
+              >
                 <div className="market-portfolio__meta">
                   <div className="market-portfolio__meta-top">
                     <strong>{good.title}</strong>
-                    <span className="market-portfolio__count">{good.owned} шт.</span>
+                    <span className="market-portfolio__count">
+                      {good.owned} шт.
+                    </span>
                   </div>
                   <div className="market-portfolio__stats">
-                    <span>Средняя {formatFullNumber(good.averageBuyPrice)}</span>
+                    <span>
+                      Средняя {formatFullNumber(good.averageBuyPrice)}
+                    </span>
                     <span>Спот {formatFullNumber(good.price)}</span>
-                    <span className={`market-portfolio__delta market-portfolio__delta--${deltaTone}`.trim()}>
+                    <span
+                      className={`market-portfolio__delta market-portfolio__delta--${deltaTone}`.trim()}
+                    >
                       P/L {deltaLabel}
                     </span>
                   </div>

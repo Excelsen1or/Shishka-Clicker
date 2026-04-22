@@ -35,13 +35,14 @@ const RESOURCE_ICONS = {
 
 function getResourceAlias(storeKey) {
   return (
-    DEV_CONSOLE_RESOURCES.find((resource) => resource.storeKey === storeKey)?.id ??
-    storeKey
+    DEV_CONSOLE_RESOURCES.find((resource) => resource.storeKey === storeKey)
+      ?.id ?? storeKey
   )
 }
 
 const DevConsolePanel = observer(function DevConsolePanel() {
-  const { devConsoleResources, _devGiveResource, _devSetResource } = useGameStore()
+  const { devConsoleResources, _devGiveResource, _devSetResource } =
+    useGameStore()
   const [cheatsEnabled, setCheatsEnabled] = useState(false)
   const [inputValue, setInputValue] = useState('')
   const [log, setLog] = useState([])
@@ -74,7 +75,6 @@ const DevConsolePanel = observer(function DevConsolePanel() {
       pushLog('success')
     },
   }
-
 
   useEffect(() => {
     const timerId = window.setTimeout(() => inputRef.current?.focus(), 50)
@@ -245,7 +245,9 @@ const DevConsolePanel = observer(function DevConsolePanel() {
               <div key={resource.id} className="dev-admin__card">
                 <div className="dev-admin__card-head">
                   <span>{RESOURCE_ICONS[resource.id]}</span>
-                  <span className="dev-admin__card-label">{resource.label}</span>
+                  <span className="dev-admin__card-label">
+                    {resource.label}
+                  </span>
                   <span className="dev-admin__card-value">
                     {devConsoleResources[resource.textKey]}
                   </span>

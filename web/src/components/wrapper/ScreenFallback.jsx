@@ -171,7 +171,10 @@ export const ScreenFallback = ({
                   key={step.id}
                   className={`boot-loading-step boot-loading-step--${step.state}`.trim()}
                 >
-                  <div className="boot-loading-step__marker" aria-hidden="true" />
+                  <div
+                    className="boot-loading-step__marker"
+                    aria-hidden="true"
+                  />
                   <div className="boot-loading-step__body">
                     <div className="boot-loading-step__head">
                       <strong>{step.label}</strong>

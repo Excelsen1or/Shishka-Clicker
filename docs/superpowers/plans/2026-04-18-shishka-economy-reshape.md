@@ -13,6 +13,7 @@
 ## File Structure
 
 **Create:**
+
 - `web/src/test/setup.js` — shared Vitest + DOM setup.
 - `web/src/game/economyConfig.js` — buildings, upgrades, market goods, events, media campaigns, starting state.
 - `web/src/game/economyMath.js` — cost scaling, production, quota chaining, market trades, tar lump timers, event helpers.
@@ -35,6 +36,7 @@
 - `web/src/components/ui/__tests__/EntityPlaceholderIcon.test.jsx` — placeholder rendering contract tests.
 
 **Modify:**
+
 - `web/package.json`
 - `web/vite.config.js`
 - `web/src/game/config.js`
@@ -60,6 +62,7 @@
 ## Task 1: Install Vitest And Lock First Economy Contracts
 
 **Files:**
+
 - Create: `web/src/test/setup.js`
 - Create: `web/src/game/economyMath.js`
 - Create: `web/src/game/__tests__/economyMath.test.js`
@@ -230,6 +233,7 @@ git commit -m "test: add economy vitest harness"
 ## Task 2: Replace Config And Meta Math With The New Economy Schema
 
 **Files:**
+
 - Create: `web/src/game/economyConfig.js`
 - Modify: `web/src/game/economyMath.js`
 - Modify: `web/src/game/config.js`
@@ -284,11 +288,14 @@ describe('economy math', () => {
   })
 
   it('accrues tar lumps on real-time cadence', () => {
-    const result = accrueTarLumps({
-      ...STARTING_STATE,
-      tarLumps: 0,
-      tarLumpProgressMs: 7_200_000,
-    }, 7_200_000)
+    const result = accrueTarLumps(
+      {
+        ...STARTING_STATE,
+        tarLumps: 0,
+        tarLumpProgressMs: 7_200_000,
+      },
+      7_200_000,
+    )
 
     expect(result.tarLumps).toBe(1)
     expect(result.tarLumpProgressMs).toBe(0)
@@ -339,32 +346,90 @@ export const TAR_LUMP_RULES = {
 }
 
 export const BUILDINGS = [
-  { id: 'garagePicker', title: 'Сборщик шишек у гаражей', baseCost: 15, baseOutput: 0.1 },
+  {
+    id: 'garagePicker',
+    title: 'Сборщик шишек у гаражей',
+    baseCost: 15,
+    baseOutput: 0.1,
+  },
   { id: 'pickupPoint', title: 'ПВЗ на окраине', baseCost: 100, baseOutput: 1 },
-  { id: 'greySorting', title: 'Серая сортировка', baseCost: 1_100, baseOutput: 8 },
-  { id: 'selfEmployedCrew', title: 'Бригада самозанятых', baseCost: 12_000, baseOutput: 47 },
-  { id: 'resaleStall', title: 'Ларёк перепродажи', baseCost: 130_000, baseOutput: 260 }
+  {
+    id: 'greySorting',
+    title: 'Серая сортировка',
+    baseCost: 1_100,
+    baseOutput: 8,
+  },
+  {
+    id: 'selfEmployedCrew',
+    title: 'Бригада самозанятых',
+    baseCost: 12_000,
+    baseOutput: 47,
+  },
+  {
+    id: 'resaleStall',
+    title: 'Ларёк перепродажи',
+    baseCost: 130_000,
+    baseOutput: 260,
+  },
 ]
 
 export const RUN_UPGRADES = [
-  { id: 'warehouseRhythm', title: 'Складской ритм', kind: 'globalMultiplier', cost: 250, value: 0.2 },
-  { id: 'cashbackBug', title: 'Ошибочный кэшбэк', kind: 'clickMultiplier', cost: 600, value: 1 }
+  {
+    id: 'warehouseRhythm',
+    title: 'Складской ритм',
+    kind: 'globalMultiplier',
+    cost: 250,
+    value: 0.2,
+  },
+  {
+    id: 'cashbackBug',
+    title: 'Ошибочный кэшбэк',
+    kind: 'clickMultiplier',
+    cost: 600,
+    value: 1,
+  },
 ]
 
 export const PRESTIGE_UPGRADES = [
   { id: 'heavenlyTar', title: 'Небесная смола', baseCost: 1, value: 0.15 },
-  { id: 'taxBlindness', title: 'Налоговая слепота', baseCost: 2, value: 0.01 }
+  { id: 'taxBlindness', title: 'Налоговая слепота', baseCost: 2, value: 0.01 },
 ]
 
 export const MARKET_GOODS = [
-  { id: 'pickupPointLeftovers', title: 'Остатки с ПВЗ', basePrice: 40, profile: 'stable' },
-  { id: 'parallelImport', title: 'Параллельный завоз', basePrice: 100, profile: 'volatile' },
-  { id: 'neuroCover', title: 'Нейро-обложки', basePrice: 75, profile: 'hype' }
+  {
+    id: 'pickupPointLeftovers',
+    title: 'Остатки с ПВЗ',
+    basePrice: 40,
+    profile: 'stable',
+  },
+  {
+    id: 'parallelImport',
+    title: 'Параллельный завоз',
+    basePrice: 100,
+    profile: 'volatile',
+  },
+  { id: 'neuroCover', title: 'Нейро-обложки', basePrice: 75, profile: 'hype' },
 ]
 
 export const RAP_CAMPAIGNS = [
-  { id: 'iceFlexer', title: 'Ледяной флексер', cost: 8_000, durationMs: 90_000, productionBoost: 0, clickBoost: 2, eventBoost: 0.1 },
-  { id: 'sundayProphet', title: 'Воскресный пророк', cost: 15_000, durationMs: 180_000, productionBoost: 0.35, clickBoost: 0, eventBoost: 0.15 }
+  {
+    id: 'iceFlexer',
+    title: 'Ледяной флексер',
+    cost: 8_000,
+    durationMs: 90_000,
+    productionBoost: 0,
+    clickBoost: 2,
+    eventBoost: 0.1,
+  },
+  {
+    id: 'sundayProphet',
+    title: 'Воскресный пророк',
+    cost: 15_000,
+    durationMs: 180_000,
+    productionBoost: 0.35,
+    clickBoost: 0,
+    eventBoost: 0.15,
+  },
 ]
 
 export const STARTING_STATE = {
@@ -382,13 +447,19 @@ export const STARTING_STATE = {
   buildings: Object.fromEntries(BUILDINGS.map((item) => [item.id, 0])),
   buildingLevels: Object.fromEntries(BUILDINGS.map((item) => [item.id, 0])),
   upgrades: Object.fromEntries(RUN_UPGRADES.map((item) => [item.id, 0])),
-  prestigeUpgrades: Object.fromEntries(PRESTIGE_UPGRADES.map((item) => [item.id, 0])),
+  prestigeUpgrades: Object.fromEntries(
+    PRESTIGE_UPGRADES.map((item) => [item.id, 0]),
+  ),
   market: {
     unlocked: false,
     brokerLevel: 0,
-    prices: Object.fromEntries(MARKET_GOODS.map((item) => [item.id, item.basePrice])),
+    prices: Object.fromEntries(
+      MARKET_GOODS.map((item) => [item.id, item.basePrice]),
+    ),
     positions: Object.fromEntries(MARKET_GOODS.map((item) => [item.id, 0])),
-    averageBuyPrice: Object.fromEntries(MARKET_GOODS.map((item) => [item.id, 0])),
+    averageBuyPrice: Object.fromEntries(
+      MARKET_GOODS.map((item) => [item.id, 0]),
+    ),
   },
   activeEvent: null,
   activeCampaign: null,
@@ -423,11 +494,15 @@ export function deriveProduction(state) {
   const campaignBoost = state.activeCampaign?.productionBoost ?? 0
   const globalMultiplier =
     1 +
-    (state.upgrades.warehouseRhythm ?? 0) * (RUN_UPGRADES.find((item) => item.id === 'warehouseRhythm')?.value ?? 0) +
+    (state.upgrades.warehouseRhythm ?? 0) *
+      (RUN_UPGRADES.find((item) => item.id === 'warehouseRhythm')?.value ?? 0) +
     (state.prestigeUpgrades.heavenlyTar ?? 0) * 0.15 +
     campaignBoost
 
-  const clickPower = 1 + (state.upgrades.cashbackBug ?? 0) + (state.activeCampaign?.clickBoost ?? 0)
+  const clickPower =
+    1 +
+    (state.upgrades.cashbackBug ?? 0) +
+    (state.activeCampaign?.clickBoost ?? 0)
 
   return {
     clickPower,
@@ -540,8 +615,16 @@ export function getPrestigeUpgradeCost(item, level) {
 
 export function getQuotaPreview(state) {
   return {
-    current: getQuotaTarget(QUOTA_RULES.baseQuota, QUOTA_RULES.quotaGrowth, state.quotaIndex),
-    next: getQuotaTarget(QUOTA_RULES.baseQuota, QUOTA_RULES.quotaGrowth, state.quotaIndex + 1),
+    current: getQuotaTarget(
+      QUOTA_RULES.baseQuota,
+      QUOTA_RULES.quotaGrowth,
+      state.quotaIndex,
+    ),
+    next: getQuotaTarget(
+      QUOTA_RULES.baseQuota,
+      QUOTA_RULES.quotaGrowth,
+      state.quotaIndex + 1,
+    ),
   }
 }
 
@@ -573,6 +656,7 @@ git commit -m "feat: add shishki-only economy schema"
 ## Task 3: Break Legacy Saves And Update Leaderboard Parsing
 
 **Files:**
+
 - Create: `web/src/lib/__tests__/saveTransfer.test.js`
 - Modify: `web/src/lib/saveTransfer.js`
 - Modify: `web/src/lib/storage.js`
@@ -647,23 +731,23 @@ export const SAVE_FILE_EXTENSION = '.shishka-save.json'
 function hasNewGameStateShape(value) {
   return Boolean(
     value &&
-      typeof value === 'object' &&
-      !Array.isArray(value) &&
-      'shishki' in value &&
-      'heavenlyShishki' in value &&
-      'tarLumps' in value &&
-      'buildings' in value &&
-      'market' in value &&
-      'prestigeUpgrades' in value,
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    'shishki' in value &&
+    'heavenlyShishki' in value &&
+    'tarLumps' in value &&
+    'buildings' in value &&
+    'market' in value &&
+    'prestigeUpgrades' in value,
   )
 }
 
 function isLegacyGameStateShape(value) {
   return Boolean(
     value &&
-      typeof value === 'object' &&
-      !Array.isArray(value) &&
-      ('money' in value || 'knowledge' in value || 'subscriptions' in value),
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    ('money' in value || 'knowledge' in value || 'subscriptions' in value),
   )
 }
 
@@ -774,6 +858,7 @@ git commit -m "feat: break legacy saves for new economy"
 ## Task 4: Split GameStore And Rebuild The New Run Loop
 
 **Files:**
+
 - Create: `web/src/stores/gameStoreState.js`
 - Create: `web/src/stores/gameStoreSnapshots.js`
 - Create: `web/src/stores/__tests__/GameStore.test.js`
@@ -965,10 +1050,7 @@ Replace `web/src/stores/GameStore.js` core shape with:
 ```js
 import { startTransition } from 'react'
 import { computed, makeAutoObservable, runInAction } from 'mobx'
-import {
-  STARTING_STATE,
-  BUILDINGS,
-} from '../game/config.js'
+import { STARTING_STATE, BUILDINGS } from '../game/config.js'
 import {
   accrueTarLumps,
   applyMarketTrade,
@@ -977,10 +1059,7 @@ import {
   getCampaignById,
   resolveQuotaClosures,
 } from '../game/economyMath.js'
-import {
-  createFreshState,
-  mergeState,
-} from './gameStoreState.js'
+import { createFreshState, mergeState } from './gameStoreState.js'
 import {
   buildEconomySnapshot,
   buildMetaSnapshot,
@@ -995,14 +1074,18 @@ export default class GameStore {
     this.lastTickAt = 0
     this.clientRevision = 0
 
-    makeAutoObservable(this, {
-      rootStore: false,
-      initialized: false,
-      lastTickAt: false,
-      clientRevision: false,
-      economy: computed.struct,
-      meta: computed.struct,
-    }, { autoBind: true })
+    makeAutoObservable(
+      this,
+      {
+        rootStore: false,
+        initialized: false,
+        lastTickAt: false,
+        clientRevision: false,
+        economy: computed.struct,
+        meta: computed.struct,
+      },
+      { autoBind: true },
+    )
 
     if (options.autoStart !== false) {
       this.start()
@@ -1176,6 +1259,7 @@ git commit -m "feat: rebuild game store for shishki economy"
 ## Task 5: Add The Market Tab And Render Tradable Goods
 
 **Files:**
+
 - Create: `web/src/components/market/MarketScreen.jsx`
 - Create: `web/src/components/market/MarketTicker.jsx`
 - Create: `web/src/components/market/MarketPortfolio.jsx`
@@ -1198,10 +1282,20 @@ const store = {
   gameStore: {
     economy: {
       marketGoods: [
-        { id: 'parallelImport', title: 'Параллельный завоз', price: 110, owned: 3 },
+        {
+          id: 'parallelImport',
+          title: 'Параллельный завоз',
+          price: 110,
+          owned: 3,
+        },
       ],
       campaigns: [
-        { id: 'iceFlexer', title: 'Ледяной флексер', active: false, cost: 8000 },
+        {
+          id: 'iceFlexer',
+          title: 'Ледяной флексер',
+          active: false,
+          cost: 8000,
+        },
       ],
     },
     state: { shishki: 5000, activeCampaign: null },
@@ -1263,7 +1357,11 @@ export function MarketPortfolio({ goods, onSell }) {
         {goods.map((good) => (
           <li key={good.id}>
             {good.title} · {good.owned} шт.
-            <button type="button" onClick={() => onSell(good.id, 1)} disabled={good.owned <= 0}>
+            <button
+              type="button"
+              onClick={() => onSell(good.id, 1)}
+              disabled={good.owned <= 0}
+            >
               Продать 1
             </button>
           </li>
@@ -1290,7 +1388,11 @@ export function MarketTradePanel({ goods, campaigns, onBuy, onCampaign }) {
       </div>
       <div className="market-campaign-grid">
         {campaigns.map((campaign) => (
-          <button key={campaign.id} type="button" onClick={() => onCampaign(campaign.id)}>
+          <button
+            key={campaign.id}
+            type="button"
+            onClick={() => onCampaign(campaign.id)}
+          >
             {campaign.title}
           </button>
         ))}
@@ -1310,7 +1412,8 @@ import { MarketPortfolio } from './MarketPortfolio.jsx'
 import { MarketTradePanel } from './MarketTradePanel.jsx'
 
 export const MarketScreen = observer(function MarketScreen() {
-  const { economy, buyMarketGood, sellMarketGood, activateCampaign } = useGameStore()
+  const { economy, buyMarketGood, sellMarketGood, activateCampaign } =
+    useGameStore()
 
   return (
     <section className="screen market-screen">
@@ -1341,12 +1444,42 @@ Update `web/src/context/NavContext.jsx`:
 import { Coin, Community, Scroll, Settings, Trophy } from '../lib/pxlkit'
 
 export const TABS = [
-  { id: 'clicker', icon: <ConeIcon />, label: 'Кликер', description: 'Кликай шишку и лови события' },
-  { id: 'subscriptions', icon: <PixelNavIcon icon={Community} label="Здания" />, label: 'Здания', description: 'Покупай шишечное производство' },
-  { id: 'upgrades', icon: <PixelNavIcon icon={Scroll} label="Улучшения" />, label: 'Улучшения', description: 'Усиливай клик, рынок и события' },
-  { id: 'market', icon: <PixelNavIcon icon={Coin} label="Рынок" />, label: 'Рынок', description: 'Торгуй серым дефицитом и шумом' },
-  { id: 'meta', icon: <PixelNavIcon icon={Trophy} label="Мета" />, label: 'Мета', description: 'Небесные шишки и комочки' },
-  { id: 'settings', icon: <PixelNavIcon icon={Settings} label="Настройки" />, label: 'Настройки', description: 'Звук и сохранения' },
+  {
+    id: 'clicker',
+    icon: <ConeIcon />,
+    label: 'Кликер',
+    description: 'Кликай шишку и лови события',
+  },
+  {
+    id: 'subscriptions',
+    icon: <PixelNavIcon icon={Community} label="Здания" />,
+    label: 'Здания',
+    description: 'Покупай шишечное производство',
+  },
+  {
+    id: 'upgrades',
+    icon: <PixelNavIcon icon={Scroll} label="Улучшения" />,
+    label: 'Улучшения',
+    description: 'Усиливай клик, рынок и события',
+  },
+  {
+    id: 'market',
+    icon: <PixelNavIcon icon={Coin} label="Рынок" />,
+    label: 'Рынок',
+    description: 'Торгуй серым дефицитом и шумом',
+  },
+  {
+    id: 'meta',
+    icon: <PixelNavIcon icon={Trophy} label="Мета" />,
+    label: 'Мета',
+    description: 'Небесные шишки и комочки',
+  },
+  {
+    id: 'settings',
+    icon: <PixelNavIcon icon={Settings} label="Настройки" />,
+    label: 'Настройки',
+    description: 'Звук и сохранения',
+  },
 ]
 ```
 
@@ -1389,6 +1522,7 @@ git commit -m "feat: add market tab and trading screen"
 ## Task 6: Rewrite Shop, Meta, Clicker, Dev Console, And Presence Around The New Economy
 
 **Files:**
+
 - Create: `web/src/components/ui/devConsoleCommands.js`
 - Create: `web/src/components/ui/__tests__/devConsoleCommands.test.js`
 - Modify: `web/src/components/shop/ShopScreen.jsx`
@@ -1451,7 +1585,9 @@ export function parseDevCommand(input) {
     return { type: 'status' }
   }
 
-  const patchMatch = cmd.match(/^(give|set)\s+(shishki|heavenly|lumps)\s+([0-9eE+.]+)$/)
+  const patchMatch = cmd.match(
+    /^(give|set)\s+(shishki|heavenly|lumps)\s+([0-9eE+.]+)$/,
+  )
   if (!patchMatch) {
     return { type: 'invalid' }
   }
@@ -1477,8 +1613,25 @@ import { parseDevCommand } from './devConsoleCommands.js'
 
 const RESOURCES = [
   { key: 'shishki', label: 'Шишки', icon: <ConeIcon /> },
-  { key: 'heavenlyShishki', label: 'Небесные шишки', icon: <PxlKitIcon icon={Gem} size={16} colorful className="pixel-inline-icon" /> },
-  { key: 'tarLumps', label: 'Смоляные комочки', icon: <PxlKitIcon icon={Scroll} size={16} colorful className="pixel-inline-icon" /> },
+  {
+    key: 'heavenlyShishki',
+    label: 'Небесные шишки',
+    icon: (
+      <PxlKitIcon icon={Gem} size={16} colorful className="pixel-inline-icon" />
+    ),
+  },
+  {
+    key: 'tarLumps',
+    label: 'Смоляные комочки',
+    icon: (
+      <PxlKitIcon
+        icon={Scroll}
+        size={16}
+        colorful
+        className="pixel-inline-icon"
+      />
+    ),
+  },
 ]
 
 const parsed = parseDevCommand(cmd)
@@ -1506,10 +1659,30 @@ const SCREEN_META = {
     accent: 'orange',
     emptyText: 'Здания прогружаются...',
     categories: [
-      { id: 'street', title: 'Улица и старт', desc: 'Гаражи, ПВЗ и ранняя серость.', icon: Community },
-      { id: 'fulfillment', title: 'Склад и логистика', desc: 'Сортировка, самозанятые и фулфилмент.', icon: Package },
-      { id: 'media', title: 'Шум и прогрев', desc: 'Инфошум, нейро-контент и спрос из воздуха.', icon: Scroll },
-      { id: 'late', title: 'Системный абсурд', desc: 'Кредитный конвейер и министерство шишек.', icon: Trophy },
+      {
+        id: 'street',
+        title: 'Улица и старт',
+        desc: 'Гаражи, ПВЗ и ранняя серость.',
+        icon: Community,
+      },
+      {
+        id: 'fulfillment',
+        title: 'Склад и логистика',
+        desc: 'Сортировка, самозанятые и фулфилмент.',
+        icon: Package,
+      },
+      {
+        id: 'media',
+        title: 'Шум и прогрев',
+        desc: 'Инфошум, нейро-контент и спрос из воздуха.',
+        icon: Scroll,
+      },
+      {
+        id: 'late',
+        title: 'Системный абсурд',
+        desc: 'Кредитный конвейер и министерство шишек.',
+        icon: Trophy,
+      },
     ],
   },
   upgrades: {
@@ -1519,10 +1692,30 @@ const SCREEN_META = {
     accent: 'orange',
     emptyText: 'Улучшения прогружаются...',
     categories: [
-      { id: 'click', title: 'Клик и суета', desc: 'Ручной темп и короткие окна силы.', icon: Target },
-      { id: 'industry', title: 'Складская машина', desc: 'Мультипликаторы зданий и конвейера.', icon: Package },
-      { id: 'market', title: 'Биржа и серость', desc: 'Комиссии, брокеры и спекуляция.', icon: Coin },
-      { id: 'hype', title: 'Прогрев', desc: 'Рэп-амбассадоры, хайп и рекомендательные всплески.', icon: SocialStar },
+      {
+        id: 'click',
+        title: 'Клик и суета',
+        desc: 'Ручной темп и короткие окна силы.',
+        icon: Target,
+      },
+      {
+        id: 'industry',
+        title: 'Складская машина',
+        desc: 'Мультипликаторы зданий и конвейера.',
+        icon: Package,
+      },
+      {
+        id: 'market',
+        title: 'Биржа и серость',
+        desc: 'Комиссии, брокеры и спекуляция.',
+        icon: Coin,
+      },
+      {
+        id: 'hype',
+        title: 'Прогрев',
+        desc: 'Рэп-амбассадоры, хайп и рекомендательные всплески.',
+        icon: SocialStar,
+      },
     ],
   },
 }
@@ -1532,9 +1725,24 @@ Rewrite `web/src/components/meta/MetaScreen.jsx` copy and stats shape:
 
 ```jsx
 const prestigeStats = [
-  { iconKey: 'rebirth', label: 'Ребёрсов', value: formatNumber(uiState.rebirths), hint: 'сделано циклов' },
-  { iconKey: 'shards', label: 'Небесные', value: formatNumber(uiState.heavenlyShishki), hint: 'на руках сейчас' },
-  { icon: pxl(Scroll, 'комочки', 18), label: 'Комочки', value: formatNumber(uiState.tarLumps), hint: 'редкий мета-ресурс' },
+  {
+    iconKey: 'rebirth',
+    label: 'Ребёрсов',
+    value: formatNumber(uiState.rebirths),
+    hint: 'сделано циклов',
+  },
+  {
+    iconKey: 'shards',
+    label: 'Небесные',
+    value: formatNumber(uiState.heavenlyShishki),
+    hint: 'на руках сейчас',
+  },
+  {
+    icon: pxl(Scroll, 'комочки', 18),
+    label: 'Комочки',
+    value: formatNumber(uiState.tarLumps),
+    hint: 'редкий мета-ресурс',
+  },
 ]
 ```
 
@@ -1542,10 +1750,30 @@ Rewrite `web/src/components/clicker/ProgressOverview.jsx` around the new metrics
 
 ```jsx
 const cards = [
-  { iconKey: 'cone', label: 'Шишки/сек', value: formatNumber(uiState.shishkiPerSecond), hint: 'производство прямо сейчас' },
-  { iconKey: 'rebirth', label: 'Квота', value: `${formatNumber(uiPrestige.currentRunShishki)} / ${formatNumber(uiPrestige.currentQuotaTarget)}`, hint: 'небесные шишки за жизнь' },
-  { iconKey: 'shards', label: 'Небесные', value: formatNumber(uiState.heavenlyShishki), hint: 'собрано без ребёрса' },
-  { iconKey: 'knowledge', label: 'Комочки', value: formatNumber(uiState.tarLumps), hint: 'улучшают здания навсегда' },
+  {
+    iconKey: 'cone',
+    label: 'Шишки/сек',
+    value: formatNumber(uiState.shishkiPerSecond),
+    hint: 'производство прямо сейчас',
+  },
+  {
+    iconKey: 'rebirth',
+    label: 'Квота',
+    value: `${formatNumber(uiPrestige.currentRunShishki)} / ${formatNumber(uiPrestige.currentQuotaTarget)}`,
+    hint: 'небесные шишки за жизнь',
+  },
+  {
+    iconKey: 'shards',
+    label: 'Небесные',
+    value: formatNumber(uiState.heavenlyShishki),
+    hint: 'собрано без ребёрса',
+  },
+  {
+    iconKey: 'knowledge',
+    label: 'Комочки',
+    value: formatNumber(uiState.tarLumps),
+    hint: 'улучшают здания навсегда',
+  },
 ]
 ```
 
@@ -1599,12 +1827,30 @@ function buildPresenceState(activeTab, gameState, economy) {
   const shishkiPerSecond = Number(economy?.shishkiPerSecond ?? 0)
 
   const partsByTab = {
-    clicker: [`Шишки/с: ${formatNumber(shishkiPerSecond)}`, `Квот: ${formatNumber(gameState?.quotaIndex ?? 0)}`],
-    subscriptions: [`Зданий: ${formatNumber(buildingLevels)}`, `Шишки/с: ${formatNumber(shishkiPerSecond)}`],
-    upgrades: [`Апгрейдов: ${formatNumber(sumLevels(gameState?.upgrades))}`, `Комочки: ${formatNumber(tarLumps)}`],
-    market: [`Портфель: ${formatNumber(sumLevels(gameState?.market?.positions))}`, `Небесные: ${formatNumber(heavenlyShishki)}`],
-    meta: [`Небесные: ${formatNumber(heavenlyShishki)}`, `Комочки: ${formatNumber(tarLumps)}`],
-    settings: [`Ачивок: ${formatNumber(countUnlockedAchievements(gameState?.achievements))}`, `v${APP_VERSION}`],
+    clicker: [
+      `Шишки/с: ${formatNumber(shishkiPerSecond)}`,
+      `Квот: ${formatNumber(gameState?.quotaIndex ?? 0)}`,
+    ],
+    subscriptions: [
+      `Зданий: ${formatNumber(buildingLevels)}`,
+      `Шишки/с: ${formatNumber(shishkiPerSecond)}`,
+    ],
+    upgrades: [
+      `Апгрейдов: ${formatNumber(sumLevels(gameState?.upgrades))}`,
+      `Комочки: ${formatNumber(tarLumps)}`,
+    ],
+    market: [
+      `Портфель: ${formatNumber(sumLevels(gameState?.market?.positions))}`,
+      `Небесные: ${formatNumber(heavenlyShishki)}`,
+    ],
+    meta: [
+      `Небесные: ${formatNumber(heavenlyShishki)}`,
+      `Комочки: ${formatNumber(tarLumps)}`,
+    ],
+    settings: [
+      `Ачивок: ${formatNumber(countUnlockedAchievements(gameState?.achievements))}`,
+      `v${APP_VERSION}`,
+    ],
   }
 
   return (partsByTab[activeTab] ?? partsByTab.clicker).join(' • ')
@@ -1638,6 +1884,7 @@ git commit -m "feat: rewrite ui for the new shishki economy"
 ## Task 7: Expand Economy Content To Spec Scale
 
 **Files:**
+
 - Modify: `web/src/game/economyConfig.js`
 - Modify: `web/src/game/economyMath.js`
 - Modify: `web/src/game/metaConfig.js`
@@ -1672,70 +1919,380 @@ Expand `web/src/game/economyConfig.js`:
 
 ```js
 export const BUILDINGS = [
-  { id: 'garagePicker', title: 'Сборщик шишек у гаражей', baseCost: 15, baseOutput: 0.1, fieldCode: 'GR' },
-  { id: 'pickupPoint', title: 'ПВЗ на окраине', baseCost: 100, baseOutput: 1, fieldCode: 'PV' },
-  { id: 'greySorting', title: 'Серая сортировка', baseCost: 1_100, baseOutput: 8, fieldCode: 'GS' },
-  { id: 'selfEmployedCrew', title: 'Бригада самозанятых', baseCost: 12_000, baseOutput: 47, fieldCode: 'SE' },
-  { id: 'resaleStall', title: 'Ларёк перепродажи', baseCost: 130_000, baseOutput: 260, fieldCode: 'RS' },
-  { id: 'tarBoiler', title: 'Смоляной цех', baseCost: 1_400_000, baseOutput: 1_400, fieldCode: 'TB' },
-  { id: 'shadowFulfillment', title: 'Подпольный фулфилмент', baseCost: 20_000_000, baseOutput: 7_800, fieldCode: 'SF' },
-  { id: 'cardFactory', title: 'Фабрика карточек товара', baseCost: 330_000_000, baseOutput: 44_000, fieldCode: 'CF' },
-  { id: 'noiseAgency', title: 'Агентство инфошума', baseCost: 5_100_000_000, baseOutput: 210_000, fieldCode: 'NA' },
-  { id: 'creditConveyor', title: 'Кредитный конвейер', baseCost: 78_000_000_000, baseOutput: 1_100_000, fieldCode: 'CC' },
-  { id: 'lastMileFleet', title: 'Автопарк последней мили', baseCost: 1_100_000_000_000, baseOutput: 5_400_000, fieldCode: 'LM' },
-  { id: 'optimizationTemple', title: 'Храм оптимизации', baseCost: 16_000_000_000_000, baseOutput: 28_000_000, fieldCode: 'OT' },
-  { id: 'neuroFarm', title: 'Нейро-ферма контента', baseCost: 240_000_000_000_000, baseOutput: 130_000_000, fieldCode: 'NF' },
-  { id: 'greyImportExchange', title: 'Биржа серого импорта', baseCost: 3_600_000_000_000_000, baseOutput: 710_000_000, fieldCode: 'GI' },
-  { id: 'shishkaLogisticsMinistry', title: 'Министерство шишечной логистики', baseCost: 52_000_000_000_000_000, baseOutput: 4_000_000_000, fieldCode: 'ML' },
+  {
+    id: 'garagePicker',
+    title: 'Сборщик шишек у гаражей',
+    baseCost: 15,
+    baseOutput: 0.1,
+    fieldCode: 'GR',
+  },
+  {
+    id: 'pickupPoint',
+    title: 'ПВЗ на окраине',
+    baseCost: 100,
+    baseOutput: 1,
+    fieldCode: 'PV',
+  },
+  {
+    id: 'greySorting',
+    title: 'Серая сортировка',
+    baseCost: 1_100,
+    baseOutput: 8,
+    fieldCode: 'GS',
+  },
+  {
+    id: 'selfEmployedCrew',
+    title: 'Бригада самозанятых',
+    baseCost: 12_000,
+    baseOutput: 47,
+    fieldCode: 'SE',
+  },
+  {
+    id: 'resaleStall',
+    title: 'Ларёк перепродажи',
+    baseCost: 130_000,
+    baseOutput: 260,
+    fieldCode: 'RS',
+  },
+  {
+    id: 'tarBoiler',
+    title: 'Смоляной цех',
+    baseCost: 1_400_000,
+    baseOutput: 1_400,
+    fieldCode: 'TB',
+  },
+  {
+    id: 'shadowFulfillment',
+    title: 'Подпольный фулфилмент',
+    baseCost: 20_000_000,
+    baseOutput: 7_800,
+    fieldCode: 'SF',
+  },
+  {
+    id: 'cardFactory',
+    title: 'Фабрика карточек товара',
+    baseCost: 330_000_000,
+    baseOutput: 44_000,
+    fieldCode: 'CF',
+  },
+  {
+    id: 'noiseAgency',
+    title: 'Агентство инфошума',
+    baseCost: 5_100_000_000,
+    baseOutput: 210_000,
+    fieldCode: 'NA',
+  },
+  {
+    id: 'creditConveyor',
+    title: 'Кредитный конвейер',
+    baseCost: 78_000_000_000,
+    baseOutput: 1_100_000,
+    fieldCode: 'CC',
+  },
+  {
+    id: 'lastMileFleet',
+    title: 'Автопарк последней мили',
+    baseCost: 1_100_000_000_000,
+    baseOutput: 5_400_000,
+    fieldCode: 'LM',
+  },
+  {
+    id: 'optimizationTemple',
+    title: 'Храм оптимизации',
+    baseCost: 16_000_000_000_000,
+    baseOutput: 28_000_000,
+    fieldCode: 'OT',
+  },
+  {
+    id: 'neuroFarm',
+    title: 'Нейро-ферма контента',
+    baseCost: 240_000_000_000_000,
+    baseOutput: 130_000_000,
+    fieldCode: 'NF',
+  },
+  {
+    id: 'greyImportExchange',
+    title: 'Биржа серого импорта',
+    baseCost: 3_600_000_000_000_000,
+    baseOutput: 710_000_000,
+    fieldCode: 'GI',
+  },
+  {
+    id: 'shishkaLogisticsMinistry',
+    title: 'Министерство шишечной логистики',
+    baseCost: 52_000_000_000_000_000,
+    baseOutput: 4_000_000_000,
+    fieldCode: 'ML',
+  },
 ]
 
 export const RUN_UPGRADES = [
-  { id: 'warehouseRhythm', title: 'Складской ритм', kind: 'globalMultiplier', cost: 250, value: 0.2, fieldCode: 'WR' },
-  { id: 'cashbackBug', title: 'Ошибочный кэшбэк', kind: 'clickMultiplier', cost: 600, value: 1, fieldCode: 'CB' },
-  { id: 'boxPanic', title: 'Паника коробок', kind: 'buildingMultiplier', target: 'greySorting', cost: 4_000, value: 0.35, fieldCode: 'BP' },
-  { id: 'pickupRush', title: 'Пятничный разбор ПВЗ', kind: 'buildingMultiplier', target: 'pickupPoint', cost: 9_000, value: 0.45, fieldCode: 'PR' },
-  { id: 'feedHijack', title: 'Захват ленты', kind: 'eventBoost', cost: 60_000, value: 0.15, fieldCode: 'FH' },
-  { id: 'greyMargin', title: 'Серая маржа', kind: 'marketDiscount', cost: 140_000, value: 0.02, fieldCode: 'GM' },
-  { id: 'conveyorMadness', title: 'Конвейер без тормозов', kind: 'lateMultiplier', cost: 1_800_000, value: 0.25, fieldCode: 'CM' },
-  { id: 'viralDust', title: 'Пыль рекомендации', kind: 'campaignBoost', cost: 6_500_000, value: 0.2, fieldCode: 'VD' },
+  {
+    id: 'warehouseRhythm',
+    title: 'Складской ритм',
+    kind: 'globalMultiplier',
+    cost: 250,
+    value: 0.2,
+    fieldCode: 'WR',
+  },
+  {
+    id: 'cashbackBug',
+    title: 'Ошибочный кэшбэк',
+    kind: 'clickMultiplier',
+    cost: 600,
+    value: 1,
+    fieldCode: 'CB',
+  },
+  {
+    id: 'boxPanic',
+    title: 'Паника коробок',
+    kind: 'buildingMultiplier',
+    target: 'greySorting',
+    cost: 4_000,
+    value: 0.35,
+    fieldCode: 'BP',
+  },
+  {
+    id: 'pickupRush',
+    title: 'Пятничный разбор ПВЗ',
+    kind: 'buildingMultiplier',
+    target: 'pickupPoint',
+    cost: 9_000,
+    value: 0.45,
+    fieldCode: 'PR',
+  },
+  {
+    id: 'feedHijack',
+    title: 'Захват ленты',
+    kind: 'eventBoost',
+    cost: 60_000,
+    value: 0.15,
+    fieldCode: 'FH',
+  },
+  {
+    id: 'greyMargin',
+    title: 'Серая маржа',
+    kind: 'marketDiscount',
+    cost: 140_000,
+    value: 0.02,
+    fieldCode: 'GM',
+  },
+  {
+    id: 'conveyorMadness',
+    title: 'Конвейер без тормозов',
+    kind: 'lateMultiplier',
+    cost: 1_800_000,
+    value: 0.25,
+    fieldCode: 'CM',
+  },
+  {
+    id: 'viralDust',
+    title: 'Пыль рекомендации',
+    kind: 'campaignBoost',
+    cost: 6_500_000,
+    value: 0.2,
+    fieldCode: 'VD',
+  },
 ]
 
 export const PRESTIGE_UPGRADES = [
-  { id: 'heavenlyTar', title: 'Небесная смола', baseCost: 1, value: 0.15, fieldCode: 'HT' },
-  { id: 'taxBlindness', title: 'Налоговая слепота', baseCost: 2, value: 0.01, fieldCode: 'TB' },
-  { id: 'warehouseCult', title: 'Культ складского чуда', baseCost: 4, value: 0.2, fieldCode: 'WC' },
-  { id: 'greyAccreditation', title: 'Серая аккредитация', baseCost: 6, value: 1, fieldCode: 'GA' },
-  { id: 'hyperLogistics', title: 'Гиперлогистика', baseCost: 10, value: 0.2, fieldCode: 'HL' },
-  { id: 'archiveDust', title: 'Пыль архивов', baseCost: 16, value: 0.15, fieldCode: 'AD' },
+  {
+    id: 'heavenlyTar',
+    title: 'Небесная смола',
+    baseCost: 1,
+    value: 0.15,
+    fieldCode: 'HT',
+  },
+  {
+    id: 'taxBlindness',
+    title: 'Налоговая слепота',
+    baseCost: 2,
+    value: 0.01,
+    fieldCode: 'TB',
+  },
+  {
+    id: 'warehouseCult',
+    title: 'Культ складского чуда',
+    baseCost: 4,
+    value: 0.2,
+    fieldCode: 'WC',
+  },
+  {
+    id: 'greyAccreditation',
+    title: 'Серая аккредитация',
+    baseCost: 6,
+    value: 1,
+    fieldCode: 'GA',
+  },
+  {
+    id: 'hyperLogistics',
+    title: 'Гиперлогистика',
+    baseCost: 10,
+    value: 0.2,
+    fieldCode: 'HL',
+  },
+  {
+    id: 'archiveDust',
+    title: 'Пыль архивов',
+    baseCost: 16,
+    value: 0.15,
+    fieldCode: 'AD',
+  },
 ]
 
 export const MARKET_GOODS = [
-  { id: 'pickupPointLeftovers', title: 'Остатки с ПВЗ', basePrice: 40, profile: 'stable', fieldCode: 'OP' },
-  { id: 'parallelImport', title: 'Параллельный завоз', basePrice: 100, profile: 'volatile', fieldCode: 'PI' },
-  { id: 'neuroCover', title: 'Нейро-обложки', basePrice: 75, profile: 'hype', fieldCode: 'NC' },
-  { id: 'counterfeitDrop', title: 'Паль', basePrice: 55, profile: 'trash', fieldCode: 'PL' },
-  { id: 'cashbackCoupons', title: 'Кэшбэк-купоны', basePrice: 90, profile: 'manipulated', fieldCode: 'KC' },
-  { id: 'returnCargo', title: 'Возвратный товар', basePrice: 120, profile: 'volatile', fieldCode: 'VT' },
-  { id: 'courierSlots', title: 'Курьерские слоты', basePrice: 160, profile: 'scarcity', fieldCode: 'KS' },
-  { id: 'deficitBoxes', title: 'Дефицитные коробки', basePrice: 210, profile: 'hype', fieldCode: 'DK' },
-  { id: 'marketplaceCourse', title: 'Инфокурс по маркетплейсам', basePrice: 310, profile: 'manipulated', fieldCode: 'IK' },
-  { id: 'greySupplies', title: 'Серые расходники', basePrice: 260, profile: 'stable', fieldCode: 'SR' },
+  {
+    id: 'pickupPointLeftovers',
+    title: 'Остатки с ПВЗ',
+    basePrice: 40,
+    profile: 'stable',
+    fieldCode: 'OP',
+  },
+  {
+    id: 'parallelImport',
+    title: 'Параллельный завоз',
+    basePrice: 100,
+    profile: 'volatile',
+    fieldCode: 'PI',
+  },
+  {
+    id: 'neuroCover',
+    title: 'Нейро-обложки',
+    basePrice: 75,
+    profile: 'hype',
+    fieldCode: 'NC',
+  },
+  {
+    id: 'counterfeitDrop',
+    title: 'Паль',
+    basePrice: 55,
+    profile: 'trash',
+    fieldCode: 'PL',
+  },
+  {
+    id: 'cashbackCoupons',
+    title: 'Кэшбэк-купоны',
+    basePrice: 90,
+    profile: 'manipulated',
+    fieldCode: 'KC',
+  },
+  {
+    id: 'returnCargo',
+    title: 'Возвратный товар',
+    basePrice: 120,
+    profile: 'volatile',
+    fieldCode: 'VT',
+  },
+  {
+    id: 'courierSlots',
+    title: 'Курьерские слоты',
+    basePrice: 160,
+    profile: 'scarcity',
+    fieldCode: 'KS',
+  },
+  {
+    id: 'deficitBoxes',
+    title: 'Дефицитные коробки',
+    basePrice: 210,
+    profile: 'hype',
+    fieldCode: 'DK',
+  },
+  {
+    id: 'marketplaceCourse',
+    title: 'Инфокурс по маркетплейсам',
+    basePrice: 310,
+    profile: 'manipulated',
+    fieldCode: 'IK',
+  },
+  {
+    id: 'greySupplies',
+    title: 'Серые расходники',
+    basePrice: 260,
+    profile: 'stable',
+    fieldCode: 'SR',
+  },
 ]
 
 export const RAP_CAMPAIGNS = [
-  { id: 'iceFlexer', title: 'Ледяной флексер', cost: 8_000, durationMs: 90_000, productionBoost: 0, clickBoost: 2, eventBoost: 0.1, fieldCode: 'IF' },
-  { id: 'sundayProphet', title: 'Воскресный пророк', cost: 15_000, durationMs: 180_000, productionBoost: 0.35, clickBoost: 0, eventBoost: 0.15, fieldCode: 'VP' },
-  { id: 'promoBadBoy', title: 'Плохой парень с промо', cost: 140_000, durationMs: 120_000, productionBoost: 0.15, clickBoost: 1, eventBoost: 0.25, fieldCode: 'PB' },
-  { id: 'districtRomantic', title: 'Мрачный романтик района', cost: 600_000, durationMs: 240_000, productionBoost: 0.5, clickBoost: 0, eventBoost: 0.05, fieldCode: 'DR' },
+  {
+    id: 'iceFlexer',
+    title: 'Ледяной флексер',
+    cost: 8_000,
+    durationMs: 90_000,
+    productionBoost: 0,
+    clickBoost: 2,
+    eventBoost: 0.1,
+    fieldCode: 'IF',
+  },
+  {
+    id: 'sundayProphet',
+    title: 'Воскресный пророк',
+    cost: 15_000,
+    durationMs: 180_000,
+    productionBoost: 0.35,
+    clickBoost: 0,
+    eventBoost: 0.15,
+    fieldCode: 'VP',
+  },
+  {
+    id: 'promoBadBoy',
+    title: 'Плохой парень с промо',
+    cost: 140_000,
+    durationMs: 120_000,
+    productionBoost: 0.15,
+    clickBoost: 1,
+    eventBoost: 0.25,
+    fieldCode: 'PB',
+  },
+  {
+    id: 'districtRomantic',
+    title: 'Мрачный романтик района',
+    cost: 600_000,
+    durationMs: 240_000,
+    productionBoost: 0.5,
+    clickBoost: 0,
+    eventBoost: 0.05,
+    fieldCode: 'DR',
+  },
 ]
 
 export const EVENT_DEFINITIONS = [
-  { id: 'cashbackMist', title: 'Ошибочный кэшбэк', kind: 'instantBurst', fieldCode: 'OK' },
-  { id: 'greyArrival', title: 'Серый завоз', kind: 'marketSpike', fieldCode: 'SZ' },
-  { id: 'bugSale', title: 'Распродажа с багом', kind: 'discount', fieldCode: 'RB' },
-  { id: 'warehouseFlood', title: 'Склад прорвало товаром', kind: 'productionBoost', fieldCode: 'SP' },
-  { id: 'infoWarmup', title: 'Инфоцыганский прогрев', kind: 'clickBoost', fieldCode: 'IP' },
-  { id: 'neuroConversion', title: 'Нейросеть выдала конверсию', kind: 'chain', fieldCode: 'NK' },
+  {
+    id: 'cashbackMist',
+    title: 'Ошибочный кэшбэк',
+    kind: 'instantBurst',
+    fieldCode: 'OK',
+  },
+  {
+    id: 'greyArrival',
+    title: 'Серый завоз',
+    kind: 'marketSpike',
+    fieldCode: 'SZ',
+  },
+  {
+    id: 'bugSale',
+    title: 'Распродажа с багом',
+    kind: 'discount',
+    fieldCode: 'RB',
+  },
+  {
+    id: 'warehouseFlood',
+    title: 'Склад прорвало товаром',
+    kind: 'productionBoost',
+    fieldCode: 'SP',
+  },
+  {
+    id: 'infoWarmup',
+    title: 'Инфоцыганский прогрев',
+    kind: 'clickBoost',
+    fieldCode: 'IP',
+  },
+  {
+    id: 'neuroConversion',
+    title: 'Нейросеть выдала конверсию',
+    kind: 'chain',
+    fieldCode: 'NK',
+  },
 ]
 ```
 
@@ -1757,6 +2314,7 @@ git commit -m "feat: expand shishka economy content"
 ## Task 8: Add Clicker Field Panels And Shared Placeholder Sprites
 
 **Files:**
+
 - Create: `web/src/components/clicker/ProgressFieldPanel.jsx`
 - Create: `web/src/components/clicker/ProgressSprite.jsx`
 - Create: `web/src/components/ui/EntityPlaceholderIcon.jsx`
@@ -1781,8 +2339,22 @@ describe('ProgressFieldPanel', () => {
       <ProgressFieldPanel
         title="Здания"
         items={[
-          { id: 'garagePicker', title: 'Сборщик', code: 'GR', type: 'building', state: 'owned', count: 3 },
-          { id: 'pickupPoint', title: 'ПВЗ', code: 'PV', type: 'building', state: 'locked', count: 0 },
+          {
+            id: 'garagePicker',
+            title: 'Сборщик',
+            code: 'GR',
+            type: 'building',
+            state: 'owned',
+            count: 3,
+          },
+          {
+            id: 'pickupPoint',
+            title: 'ПВЗ',
+            code: 'PV',
+            type: 'building',
+            state: 'locked',
+            count: 0,
+          },
         ]}
       />,
     )
@@ -1816,7 +2388,9 @@ const TYPE_CLASS = {
 export function EntityPlaceholderIcon({ code, label, type, state = 'owned' }) {
   return (
     <span
-      className={['entity-placeholder', TYPE_CLASS[type], `is-${state}`].filter(Boolean).join(' ')}
+      className={['entity-placeholder', TYPE_CLASS[type], `is-${state}`]
+        .filter(Boolean)
+        .join(' ')}
       aria-label={label}
       title={label}
     >
@@ -1840,7 +2414,9 @@ export function ProgressSprite({ item }) {
         type={item.type}
         state={item.state}
       />
-      {item.count > 1 ? <span className="progress-sprite__count">x{item.count}</span> : null}
+      {item.count > 1 ? (
+        <span className="progress-sprite__count">x{item.count}</span>
+      ) : null}
     </div>
   )
 }
@@ -1913,14 +2489,23 @@ export const ClickerScreen = observer(function ClickerScreen() {
   return (
     <section className="screen clicker-screen clicker-screen--field">
       <div className="clicker-field-layout">
-        <ProgressFieldPanel title="Здания" items={clickerFieldData.buildingsFieldItems} />
+        <ProgressFieldPanel
+          title="Здания"
+          items={clickerFieldData.buildingsFieldItems}
+        />
         <div className="clicker-field-layout__center">
           <ClickerButton />
         </div>
-        <ProgressFieldPanel title="Рынок и шум" items={clickerFieldData.marketFieldItems} />
+        <ProgressFieldPanel
+          title="Рынок и шум"
+          items={clickerFieldData.marketFieldItems}
+        />
       </div>
       <div className="clicker-field-layout__bottom">
-        <ProgressFieldPanel title="Мета и усиления" items={clickerFieldData.metaFieldItems} />
+        <ProgressFieldPanel
+          title="Мета и усиления"
+          items={clickerFieldData.metaFieldItems}
+        />
       </div>
       <ProgressOverview />
     </section>
@@ -1946,6 +2531,7 @@ git commit -m "feat: add clicker progress field"
 ## Task 9: Add Placeholder Slots To Economy Cards And Market UI
 
 **Files:**
+
 - Modify: `web/src/components/shop/ShopScreen.jsx`
 - Modify: `web/src/components/market/MarketTicker.jsx`
 - Modify: `web/src/components/market/MarketTradePanel.jsx`
@@ -2007,8 +2593,13 @@ Update `web/src/components/market/MarketTicker.jsx`:
 ```jsx
 import { EntityPlaceholderIcon } from '../ui/EntityPlaceholderIcon.jsx'
 
-<li key={good.id}>
-  <EntityPlaceholderIcon code={good.fieldCode} label={good.title} type="market" state={good.owned > 0 ? 'active' : 'owned'} />
+;<li key={good.id}>
+  <EntityPlaceholderIcon
+    code={good.fieldCode}
+    label={good.title}
+    type="market"
+    state={good.owned > 0 ? 'active' : 'owned'}
+  />
   <strong>{good.title}</strong> · {formatFullNumber(good.price)} шишек
 </li>
 ```
@@ -2016,15 +2607,35 @@ import { EntityPlaceholderIcon } from '../ui/EntityPlaceholderIcon.jsx'
 Update `web/src/components/market/MarketTradePanel.jsx`:
 
 ```jsx
-<button key={good.id} type="button" onClick={() => onBuy(good.id, 1)} disabled={disabled}>
-  <EntityPlaceholderIcon code={good.fieldCode} label={good.title} type="market" state={disabled ? 'locked' : 'owned'} />
+<button
+  key={good.id}
+  type="button"
+  onClick={() => onBuy(good.id, 1)}
+  disabled={disabled}
+>
+  <EntityPlaceholderIcon
+    code={good.fieldCode}
+    label={good.title}
+    type="market"
+    state={disabled ? 'locked' : 'owned'}
+  />
   Купить 1 {good.title} · {formatFullNumber(total)} шишек
 </button>
 ```
 
 ```jsx
-<button key={campaign.id} type="button" onClick={() => onCampaign(campaign.id)} disabled={disabled}>
-  <EntityPlaceholderIcon code={campaign.fieldCode} label={campaign.title} type="campaign" state={campaign.active ? 'active' : 'owned'} />
+<button
+  key={campaign.id}
+  type="button"
+  onClick={() => onCampaign(campaign.id)}
+  disabled={disabled}
+>
+  <EntityPlaceholderIcon
+    code={campaign.fieldCode}
+    label={campaign.title}
+    type="campaign"
+    state={campaign.active ? 'active' : 'owned'}
+  />
   {campaign.active ? 'Активно: ' : ''}
   {campaign.title} · {formatFullNumber(campaign.cost)} шишек
 </button>

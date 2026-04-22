@@ -73,11 +73,11 @@ export function isObsoleteSaveBundle(rawValue) {
 
   return Boolean(
     rawValue.version ||
-      rawValue.payload ||
-      'money' in rawValue ||
-      'knowledge' in rawValue ||
-      'subscriptions' in rawValue ||
-      'prestigeShards' in rawValue,
+    rawValue.payload ||
+    'money' in rawValue ||
+    'knowledge' in rawValue ||
+    'subscriptions' in rawValue ||
+    'prestigeShards' in rawValue,
   )
 }
 

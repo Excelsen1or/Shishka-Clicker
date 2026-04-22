@@ -454,7 +454,8 @@ export const EVENT_DEFINITIONS = [
 ]
 validateUniqueFieldCodes(EVENT_DEFINITIONS, 'event')
 
-const emptyByIds = (items) => Object.fromEntries(items.map((item) => [item.id, 0]))
+const emptyByIds = (items) =>
+  Object.fromEntries(items.map((item) => [item.id, 0]))
 
 export const STARTING_STATE = {
   shishki: 0,

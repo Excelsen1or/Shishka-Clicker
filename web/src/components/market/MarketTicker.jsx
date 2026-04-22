@@ -15,7 +15,9 @@ export function MarketTicker({ goods, activeEvent = null }) {
       <div className="market-ticker-panel__head">
         <h3>Лента котировок</h3>
         <span className="market-ticker-panel__event">
-          {activeEvent ? `Сейчас шумит: ${activeEvent.title}` : 'Рынок в штатном режиме'}
+          {activeEvent
+            ? `Сейчас шумит: ${activeEvent.title}`
+            : 'Рынок в штатном режиме'}
         </span>
       </div>
       {tickerItems.length > 0 ? (

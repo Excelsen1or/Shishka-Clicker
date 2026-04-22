@@ -42,7 +42,8 @@ export function getQuotaPreview(state) {
           QUOTA_RULES.baseQuota,
           QUOTA_RULES.quotaGrowth,
           state.quotaIndex,
-        ) * (1 - quotaReduction),
+        ) *
+          (1 - quotaReduction),
       ),
     ),
     next: Math.max(
@@ -52,7 +53,8 @@ export function getQuotaPreview(state) {
           QUOTA_RULES.baseQuota,
           QUOTA_RULES.quotaGrowth,
           state.quotaIndex + 1,
-        ) * (1 - quotaReduction),
+        ) *
+          (1 - quotaReduction),
       ),
     ),
   }

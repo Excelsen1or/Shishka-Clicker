@@ -13,6 +13,7 @@
 ### Task 1: Add Stable Layout Hooks
 
 **Files:**
+
 - Modify: `web/src/components/clicker/__tests__/ProgressFieldPanel.test.jsx`
 - Modify: `web/src/components/clicker/ClickerScreen.jsx`
 - Test: `web/src/components/clicker/__tests__/ProgressFieldPanel.test.jsx`
@@ -57,6 +58,7 @@ git commit -m "test: add clicker deck layout hooks"
 ### Task 2: Make Deck Layout Responsive
 
 **Files:**
+
 - Modify: `web/src/styles/layout.css`
 - Test: `web/src/components/clicker/__tests__/ProgressFieldPanel.test.jsx`
 

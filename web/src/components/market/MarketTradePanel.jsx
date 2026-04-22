@@ -54,7 +54,9 @@ export function MarketTradePanel({
     <section className="market-panel market-trade-panel pixel-surface">
       <div className="market-panel__head">
         <h3>Активы</h3>
-        <span className="market-panel__eyebrow">Баланс: {formatNumber(shishki)} ш.</span>
+        <span className="market-panel__eyebrow">
+          Баланс: {formatNumber(shishki)} ш.
+        </span>
       </div>
       <p>
         Комиссия: {Math.round(feeRate * 1000) / 10}% за вход и выход. Чем выше
@@ -68,7 +70,8 @@ export function MarketTradePanel({
                 <span className="shop-group__eyebrow">Доступно сейчас</span>
                 <h3 className="shop-group__title">Открытые активы</h3>
                 <p className="shop-group__desc">
-                  Эти лоты уже открыты. Покупай дешевле, жди рост и выходи в плюс.
+                  Эти лоты уже открыты. Покупай дешевле, жди рост и выходи в
+                  плюс.
                 </p>
               </div>
               <div className="market-trade-grid">
@@ -148,7 +151,8 @@ export function MarketTradePanel({
                 <span className="shop-group__eyebrow">Закрыто</span>
                 <h3 className="shop-group__title">Закрытые активы</h3>
                 <p className="shop-group__desc">
-                  Эти лоты откроются по мере роста экономики, как следующая ступень рынка.
+                  Эти лоты откроются по мере роста экономики, как следующая
+                  ступень рынка.
                 </p>
               </div>
               <div className="market-trade-grid market-trade-grid--locked">
@@ -191,7 +195,8 @@ export function MarketTradePanel({
                 <span className="shop-group__eyebrow">Шум и запуск</span>
                 <h3 className="shop-group__title">Открытые прогревы</h3>
                 <p className="shop-group__desc">
-                  Эти кампании можно запускать прямо сейчас, чтобы ускорять рынок и ловить окно.
+                  Эти кампании можно запускать прямо сейчас, чтобы ускорять
+                  рынок и ловить окно.
                 </p>
               </div>
               <div className="market-campaign-grid">
@@ -216,7 +221,13 @@ export function MarketTradePanel({
                           code={campaign.fieldCode}
                           label={campaign.title}
                           type="campaign"
-                          state={campaign.active ? 'active' : disabled ? 'owned' : 'available'}
+                          state={
+                            campaign.active
+                              ? 'active'
+                              : disabled
+                                ? 'owned'
+                                : 'available'
+                          }
                           size={32}
                         />
                       </span>
@@ -241,7 +252,8 @@ export function MarketTradePanel({
                 <span className="shop-group__eyebrow">Закрыто</span>
                 <h3 className="shop-group__title">Закрытые прогревы</h3>
                 <p className="shop-group__desc">
-                  Эти кампании откроются позже, когда рынок и здания дорастут до нужной ступени.
+                  Эти кампании откроются позже, когда рынок и здания дорастут до
+                  нужной ступени.
                 </p>
               </div>
               <div className="market-campaign-grid market-campaign-grid--locked">

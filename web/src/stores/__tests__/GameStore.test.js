@@ -458,9 +458,7 @@ describe('GameStore', () => {
     const base = createFreshState()
     const store = createStore()
 
-    vi.spyOn(Math, 'random')
-      .mockReturnValueOnce(0.01)
-      .mockReturnValueOnce(0.2)
+    vi.spyOn(Math, 'random').mockReturnValueOnce(0.01).mockReturnValueOnce(0.2)
 
     store.importGameSave({
       ...base,
@@ -480,9 +478,7 @@ describe('GameStore', () => {
     const base = createFreshState()
     const store = createStore()
 
-    vi.spyOn(Math, 'random')
-      .mockReturnValueOnce(0.01)
-      .mockReturnValueOnce(0.2)
+    vi.spyOn(Math, 'random').mockReturnValueOnce(0.01).mockReturnValueOnce(0.2)
 
     store.importGameSave({
       ...base,

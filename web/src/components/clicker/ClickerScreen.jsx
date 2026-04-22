@@ -82,11 +82,17 @@ export const ClickerScreen = observer(function ClickerScreen() {
         >
           <header className="clicker-deck__header">
             <div className="clicker-deck__copy">
-              <h3 className="clicker-deck__title">Прогресс, покупки и мета-петля</h3>
+              <h3 className="clicker-deck__title">
+                Прогресс, покупки и мета-петля
+              </h3>
             </div>
             <div className="clicker-deck__status">
-              <span>{activeCampaign ? `Хайп: ${activeCampaign.title}` : 'Хайп: нет'}</span>
-              <span>{deckLocks.market.unlocked ? 'Рынок открыт' : 'Рынок закрыт'}</span>
+              <span>
+                {activeCampaign ? `Хайп: ${activeCampaign.title}` : 'Хайп: нет'}
+              </span>
+              <span>
+                {deckLocks.market.unlocked ? 'Рынок открыт' : 'Рынок закрыт'}
+              </span>
             </div>
           </header>
 
@@ -148,7 +154,9 @@ export const ClickerScreen = observer(function ClickerScreen() {
                   <ClickerDeckStat
                     label="Окно"
                     value={activeEvent ? activeEvent.title : 'Спокойно'}
-                    hint={activeEvent ? 'событие активно' : 'ждём новый всплеск'}
+                    hint={
+                      activeEvent ? 'событие активно' : 'ждём новый всплеск'
+                    }
                     tone="accent"
                   />
                 </div>

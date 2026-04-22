@@ -122,17 +122,19 @@ function getEventMarketPayload(eventId) {
   }
 }
 
-function spawnTimedEvent(state, seconds, now = Date.now(), random = Math.random) {
+function spawnTimedEvent(
+  state,
+  seconds,
+  now = Date.now(),
+  random = Math.random,
+) {
   const clearedState = clearExpiredEvent(state, now)
 
   if (clearedState.activeEvent || !clearedState.market?.unlocked) {
     return clearedState
   }
 
-  const eventChance = Math.min(
-    0.35,
-    getEventSpawnChance(clearedState, seconds),
-  )
+  const eventChance = Math.min(0.35, getEventSpawnChance(clearedState, seconds))
 
   if (random() >= eventChance) {
     return clearedState
@@ -146,7 +148,7 @@ function spawnTimedEvent(state, seconds, now = Date.now(), random = Math.random)
         ? 45
         : definition.kind === 'chain'
           ? 60
-        : 0
+          : 0
   const rewardMultiplier = getEventRewardMultiplier(clearedState)
 
   return gainShishki(
@@ -334,7 +336,8 @@ export default class GameStore {
         value: eventVisual.title,
         hint: eventDescription,
         pixelIcon: eventVisual.icon,
-        className: `stat-card--market-event stat-card--market-event--${eventVisual.tone}`.trim(),
+        className:
+          `stat-card--market-event stat-card--market-event--${eventVisual.tone}`.trim(),
       },
     ]
   }
@@ -466,7 +469,9 @@ export default class GameStore {
             ...nextState,
             activeEvent: null,
           },
-          nextState.activeEvent.chainRewardShishki ?? nextState.activeEvent.rewardShishki ?? 0,
+          nextState.activeEvent.chainRewardShishki ??
+            nextState.activeEvent.rewardShishki ??
+            0,
         )
       } else {
         nextState = {
@@ -652,14 +657,20 @@ export default class GameStore {
       return
     }
     const snapshot = buildEconomySnapshot(this._state, this.derived)
-    const campaignCard = snapshot.campaigns.find((item) => item.id === campaignId)
+    const campaignCard = snapshot.campaigns.find(
+      (item) => item.id === campaignId,
+    )
 
     const campaign = getCampaignById(campaignId)
     const launchCost = campaign
       ? getCampaignLaunchCost(this._state, campaign)
       : null
 
-    if (!campaign || !campaignCard?.unlocked || this._state.shishki < launchCost) {
+    if (
+      !campaign ||
+      !campaignCard?.unlocked ||
+      this._state.shishki < launchCost
+    ) {
       return
     }
 
@@ -678,7 +689,8 @@ export default class GameStore {
   prestigeReset() {
     const quota = getQuotaPreview(this._state)
     const hasPrestigeProgress =
-      this._state.quotaIndex > 0 || this._state.currentRunShishki >= quota.current
+      this._state.quotaIndex > 0 ||
+      this._state.currentRunShishki >= quota.current
 
     if (!hasPrestigeProgress) {
       return false

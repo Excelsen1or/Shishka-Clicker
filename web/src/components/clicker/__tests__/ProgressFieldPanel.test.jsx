@@ -43,7 +43,12 @@ describe('ProgressFieldPanel', () => {
   it('maps campaign statuses and clears expired active campaigns', () => {
     const activeCampaignState = {
       activeCampaign: { id: 'sundayProphet', endsAt: Date.now() + 60_000 },
-      market: { unlocked: true, positions: {}, prices: {}, averageBuyPrice: {} },
+      market: {
+        unlocked: true,
+        positions: {},
+        prices: {},
+        averageBuyPrice: {},
+      },
       buildings: {},
       upgrades: {},
       prestigeUpgrades: {},
@@ -82,7 +87,12 @@ describe('ProgressFieldPanel', () => {
   it('keeps market field entities and deck locked before the market is unlocked', () => {
     const result = buildClickerFieldData({
       activeCampaign: null,
-      market: { unlocked: false, positions: {}, prices: {}, averageBuyPrice: {} },
+      market: {
+        unlocked: false,
+        positions: {},
+        prices: {},
+        averageBuyPrice: {},
+      },
       buildings: {},
       upgrades: {},
       prestigeUpgrades: {},

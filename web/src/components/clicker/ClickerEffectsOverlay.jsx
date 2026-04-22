@@ -113,7 +113,11 @@ function drawCanvasBurst(ctx, burst, now) {
     burst.type === 'emoji' ? 'EMOJI' : burst.type === 'mega' ? 'MEGA' : null
   const fontSize = burst.type === 'emoji' ? 17 : burst.type === 'mega' ? 16 : 15
   const alpha =
-    progress < 0.12 ? progress / 0.12 : progress > 0.76 ? 1 - (progress - 0.76) / 0.24 : 1
+    progress < 0.12
+      ? progress / 0.12
+      : progress > 0.76
+        ? 1 - (progress - 0.76) / 0.24
+        : 1
 
   ctx.save()
   ctx.globalAlpha = clamp(alpha, 0, 1)

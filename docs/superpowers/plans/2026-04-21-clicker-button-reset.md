@@ -13,6 +13,7 @@
 ### Task 1: Lock The Intended Layout Contract
 
 **Files:**
+
 - Modify: `web/src/components/clicker/__tests__/ProgressFieldPanel.test.jsx`
 - Modify: `web/src/components/clicker/ClickerScreen.jsx`
 - Test: `web/src/components/clicker/__tests__/ProgressFieldPanel.test.jsx`
@@ -58,6 +59,7 @@ git commit -m "test: lock clicker hero and deck order"
 ### Task 2: Restore ClickerButton Structure
 
 **Files:**
+
 - Modify: `web/src/components/clicker/ClickerButton.jsx`
 - Test: `web/src/components/clicker/__tests__/ProgressFieldPanel.test.jsx`
 
@@ -123,6 +125,7 @@ git commit -m "refactor: reset clicker button scene shell"
 ### Task 3: Clean And Stabilize Button CSS
 
 **Files:**
+
 - Modify: `web/src/styles/layout.css`
 - Test: `web/src/components/clicker/__tests__/ProgressFieldPanel.test.jsx`
 

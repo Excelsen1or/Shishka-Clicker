@@ -78,10 +78,22 @@ function EconomyCard({ item, action, visualType, levelText, desc, meta }) {
     if (cardRef.current) {
       deniedCardAnimationRef.current = cardRef.current.animate(
         [
-          { transform: 'translateX(0)', borderColor: 'rgba(255, 122, 122, 0.16)' },
-          { transform: 'translateX(-2px)', borderColor: 'rgba(255, 122, 122, 0.5)' },
-          { transform: 'translateX(2px)', borderColor: 'rgba(255, 122, 122, 0.5)' },
-          { transform: 'translateX(0)', borderColor: 'rgba(255, 122, 122, 0.16)' },
+          {
+            transform: 'translateX(0)',
+            borderColor: 'rgba(255, 122, 122, 0.16)',
+          },
+          {
+            transform: 'translateX(-2px)',
+            borderColor: 'rgba(255, 122, 122, 0.5)',
+          },
+          {
+            transform: 'translateX(2px)',
+            borderColor: 'rgba(255, 122, 122, 0.5)',
+          },
+          {
+            transform: 'translateX(0)',
+            borderColor: 'rgba(255, 122, 122, 0.16)',
+          },
         ],
         { duration: 280, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
       )
@@ -195,7 +207,9 @@ export const ShopScreen = observer(function ShopScreen({
   )
 
   const upgradesUnlocked = uiEconomy.upgrades.some((item) => item.unlocked)
-  const firstLockedUpgrade = uiEconomy.upgrades.find((item) => item.unlocked === false)
+  const firstLockedUpgrade = uiEconomy.upgrades.find(
+    (item) => item.unlocked === false,
+  )
   const viewLocks = {
     buildings: null,
     upgrades: upgradesUnlocked
@@ -203,7 +217,10 @@ export const ShopScreen = observer(function ShopScreen({
       : {
           text: 'Вкладка откроется после первых 80 шишек за все жизни.',
           progress: Math.min(
-            Math.max(0, Number(firstLockedUpgrade?.unlockProgress?.shishki ?? 0)),
+            Math.max(
+              0,
+              Number(firstLockedUpgrade?.unlockProgress?.shishki ?? 0),
+            ),
             80,
           ),
           goal: 80,
@@ -284,7 +301,9 @@ export const ShopScreen = observer(function ShopScreen({
                 <EconomyCard
                   key={item.id}
                   item={item}
-                  desc={isBuildingsView ? item.perkSummary : `Тип: ${item.kind}`}
+                  desc={
+                    isBuildingsView ? item.perkSummary : `Тип: ${item.kind}`
+                  }
                   meta={
                     isBuildingsView
                       ? [
@@ -319,7 +338,8 @@ export const ShopScreen = observer(function ShopScreen({
                 {isBuildingsView ? 'Закрытые здания' : 'Закрытые усиления'}
               </h3>
               <p className="shop-group__desc">
-                Эти товары откроются по мере прогресса, как следующая ступень экономики.
+                Эти товары откроются по мере прогресса, как следующая ступень
+                экономики.
               </p>
             </div>
             <div className="shop-grid shop-grid--category shop-grid--locked">
@@ -327,7 +347,9 @@ export const ShopScreen = observer(function ShopScreen({
                 <EconomyCard
                   key={item.id}
                   item={item}
-                  desc={isBuildingsView ? item.perkSummary : `Тип: ${item.kind}`}
+                  desc={
+                    isBuildingsView ? item.perkSummary : `Тип: ${item.kind}`
+                  }
                   meta={
                     isBuildingsView
                       ? [

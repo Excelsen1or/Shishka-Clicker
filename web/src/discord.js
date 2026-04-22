@@ -73,7 +73,11 @@ export async function setupDiscord() {
   try {
     const [{ exchangeDiscordCode }] = await Promise.all([
       import('./lib/discordAuth.js'),
-      withTimeout(discordSdk.ready(), DISCORD_READY_TIMEOUT_MS, 'discord_ready'),
+      withTimeout(
+        discordSdk.ready(),
+        DISCORD_READY_TIMEOUT_MS,
+        'discord_ready',
+      ),
     ]).catch((error) => {
       throw toDiscordError('discord_ready', error)
     })

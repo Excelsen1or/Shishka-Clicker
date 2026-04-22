@@ -12,12 +12,13 @@ export const MetaScreen = observer(function MetaScreen() {
     prestigeReset,
     buyPrestigeUpgrade,
     upgradeBuildingLevel,
-  } =
-    useGameStore()
+  } = useGameStore()
   const canResetPrestige =
     uiPrestige.quotaIndex > 0 ||
     uiPrestige.currentRunShishki >= uiPrestige.currentQuotaTarget
-  const levelableBuildings = uiEconomy.buildings.filter((item) => item.owned > 0)
+  const levelableBuildings = uiEconomy.buildings.filter(
+    (item) => item.owned > 0,
+  )
   const nextLifeSeed = getPrestigeStartBonus(uiState)
 
   const prestigeStats = [
@@ -53,7 +54,12 @@ export const MetaScreen = observer(function MetaScreen() {
 
       <section className="stats-bar stats-bar--shop">
         {prestigeStats.map((item) => (
-          <StatCard key={item.label} {...item} variant="pixel" formatValue={false} />
+          <StatCard
+            key={item.label}
+            {...item}
+            variant="pixel"
+            formatValue={false}
+          />
         ))}
       </section>
 
@@ -94,7 +100,9 @@ export const MetaScreen = observer(function MetaScreen() {
                 </div>
               </div>
               <div className="shop-card__chips">
-                <span className="shop-card__tier">ур. {formatNumber(item.level)}</span>
+                <span className="shop-card__tier">
+                  ур. {formatNumber(item.level)}
+                </span>
               </div>
             </div>
             <div className="shop-card__body">
@@ -109,7 +117,9 @@ export const MetaScreen = observer(function MetaScreen() {
                 onClick={() => buyPrestigeUpgrade(item.id)}
                 disabled={uiState.heavenlyShishki < item.cost}
               >
-                {uiState.heavenlyShishki < item.cost ? 'Нужно больше небесных' : 'Купить'}
+                {uiState.heavenlyShishki < item.cost
+                  ? 'Нужно больше небесных'
+                  : 'Купить'}
               </button>
             </div>
           </article>
@@ -136,7 +146,9 @@ export const MetaScreen = observer(function MetaScreen() {
                   </div>
                 </div>
                 <div className="shop-card__chips">
-                  <span className="shop-card__tier">ур. {formatNumber(item.level)}</span>
+                  <span className="shop-card__tier">
+                    ур. {formatNumber(item.level)}
+                  </span>
                 </div>
               </div>
               <div className="shop-card__body">

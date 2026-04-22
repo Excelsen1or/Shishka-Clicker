@@ -156,7 +156,10 @@ export function getEffectiveBrokerLevel(state) {
   const explicitLevel = Math.max(0, Number(state?.market?.brokerLevel ?? 0))
   const resaleLevel = Math.max(0, Number(state?.buildings?.resaleStall ?? 0))
   const packingLine = Math.max(0, Number(state?.buildings?.packingLine ?? 0))
-  const nightWarehouse = Math.max(0, Number(state?.buildings?.nightWarehouse ?? 0))
+  const nightWarehouse = Math.max(
+    0,
+    Number(state?.buildings?.nightWarehouse ?? 0),
+  )
   const routerBrokerage = Math.max(
     0,
     Number(state?.buildings?.routerBrokerage ?? 0),
@@ -209,7 +212,9 @@ export function deriveProduction(state) {
     const owned = state?.buildings?.[building.id] ?? 0
     const level = state?.buildingLevels?.[building.id] ?? 0
 
-    return total + owned * building.baseOutput * getBuildingLevelMultiplier(level)
+    return (
+      total + owned * building.baseOutput * getBuildingLevelMultiplier(level)
+    )
   }, 0)
   const globalUpgradeBonus = RUN_UPGRADES.reduce((total, upgrade) => {
     if (upgrade.kind !== 'globalMultiplier') {
@@ -235,7 +240,7 @@ export function deriveProduction(state) {
   const prestigeClickBonus =
     (state?.prestigeUpgrades?.heavenlyTar ?? 0) * 0.25 +
     (state?.prestigeUpgrades?.coneEmpire ?? 0) *
-    ((PRESTIGE_UPGRADE_BY_ID.coneEmpire?.value ?? 0) * 0.5)
+      ((PRESTIGE_UPGRADE_BY_ID.coneEmpire?.value ?? 0) * 0.5)
   const buildingProductionBonus = BUILDINGS.reduce((total, building) => {
     return (
       total +
@@ -318,7 +323,11 @@ export function resolveQuotaClosures({
   }
 
   while (currentRunShishki >= currentTarget) {
-    const nextTarget = getQuotaTarget(baseQuota, quotaGrowth, nextQuotaIndex + 1)
+    const nextTarget = getQuotaTarget(
+      baseQuota,
+      quotaGrowth,
+      nextQuotaIndex + 1,
+    )
 
     if (!Number.isFinite(nextTarget) || nextTarget <= currentTarget) {
       throw new RangeError('Invalid quota config')
@@ -382,9 +391,9 @@ export function advanceMarketPrices(state, random = Math.random) {
       good.profile === 'hype' && state.activeCampaign
         ? 0.025 + (state.activeCampaign.eventBoost ?? 0) * 0.08
         : 0
-  const activeEventBoost =
+    const activeEventBoost =
       state.activeEvent?.marketBoostGoodId === good.id
-        ? state.activeEvent.marketBoost ?? 0
+        ? (state.activeEvent.marketBoost ?? 0)
         : 0
     const proposedPrice = Math.max(
       Math.floor(good.basePrice * 0.35),
@@ -429,7 +438,8 @@ export function advanceMarketPrices(state, random = Math.random) {
 
 export function applyMarketTrade({ state, goodId, quantity, side }) {
   const marketGood = MARKET_GOOD_BY_ID[goodId]
-  const unitPrice = state?.market?.prices?.[goodId] ?? marketGood?.basePrice ?? 0
+  const unitPrice =
+    state?.market?.prices?.[goodId] ?? marketGood?.basePrice ?? 0
   const normalizedQuantity = Number(quantity)
 
   if (
@@ -536,9 +546,9 @@ export function getBuildingPerkSummary(id, level = 0) {
   }
 
   if (id === 'selfEmployedCrew') {
-    return `${baseLabel} Сейчас: -${Math.round(
-      getBuildingPerkValue(id, level, 'feeReduction') * 1000,
-    ) / 10}% комиссии.`
+    return `${baseLabel} Сейчас: -${
+      Math.round(getBuildingPerkValue(id, level, 'feeReduction') * 1000) / 10
+    }% комиссии.`
   }
 
   if (id === 'resaleStall') {
@@ -548,9 +558,9 @@ export function getBuildingPerkSummary(id, level = 0) {
   }
 
   if (id === 'pickupPoint') {
-    return `${baseLabel} Сейчас: +${Math.round(
-      getBuildingPerkValue(id, level, 'eventChance') * 1000,
-    ) / 10}% к хорошим окнам.`
+    return `${baseLabel} Сейчас: +${
+      Math.round(getBuildingPerkValue(id, level, 'eventChance') * 1000) / 10
+    }% к хорошим окнам.`
   }
 
   if (id === 'packingLine') {
@@ -566,11 +576,9 @@ export function getBuildingPerkSummary(id, level = 0) {
   }
 
   if (
-    [
-      'bunkerSortingHub',
-      'greyImportExchange',
-      'coneDerivativeDesk',
-    ].includes(id)
+    ['bunkerSortingHub', 'greyImportExchange', 'coneDerivativeDesk'].includes(
+      id,
+    )
   ) {
     return `${baseLabel} Сейчас: выше шанс редкого окна.`
   }

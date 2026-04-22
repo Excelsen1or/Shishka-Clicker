@@ -5,13 +5,7 @@ import {
   useMemo,
   useState,
 } from 'react'
-import {
-  PxlKitIcon,
-  Trophy,
-  Community,
-  Settings,
-  Coin,
-} from '../lib/pxlkit'
+import { PxlKitIcon, Trophy, Community, Settings, Coin } from '../lib/pxlkit'
 import { ConeIcon } from '../components/ui/ConeIcon'
 
 const PixelNavIcon = ({ icon, label }) => (

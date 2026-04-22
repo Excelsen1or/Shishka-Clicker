@@ -159,7 +159,11 @@ function getMarketGoodUnlockRule(state, item) {
     case 'grayBrokerNotes':
       return buildOwnedUnlockRule(state, 'packingLine', 'Смоляной цех')
     case 'pineSealant':
-      return buildOwnedUnlockRule(state, 'nightWarehouse', 'Подпольный фулфилмент')
+      return buildOwnedUnlockRule(
+        state,
+        'nightWarehouse',
+        'Подпольный фулфилмент',
+      )
     default:
       return {
         unlocked: true,
@@ -220,9 +224,17 @@ function getCampaignUnlockRule(state, item) {
     case 'nightDistrict':
       return buildOwnedUnlockRule(state, 'packingLine', 'Смоляной цех')
     case 'grayTour':
-      return buildOwnedUnlockRule(state, 'nightWarehouse', 'Подпольный фулфилмент')
+      return buildOwnedUnlockRule(
+        state,
+        'nightWarehouse',
+        'Подпольный фулфилмент',
+      )
     case 'logisticsAnthem':
-      return buildOwnedUnlockRule(state, 'routerBrokerage', 'Агентство инфошума')
+      return buildOwnedUnlockRule(
+        state,
+        'routerBrokerage',
+        'Агентство инфошума',
+      )
     default:
       return {
         unlocked: true,
@@ -332,7 +344,11 @@ export function buildClickerFieldData(state) {
           title: item.title,
           code: item.fieldCode,
           type: 'market',
-          state: !unlock.unlocked ? 'locked' : count > 0 ? 'owned' : 'available',
+          state: !unlock.unlocked
+            ? 'locked'
+            : count > 0
+              ? 'owned'
+              : 'available',
           count,
           unlocked: unlock.unlocked,
         }
@@ -364,7 +380,11 @@ export function buildClickerFieldData(state) {
         title: item.title,
         code: item.fieldCode,
         type: 'upgrade',
-        state: !unlock.unlocked ? 'locked' : count > 0 ? 'upgraded' : 'available',
+        state: !unlock.unlocked
+          ? 'locked'
+          : count > 0
+            ? 'upgraded'
+            : 'available',
         count,
         unlocked: unlock.unlocked,
       }
@@ -389,8 +409,7 @@ export function buildClickerFieldData(state) {
       },
       market: {
         unlocked: marketUnlocked,
-        text:
-          'Открой "Покупки" -> "Здания" и купи первый "Ларёк перепродажи". После этого включатся сделки, портфель и прогревы.',
+        text: 'Открой "Покупки" -> "Здания" и купи первый "Ларёк перепродажи". После этого включатся сделки, портфель и прогревы.',
         progress: Math.min(Number(state.buildings?.resaleStall ?? 0), 1),
         goal: 1,
       },

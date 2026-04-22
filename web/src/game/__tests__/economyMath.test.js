@@ -21,7 +21,10 @@ import {
   getQuotaTarget,
   resolveQuotaClosures,
 } from '../economyMath.js'
-import { getPrestigeUpgradeByFieldCode, getQuotaPreview } from '../metaConfig.js'
+import {
+  getPrestigeUpgradeByFieldCode,
+  getQuotaPreview,
+} from '../metaConfig.js'
 
 const assertUniqueFieldCodes = (items, label) => {
   const fieldCodes = items.map((item) => item.fieldCode)
@@ -56,9 +59,9 @@ describe('economy schema', () => {
     expect(
       PRESTIGE_UPGRADES.every((item) => typeof item.fieldCode === 'string'),
     ).toBe(true)
-    expect(MARKET_GOODS.every((item) => typeof item.fieldCode === 'string')).toBe(
-      true,
-    )
+    expect(
+      MARKET_GOODS.every((item) => typeof item.fieldCode === 'string'),
+    ).toBe(true)
     expect(
       RAP_CAMPAIGNS.every((item) => typeof item.fieldCode === 'string'),
     ).toBe(true)
@@ -154,9 +157,9 @@ describe('economy schema', () => {
       'campaign_logistics_anthem',
     )
     expect(getEventById('tarStorm')?.title).toBe('Таровая буря')
-    expect(
-      getPrestigeUpgradeByFieldCode('prestige_heavenly_tar')?.id,
-    ).toBe('heavenlyTar')
+    expect(getPrestigeUpgradeByFieldCode('prestige_heavenly_tar')?.id).toBe(
+      'heavenlyTar',
+    )
     expect(getEventPresentation('fieldAudit')).toMatch(/скидк/i)
     expect(getEventPresentation('logisticsCongress')).toMatch(/рын/i)
     expect(getEventById('cashbackGlitchChain')?.rarity).toBe('rare')
@@ -517,6 +520,8 @@ describe('economy math', () => {
   })
 
   it('sets a hard first quota for the first life', () => {
-    expect(getQuotaPreview(STARTING_STATE).current).toBeGreaterThanOrEqual(30_000)
+    expect(getQuotaPreview(STARTING_STATE).current).toBeGreaterThanOrEqual(
+      30_000,
+    )
   })
 })
