@@ -1,5 +1,8 @@
 import { observer } from 'mobx-react-lite'
 import { getMarketFeeRate } from '../../game/economyMath.js'
+import { getEventPresentation } from '../../game/economyMath.js'
+import { getEventVisual } from '../../game/marketEventVisuals.js'
+import { PxlKitIcon } from '../../lib/pxlkit'
 
 import { formatNumber } from '../../lib/format.js'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
@@ -33,11 +36,43 @@ export const MarketScreen = observer(function MarketScreen() {
   const activeCampaign = uiState?.activeCampaign ?? null
   const feeRate = getMarketFeeRate(uiState)
   const resaleStall = buildings.find((item) => item.id === 'resaleStall')
-  const unlockProgress = Number(uiState?.buildings?.resaleStall ?? 0)
   const unlockPrice = resaleStall ? formatNumber(resaleStall.cost) : '28 000'
+  const lifetimeShishki = Math.max(
+    0,
+    Number(
+      uiState?.lifetimeShishkiEarned ??
+        uiState?.totalShishkiEarned ??
+        uiState?.currentRunShishki ??
+        uiState?.shishki ??
+        0,
+    ),
+  )
+  const resaleUnlockTarget = Math.max(
+    0,
+    Number(resaleStall?.unlockRule?.shishki ?? 0),
+  )
+  const shishkiRemainingToUnlock = Math.max(
+    0,
+    resaleUnlockTarget - lifetimeShishki,
+  )
+  const resaleStallIndex = buildings.findIndex((item) => item.id === 'resaleStall')
+  const buildingUnlockGoal = resaleStallIndex >= 0 ? resaleStallIndex + 1 : 0
+  const buildingUnlockProgress =
+    resaleStallIndex >= 0
+      ? buildings.slice(0, resaleStallIndex + 1).filter((item) => item.unlocked)
+          .length
+      : 0
+  const unlockProgressPercent =
+    resaleUnlockTarget > 0
+      ? Math.min(100, (Math.min(lifetimeShishki, resaleUnlockTarget) / resaleUnlockTarget) * 100)
+      : 0
   const brokerTone = getBrokerTone(brokerLevel)
   const hasActiveWindow = Boolean(activeEvent)
   const hasActiveCampaign = Boolean(activeCampaign)
+  const activeEventVisual = getEventVisual(activeEvent)
+  const activeEventDescription = activeEvent
+    ? getEventPresentation(activeEvent.id)
+    : 'Сейчас тихо: рынок двигается без активного ивента.'
 
   return (
     <section
@@ -59,6 +94,36 @@ export const MarketScreen = observer(function MarketScreen() {
                 Покупай активы дешевле, жди рост цены и продавай в плюс. Следи
                 за ивентами и прогревами: они меняют рынок.
               </p>
+              <p
+                className={`market-exchange__event-brief ${hasActiveWindow ? 'market-exchange__event-brief--live' : 'market-exchange__event-brief--idle'}`.trim()}
+                style={{
+                  '--market-event-accent-rgb': activeEventVisual.accentRgb,
+                  '--market-event-glow-rgb': activeEventVisual.glowRgb,
+                }}
+              >
+                <span className="market-exchange__event-steam">
+                  {hasActiveWindow ? 'EVENT STARTED' : 'MARKET IDLE'}
+                </span>
+                <span className="market-exchange__event-row">
+                  <span className="market-exchange__event-icon">
+                    <PxlKitIcon
+                      icon={activeEventVisual.icon}
+                      size={18}
+                      colorful
+                      className="pixel-inline-icon"
+                    />
+                  </span>
+                  <span className="market-exchange__event-copy">
+                    <span className="market-exchange__event-label">
+                      {hasActiveWindow ? 'Ивент начался' : 'Спокойный рынок'}
+                    </span>
+                    <strong>
+                      {activeEvent ? activeEvent.title : 'ивент: тихо'}
+                    </strong>
+                    <span>{activeEventDescription}</span>
+                  </span>
+                </span>
+              </p>
               <div className="market-exchange__copy-strip"></div>
             </div>
 
@@ -67,20 +132,14 @@ export const MarketScreen = observer(function MarketScreen() {
                 className={`market-exchange__stat market-exchange__stat--${brokerTone}`.trim()}
               >
                 <span>Брокер</span>
-                <strong>{brokerLevel} ур.</strong>
+                <strong>{formatNumber(brokerLevel)} ур.</strong>
               </article>
               <article className="market-exchange__stat market-exchange__stat--accent">
                 <span>Комиссия</span>
-                <strong>{Math.round(feeRate * 1000) / 10}%</strong>
+                <strong>{formatNumber(Math.round(feeRate * 1000) / 10)}%</strong>
               </article>
               <article
-                className={`market-exchange__stat ${hasActiveWindow ? 'market-exchange__stat--live' : 'market-exchange__stat--idle'}`.trim()}
-              >
-                <span>Окно</span>
-                <strong>{activeEvent ? activeEvent.title : 'Тихо'}</strong>
-              </article>
-              <article
-                className={`market-exchange__stat ${hasActiveCampaign ? 'market-exchange__stat--live' : 'market-exchange__stat--idle'}`.trim()}
+                className={`market-exchange__stat market-exchange__stat--wide ${hasActiveCampaign ? 'market-exchange__stat--live' : 'market-exchange__stat--idle'}`.trim()}
               >
                 <span>Прогрев</span>
                 <strong>{activeCampaign ? activeCampaign.title : 'Нет'}</strong>
@@ -141,11 +200,17 @@ export const MarketScreen = observer(function MarketScreen() {
               <span className="market-locker__label">
                 Прогресс разблокировки
               </span>
-              <strong>{unlockProgress} / 1</strong>
+              <strong>
+                Осталось заработать {formatNumber(shishkiRemainingToUnlock)} шишек
+              </strong>
+              <p>
+                Открыто зданий: {formatNumber(buildingUnlockProgress)} /{' '}
+                {formatNumber(buildingUnlockGoal)}
+              </p>
               <div className="market-locker__progress">
                 <span
                   className="market-locker__progress-fill"
-                  style={{ width: `${Math.min(100, unlockProgress * 100)}%` }}
+                  style={{ width: `${unlockProgressPercent}%` }}
                 />
               </div>
             </article>

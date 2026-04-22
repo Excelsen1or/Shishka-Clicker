@@ -1,6 +1,6 @@
 import { useSound } from '../../hooks/useSound.js'
 import sellSound from '../../assets/audio/ui/button3.wav'
-import { formatFullNumber, formatNumber } from '../../lib/format.js'
+import { formatNumber } from '../../lib/format.js'
 
 export function MarketPortfolio({ goods, onSell }) {
   const heldGoods = goods.filter((good) => good.owned > 0)
@@ -28,7 +28,11 @@ export function MarketPortfolio({ goods, onSell }) {
           {heldGoods.map((good) => {
             const deltaPerUnit = good.price - good.averageBuyPrice
             const deltaLabel =
-              deltaPerUnit > 0 ? `+${deltaPerUnit}` : `${deltaPerUnit}`
+              deltaPerUnit > 0
+                ? `+${formatNumber(deltaPerUnit)}`
+                : deltaPerUnit < 0
+                  ? `-${formatNumber(Math.abs(deltaPerUnit))}`
+                  : formatNumber(deltaPerUnit)
             const deltaTone =
               deltaPerUnit > 0 ? 'up' : deltaPerUnit < 0 ? 'down' : 'flat'
 
@@ -41,14 +45,12 @@ export function MarketPortfolio({ goods, onSell }) {
                   <div className="market-portfolio__meta-top">
                     <strong>{good.title}</strong>
                     <span className="market-portfolio__count">
-                      {good.owned} шт.
+                      {formatNumber(good.owned)} шт.
                     </span>
                   </div>
                   <div className="market-portfolio__stats">
-                    <span>
-                      Средняя {formatFullNumber(good.averageBuyPrice)}
-                    </span>
-                    <span>Спот {formatFullNumber(good.price)}</span>
+                    <span>Средняя {formatNumber(good.averageBuyPrice)}</span>
+                    <span>Спот {formatNumber(good.price)}</span>
                     <span
                       className={`market-portfolio__delta market-portfolio__delta--${deltaTone}`.trim()}
                     >
@@ -70,19 +72,19 @@ export function MarketPortfolio({ goods, onSell }) {
                     type="button"
                     className="market-action-btn market-action-btn--sell"
                     onClick={() => handleSell(good.id, Math.min(5, good.owned))}
-                    aria-label={`Продать до 5 ${good.title}`}
-                    title={`Продать до 5 ${good.title}`}
+                    aria-label={`Продать 5: ${good.title}`}
+                    title={`Продать 5: ${good.title}`}
                   >
-                    До 5
+                    прод 5
                   </button>
                   <button
                     type="button"
                     className="market-action-btn market-action-btn--panic"
                     onClick={() => handleSell(good.id, good.owned)}
-                    aria-label={`Слить всё ${good.title}`}
-                    title={`Слить всё ${good.title}`}
+                    aria-label={`Слить всё: ${good.title}`}
+                    title={`Слить всё: ${good.title}`}
                   >
-                    Всё
+                    слить
                   </button>
                 </span>
               </li>

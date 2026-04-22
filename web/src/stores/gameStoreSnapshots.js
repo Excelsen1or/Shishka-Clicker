@@ -11,6 +11,7 @@ import {
   getBuildingCost,
   getBuildingPerkSummary,
   getEffectiveBrokerLevel,
+  getRunUpgradeCost,
 } from '../game/economyMath.js'
 import { formatNumber } from '../lib/format.js'
 
@@ -45,7 +46,7 @@ function getBuildingUnlockRule(state, item, index) {
 
   return {
     unlocked,
-    unlockText: `Откроется после ${formatNumber(threshold)} шишек за все жизни или первой покупки "${previous.title}".`,
+    unlockText: `Откроется после ${formatNumber(threshold)} шишек за всё время или первой покупки "${previous.title}".`,
     unlockProgress: {
       shishki: Math.min(progress, threshold),
       previousOwned,
@@ -118,7 +119,7 @@ function getUpgradeUnlockRule(state, item) {
 
   return {
     unlocked,
-    unlockText: `Откроется после ${formatNumber(rule.threshold)} шишек за все жизни или после покупки "${rule.buildingTitle}".`,
+    unlockText: `Откроется после ${formatNumber(rule.threshold)} шишек за всё время или после покупки "${rule.buildingTitle}".`,
     unlockProgress: {
       shishki: Math.min(lifetime, rule.threshold),
       previousOwned: owned,
@@ -267,12 +268,15 @@ export function buildEconomySnapshot(state, derived) {
 
   const upgrades = RUN_UPGRADES.map((item) => {
     const unlock = getUpgradeUnlockRule(state, item)
+    const level = state.upgrades[item.id] ?? 0
+    const cost = getRunUpgradeCost(item.cost, level)
 
     return {
       ...item,
       ...unlock,
-      level: state.upgrades[item.id] ?? 0,
-      canBuy: unlock.unlocked && state.shishki >= item.cost,
+      level,
+      cost,
+      canBuy: unlock.unlocked && state.shishki >= cost,
     }
   })
 
@@ -317,7 +321,7 @@ export function buildEconomySnapshot(state, derived) {
 export function buildClickerFieldData(state) {
   const marketUnlocked = Boolean(state.market?.unlocked)
   const lifetime = getLifetimeProgress(state)
-  const firstQuota = Math.floor(QUOTA_RULES.baseQuota * 0.35)
+  const firstQuota = QUOTA_RULES.baseQuota
 
   return {
     buildingsFieldItems: BUILDINGS.map((item, index) => {
@@ -415,7 +419,7 @@ export function buildClickerFieldData(state) {
       },
       upgrades: {
         unlocked: lifetime >= 80,
-        text: 'Откроется после первых 80 шишек за все жизни.',
+        text: 'Откроется после первых 80 шишек за всё время.',
         progress: Math.min(lifetime, 80),
         goal: 80,
       },

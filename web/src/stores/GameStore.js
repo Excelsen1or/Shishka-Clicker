@@ -21,6 +21,7 @@ import {
   getEventRewardMultiplier,
   rollEventDefinition,
   resolveQuotaClosures,
+  getRunUpgradeCost,
 } from '../game/economyMath.js'
 import { getEventVisual } from '../game/marketEventVisuals.js'
 import {
@@ -544,10 +545,14 @@ export default class GameStore {
     const snapshot = buildEconomySnapshot(this._state, this.derived)
     const upgradeCard = snapshot.upgrades.find((item) => item.id === id)
     const upgrade = RUN_UPGRADES.find((item) => item.id === id)
+    const level = this._state.upgrades[id] ?? 0
     const cost = upgrade
       ? Math.max(
           1,
-          Math.floor(upgrade.cost * (1 - getPurchaseDiscount(this._state))),
+          Math.floor(
+            getRunUpgradeCost(upgrade.cost, level) *
+              (1 - getPurchaseDiscount(this._state)),
+          ),
         )
       : null
 
@@ -568,6 +573,10 @@ export default class GameStore {
   buyPrestigeUpgrade(id) {
     const item = PRESTIGE_UPGRADES.find((entry) => entry.id === id)
     if (!item) {
+      return
+    }
+
+    if (this._state.rebirths < 1) {
       return
     }
 
@@ -757,5 +766,106 @@ export default class GameStore {
       ...this._state,
       [key]: value,
     })
+  }
+
+  _devTick(seconds) {
+    if (!Number.isFinite(seconds) || seconds <= 0) {
+      return false
+    }
+
+    this.applyPassiveIncome(seconds)
+    return true
+  }
+
+  _devSetMarketUnlocked(enabled) {
+    this.commitState({
+      ...this._state,
+      market: {
+        ...this._state.market,
+        unlocked: enabled,
+      },
+    })
+
+    return true
+  }
+
+  _devSetEvent(eventId) {
+    if (!eventId) {
+      this.commitState({
+        ...this._state,
+        activeEvent: null,
+      })
+
+      return true
+    }
+
+    const definition = EVENT_DEFINITIONS.find((item) => item.id === eventId)
+    if (!definition) {
+      return false
+    }
+
+    this.commitState({
+      ...this._state,
+      market: {
+        ...this._state.market,
+        unlocked: true,
+      },
+      activeEvent: {
+        ...definition,
+        ...getEventMarketPayload(definition.id),
+        chainStep: definition.kind === 'chain' ? 0 : undefined,
+        rewardShishki: definition.chainRewardShishki ?? 0,
+        endsAt: Date.now() + definition.durationMs,
+      },
+    })
+
+    return true
+  }
+
+  _devSetCampaign(campaignId) {
+    if (!campaignId) {
+      this.commitState({
+        ...this._state,
+        activeCampaign: null,
+      })
+
+      return true
+    }
+
+    const campaign = getCampaignById(campaignId)
+    if (!campaign) {
+      return false
+    }
+
+    this.commitState({
+      ...this._state,
+      market: {
+        ...this._state.market,
+        unlocked: true,
+      },
+      activeCampaign: {
+        ...campaign,
+        label: getEventPresentation(campaignId),
+        launchCost: 0,
+        endsAt: Date.now() + campaign.durationMs,
+      },
+    })
+
+    return true
+  }
+
+  _devSetQuotaReady() {
+    const quota = getQuotaPreview(this._state)
+    const nextState = resolveQuotaState({
+      ...this._state,
+      currentRunShishki: quota.current,
+    })
+
+    this.commitState(nextState)
+    return quota.current
+  }
+
+  _devDoRebirth() {
+    return this.prestigeReset()
   }
 }

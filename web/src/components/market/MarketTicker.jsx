@@ -1,4 +1,4 @@
-import { formatFullNumber } from '../../lib/format.js'
+import { formatNumber } from '../../lib/format.js'
 import { EntityPlaceholderIcon } from '../ui/EntityPlaceholderIcon.jsx'
 
 const PROFILE_LABELS = {
@@ -43,7 +43,7 @@ export function MarketTicker({ goods, activeEvent = null }) {
                 </span>
                 <span className="market-ticker__content">
                   <strong>{good.title}</strong>
-                  <span>{formatFullNumber(good.price)} шишек</span>
+                  <span>{formatNumber(good.price)} шишек</span>
                   <span>{PROFILE_LABELS[good.profile] ?? 'Спот'}</span>
                   {!good.unlocked ? <span>закрыто</span> : <span>LIVE</span>}
                 </span>

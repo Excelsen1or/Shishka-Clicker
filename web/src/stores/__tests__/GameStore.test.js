@@ -70,6 +70,7 @@ describe('GameStore', () => {
 
     store.importGameSave({
       ...base,
+      currentRunShishki: 999_500,
       buildings: {
         ...base.buildings,
         resaleStall: 4,
@@ -103,7 +104,7 @@ describe('GameStore', () => {
     store.importGameSave({
       ...base,
       shishki: 500,
-      currentRunShishki: 35_000,
+      currentRunShishki: 1_050_000,
       heavenlyShishki: 2,
       totalHeavenlyShishkiEarned: 2,
       tarLumps: 3,
@@ -397,6 +398,7 @@ describe('GameStore', () => {
 
     store.importGameSave({
       ...base,
+      rebirths: 1,
       heavenlyShishki: 1,
       totalHeavenlyShishkiEarned: 1,
     })
@@ -407,6 +409,43 @@ describe('GameStore', () => {
     const clickResult = store.mineShishki()
 
     expect(clickResult.amount).toBeGreaterThan(1)
+  })
+
+  it('scales run upgrade prices by 15 percent per purchase', () => {
+    const base = createFreshState()
+    const store = createStore()
+
+    store.importGameSave({
+      ...base,
+      shishki: 1_000,
+    })
+
+    store.buyUpgrade('warehouseRhythm')
+
+    const boughtUpgrade = store.uiEconomy.upgrades.find(
+      (item) => item.id === 'warehouseRhythm',
+    )
+
+    expect(store.state.upgrades.warehouseRhythm).toBe(1)
+    expect(store.state.shishki).toBe(880)
+    expect(boughtUpgrade?.cost).toBe(138)
+  })
+
+  it('refuses to buy prestige upgrades before the first rebirth', () => {
+    const base = createFreshState()
+    const store = createStore()
+
+    store.importGameSave({
+      ...base,
+      heavenlyShishki: 3,
+      totalHeavenlyShishkiEarned: 3,
+      rebirths: 0,
+    })
+
+    store.buyPrestigeUpgrade('heavenlyTar')
+
+    expect(store.state.heavenlyShishki).toBe(3)
+    expect(store.state.prestigeUpgrades.heavenlyTar).toBe(0)
   })
 
   it('lets discount-type events cheapen early building purchases', () => {
@@ -438,7 +477,7 @@ describe('GameStore', () => {
 
     store.importGameSave({
       ...base,
-      currentRunShishki: 35_000,
+      currentRunShishki: 1_050_000,
       heavenlyShishki: 4,
       totalHeavenlyShishkiEarned: 4,
       prestigeUpgrades: {

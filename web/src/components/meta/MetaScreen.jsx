@@ -16,6 +16,7 @@ export const MetaScreen = observer(function MetaScreen() {
   const canResetPrestige =
     uiPrestige.quotaIndex > 0 ||
     uiPrestige.currentRunShishki >= uiPrestige.currentQuotaTarget
+  const canSpendHeavenly = uiState.rebirths > 0
   const levelableBuildings = uiEconomy.buildings.filter(
     (item) => item.owned > 0,
   )
@@ -115,9 +116,11 @@ export const MetaScreen = observer(function MetaScreen() {
                 type="button"
                 className="shop-card__btn"
                 onClick={() => buyPrestigeUpgrade(item.id)}
-                disabled={uiState.heavenlyShishki < item.cost}
+                disabled={!canSpendHeavenly || uiState.heavenlyShishki < item.cost}
               >
-                {uiState.heavenlyShishki < item.cost
+                {!canSpendHeavenly
+                  ? 'Сначала переродись'
+                  : uiState.heavenlyShishki < item.cost
                   ? 'Нужно больше небесных'
                   : 'Купить'}
               </button>
@@ -153,7 +156,7 @@ export const MetaScreen = observer(function MetaScreen() {
               </div>
               <div className="shop-card__body">
                 <div className="shop-card__effect-line">
-                  Следующий комочек: {atCap ? 'кап' : `${nextCost} шт.`}
+                  Следующий комочек: {atCap ? 'кап' : `${formatNumber(nextCost)} шт.`}
                 </div>
               </div>
               <div className="shop-card__footer">

@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { Lightning, PxlKitIcon, Robot, SparkleSmall } from '../../lib/pxlkit'
+import { formatNumber } from '../../lib/format.js'
 
 function resolveTargetProgress(phase) {
   switch (phase) {
@@ -138,7 +139,7 @@ export const ScreenFallback = ({
                 colorful
                 className="pixel-inline-icon"
               />
-              {completedSteps}/{Math.max(steps.length, 1)} READY
+              {formatNumber(completedSteps)}/{formatNumber(Math.max(steps.length, 1))} READY
             </span>
           </div>
         </div>
@@ -146,7 +147,9 @@ export const ScreenFallback = ({
         <div className="boot-loading-meter">
           <div className="boot-loading-meter__head">
             <div className="settings-card__label">{copy.label}</div>
-            <div className="boot-loading-meter__value">{progress}%</div>
+            <div className="boot-loading-meter__value">
+              {formatNumber(progress)}%
+            </div>
           </div>
 
           <div className="unlock-progress">

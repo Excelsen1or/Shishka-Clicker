@@ -164,6 +164,18 @@ describe('economy schema', () => {
     expect(getEventPresentation('logisticsCongress')).toMatch(/рын/i)
     expect(getEventById('cashbackGlitchChain')?.rarity).toBe('rare')
   })
+
+  it('keeps event descriptions player-facing instead of dev placeholders', () => {
+    expect(getEventPresentation('districtHype')).not.toMatch(
+      /production|push|burst|spike|instant/i,
+    )
+    expect(getEventPresentation('pineBloom')).not.toMatch(
+      /production|push|burst|spike|instant/i,
+    )
+    expect(getEventPresentation('logisticsCongress')).not.toMatch(
+      /production|push|burst|spike|instant/i,
+    )
+  })
 })
 
 describe('economy math', () => {
@@ -171,6 +183,10 @@ describe('economy math', () => {
     expect(getBuildingCost(100, 0)).toBe(100)
     expect(getBuildingCost(100, 1)).toBe(115)
     expect(getBuildingCost(100, 2)).toBe(132)
+  })
+
+  it('sets the first quota target to one million shishki', () => {
+    expect(getQuotaPreview(STARTING_STATE).current).toBe(1_000_000)
   })
 
   it('derives production from buildings and upgrades only', () => {
@@ -519,9 +535,9 @@ describe('economy math', () => {
     expect(discountedQuota.next).toBeLessThan(baseQuota.next)
   })
 
-  it('sets a hard first quota for the first life', () => {
+  it('keeps the first quota floor at one million for the first life', () => {
     expect(getQuotaPreview(STARTING_STATE).current).toBeGreaterThanOrEqual(
-      30_000,
+      1_000_000,
     )
   })
 })

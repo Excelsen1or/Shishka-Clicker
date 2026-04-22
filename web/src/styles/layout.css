@@ -1050,6 +1050,123 @@
   line-height: 1.44;
 }
 
+.market-exchange__event-brief {
+  display: grid;
+  gap: 0.36rem;
+  padding: 0.54rem 0.62rem;
+  border: 2px solid rgb(var(--white-rgb) / 0.08);
+  background:
+    linear-gradient(180deg, rgb(var(--white-rgb) / 0.05), transparent 38%),
+    rgb(var(--surface-2-rgb) / 0.92);
+  box-shadow:
+    inset 0 0 0 1px rgb(var(--black-rgb) / 0.18),
+    4px 4px 0 0 rgb(var(--black-rgb) / 0.14);
+}
+
+.market-exchange__event-steam {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 1.1rem;
+  padding: 0.1rem 0.26rem;
+  border: 2px solid rgb(var(--market-event-accent-rgb, var(--accent-cyan-rgb)) / 0.2);
+  background: linear-gradient(
+    180deg,
+    rgb(var(--market-event-accent-rgb, var(--accent-cyan-rgb)) / 0.18),
+    rgb(var(--market-event-accent-rgb, var(--accent-cyan-rgb)) / 0.08)
+  );
+  box-shadow: inset 0 0 0 1px rgb(var(--black-rgb) / 0.12);
+  color: var(--text-strong);
+  font-family: var(--font-mono);
+  font-size: 0.4rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.market-exchange__event-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.48rem;
+  align-items: start;
+}
+
+.market-exchange__event-icon {
+  width: 1.8rem;
+  height: 1.8rem;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgb(var(--market-event-accent-rgb, var(--accent-cyan-rgb)) / 0.22);
+  background: linear-gradient(
+    180deg,
+    rgb(var(--market-event-accent-rgb, var(--accent-cyan-rgb)) / 0.18),
+    rgb(var(--market-event-accent-rgb, var(--accent-cyan-rgb)) / 0.08)
+  );
+  box-shadow: inset 0 0 0 1px rgb(var(--black-rgb) / 0.12);
+}
+
+.market-exchange__event-icon .pixel-inline-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.market-exchange__event-copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.14rem;
+}
+
+.market-exchange__event-label {
+  color: rgb(var(--white-rgb) / 0.7);
+  font-family: var(--font-mono);
+  font-size: 0.45rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.market-exchange__event-copy strong {
+  color: var(--text-strong);
+  font-size: 0.74rem;
+  line-height: 1.12;
+}
+
+.market-exchange__event-copy > span:last-child {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  line-height: 1.34;
+}
+
+.market-exchange__event-brief--live {
+  border-color: rgb(var(--market-event-accent-rgb, var(--accent-cyan-rgb)) / 0.28);
+  background:
+    linear-gradient(
+      180deg,
+      rgb(var(--market-event-accent-rgb, var(--accent-cyan-rgb)) / 0.18),
+      transparent 22%
+    ),
+    linear-gradient(
+      180deg,
+      rgb(var(--surface-2-rgb) / 0.99),
+      rgb(var(--surface-1-rgb) / 0.96)
+    );
+  box-shadow:
+    inset 0 0 0 2px rgb(var(--black-rgb) / 0.2),
+    8px 8px 0 0 rgb(var(--market-event-glow-rgb, var(--accent-cyan-rgb)) / 0.18);
+}
+
+.market-exchange__event-brief--live::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 4px;
+  height: 4px;
+  background: rgb(var(--market-event-accent-rgb, var(--accent-cyan-rgb)) / 0.92);
+}
+
+.market-exchange__event-brief--idle {
+  opacity: 0.92;
+}
+
 .market-exchange__copy-strip {
   display: flex;
   flex-wrap: wrap;
@@ -1194,6 +1311,10 @@
 .market-exchange__stat--idle {
   border-color: rgb(var(--white-rgb) / 0.08);
   opacity: 0.92;
+}
+
+.market-exchange__stat--wide {
+  grid-column: 1 / -1;
 }
 
 .market-ticker-panel {
@@ -1374,6 +1495,14 @@
 .market-action-tile__buttons--trade {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+}
+
+.market-action-tile__buttons--campaign {
+  width: 100%;
+}
+
+.market-action-tile__buttons--campaign .market-action-btn {
   width: 100%;
 }
 
@@ -1688,6 +1817,10 @@
   .market-exchange__copy-chip {
     font-size: 0.56rem;
   }
+
+  .market-exchange__event-brief {
+    padding: 0.5rem 0.56rem;
+  }
 }
 
 @media (max-width: 940px) {
@@ -1729,6 +1862,10 @@
   .market-exchange__copy-strip {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .market-exchange__event-brief {
+    padding: 0.48rem 0.52rem;
   }
 
   .market-ticker__item {
@@ -3571,10 +3708,18 @@
   min-height: 1.4rem;
 }
 
+.dev-console__line--help {
+  min-height: 0;
+  line-height: 1.22;
+}
+
 .dev-console__line--cmd {
   color: var(--text-muted);
 }
 .dev-console__line--info {
+  color: rgb(183 255 193 / 0.92);
+}
+.dev-console__line--help {
   color: rgb(183 255 193 / 0.92);
 }
 .dev-console__line--meta {

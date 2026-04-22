@@ -152,7 +152,7 @@ export const ClickerScreen = observer(function ClickerScreen() {
                     hint="позиций и кампаний в игре"
                   />
                   <ClickerDeckStat
-                    label="Окно"
+                    label="Ивент"
                     value={activeEvent ? activeEvent.title : 'Спокойно'}
                     hint={
                       activeEvent ? 'событие активно' : 'ждём новый всплеск'

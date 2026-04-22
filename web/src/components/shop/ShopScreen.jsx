@@ -23,6 +23,42 @@ const PURCHASE_VIEWS = {
   },
 }
 
+const UPGRADE_KIND_LABELS = {
+  globalMultiplier: 'Буст производства',
+  clickMultiplier: 'Буст клика',
+  tarLumpMultiplier: 'Ускорение комочков',
+}
+
+function getUpgradeKindLabel(kind) {
+  return UPGRADE_KIND_LABELS[kind] ?? 'Спецэффект цикла'
+}
+
+function getPurchaseDescription(item, isBuildingsView) {
+  if (isBuildingsView) {
+    return `+${formatNumber(item.baseOutput ?? 0)} шишки/сек за покупку`
+  }
+
+  if (item.kind === 'globalMultiplier' || item.kind === 'tarLumpMultiplier') {
+    return `+${formatNumber((item.value ?? 0) * 100)}% к ${
+      item.kind === 'globalMultiplier' ? 'производству' : 'скорости комочков'
+    } за уровень`
+  }
+
+  if (item.kind === 'clickMultiplier') {
+    return `+${formatNumber(item.value ?? 0)} к клику за уровень`
+  }
+
+  return `Эффект за уровень: ${formatNumber(item.value ?? 0)}`
+}
+
+function getPurchaseButtonLabel(item, locked) {
+  if (locked) {
+    return 'Закрыто'
+  }
+
+  return `${formatNumber(item.cost)} шишек`
+}
+
 function LockBlock({ item }) {
   if (item.unlocked) return null
 
@@ -53,7 +89,15 @@ function getEconomyCardFlags(item) {
   }
 }
 
-function EconomyCard({ item, action, visualType, levelText, desc, meta }) {
+function EconomyCard({
+  item,
+  action,
+  visualType,
+  levelText,
+  subLevelText = null,
+  desc,
+  meta,
+}) {
   const { locked } = getEconomyCardFlags(item)
   const disabled = locked
   const { play: playBuySound } = useSound(buySound, { volume: 0.2 })
@@ -160,6 +204,9 @@ function EconomyCard({ item, action, visualType, levelText, desc, meta }) {
         </div>
         <div className="shop-card__chips">
           <span className="shop-card__tier">{levelText}</span>
+          {subLevelText ? (
+            <span className="shop-card__level">{subLevelText}</span>
+          ) : null}
         </div>
       </div>
       <div className="shop-card__body">
@@ -183,7 +230,7 @@ function EconomyCard({ item, action, visualType, levelText, desc, meta }) {
           onClick={handleBuy}
           disabled={disabled}
         >
-          {locked ? 'Закрыто' : item.canBuy ? 'Купить' : 'Не хватает шишек'}
+          {getPurchaseButtonLabel(item, locked)}
         </button>
       </div>
     </article>
@@ -215,7 +262,7 @@ export const ShopScreen = observer(function ShopScreen({
     upgrades: upgradesUnlocked
       ? null
       : {
-          text: 'Вкладка откроется после первых 80 шишек за все жизни.',
+          text: 'Вкладка откроется после первых 80 шишек за всё время.',
           progress: Math.min(
             Math.max(
               0,
@@ -301,20 +348,13 @@ export const ShopScreen = observer(function ShopScreen({
                 <EconomyCard
                   key={item.id}
                   item={item}
-                  desc={
-                    isBuildingsView ? item.perkSummary : `Тип: ${item.kind}`
-                  }
+                  desc={getPurchaseDescription(item, isBuildingsView)}
                   meta={
                     isBuildingsView
-                      ? [
-                          `Куплено: ${formatNumber(item.owned)}`,
-                          `Уровень смолы: ${formatNumber(item.level)}`,
-                          `Цена: ${formatNumber(item.cost)} шишек`,
-                        ]
+                      ? [item.perkSummary]
                       : [
                           `Уровень: ${formatNumber(item.level)}`,
-                          `Цена: ${formatNumber(item.cost)} шишек`,
-                          `Эффект: ${item.kind}`,
+                          `Эффект: ${getUpgradeKindLabel(item.kind)}`,
                         ]
                   }
                   action={() => onBuy(item.id)}
@@ -323,6 +363,9 @@ export const ShopScreen = observer(function ShopScreen({
                     isBuildingsView
                       ? `здание ${formatNumber(item.owned)}`
                       : `ур. ${formatNumber(item.level)}`
+                  }
+                  subLevelText={
+                    isBuildingsView ? `УС ${formatNumber(item.level)}` : null
                   }
                 />
               ))}
@@ -347,20 +390,13 @@ export const ShopScreen = observer(function ShopScreen({
                 <EconomyCard
                   key={item.id}
                   item={item}
-                  desc={
-                    isBuildingsView ? item.perkSummary : `Тип: ${item.kind}`
-                  }
+                  desc={getPurchaseDescription(item, isBuildingsView)}
                   meta={
                     isBuildingsView
-                      ? [
-                          `Куплено: ${formatNumber(item.owned)}`,
-                          `Уровень смолы: ${formatNumber(item.level)}`,
-                          `Цена: ${formatNumber(item.cost)} шишек`,
-                        ]
+                      ? [item.perkSummary]
                       : [
                           `Уровень: ${formatNumber(item.level)}`,
-                          `Цена: ${formatNumber(item.cost)} шишек`,
-                          `Эффект: ${item.kind}`,
+                          `Эффект: ${getUpgradeKindLabel(item.kind)}`,
                         ]
                   }
                   action={() => onBuy(item.id)}
@@ -369,6 +405,9 @@ export const ShopScreen = observer(function ShopScreen({
                     isBuildingsView
                       ? `здание ${formatNumber(item.owned)}`
                       : `ур. ${formatNumber(item.level)}`
+                  }
+                  subLevelText={
+                    isBuildingsView ? `УС ${formatNumber(item.level)}` : null
                   }
                 />
               ))}

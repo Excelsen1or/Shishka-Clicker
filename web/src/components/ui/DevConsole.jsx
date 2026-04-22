@@ -4,19 +4,30 @@ import { Gem, Lightning, PxlKitIcon, Scroll } from '../../lib/pxlkit'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
 import { formatNumber } from '../../lib/format'
 import wrongImg from '../../assets/wrong.png'
+import xackerImg from '../../assets/xacker.png'
 import { useSound } from '../../hooks/useSound.js'
 import denySound from '../../assets/audio/ui/wpn_denyselect.mp3'
 import { ConeIcon } from './ConeIcon.jsx'
 import {
-  DEV_CONSOLE_COMMANDS_DESC,
   DEV_CONSOLE_EMPTY_LOG_HINT,
   DEV_CONSOLE_RESOURCES,
+  USER_CONSOLE_COMMANDS_DESC,
   buildDevConsoleStatusLine,
   getDevConsoleCheatsHelpLines,
   parseDevCommand,
 } from './devConsoleCommands.js'
 
 const PRESETS = [1e3, 1e4, 100e3, 1e6, 1e9]
+const DEV_CONSOLE_STATE_KEY = 'shishka-clicker-dev-console-v1'
+const QA_ACTIONS = [
+  { id: 'tick60', label: 'Тик +60с', command: 'tick 60' },
+  { id: 'market', label: 'Открыть рынок', command: 'market unlock' },
+  { id: 'event', label: 'Районный хайп', command: 'event districtHype' },
+  { id: 'campaign', label: 'Ледяной флексер', command: 'campaign iceFlexer' },
+  { id: 'quota', label: 'Квота готова', command: 'quota ready' },
+  { id: 'rebirth', label: 'Ребёрс', command: 'rebirth' },
+  { id: 'clear', label: 'Сбросить шум', command: 'event clear' },
+]
 
 const RESOURCE_ICONS = {
   shishki: <ConeIcon />,
@@ -33,6 +44,44 @@ const RESOURCE_ICONS = {
   ),
 }
 
+function loadDevConsoleState() {
+  if (typeof window === 'undefined') {
+    return { consoleOpen: false, cheatsEnabled: false }
+  }
+
+  try {
+    const raw = window.localStorage.getItem(DEV_CONSOLE_STATE_KEY)
+    if (!raw) {
+      return { consoleOpen: false, cheatsEnabled: false }
+    }
+
+    const parsed = JSON.parse(raw)
+
+    return {
+      consoleOpen: parsed?.consoleOpen === true,
+      cheatsEnabled: parsed?.cheatsEnabled === true,
+    }
+  } catch {
+    return { consoleOpen: false, cheatsEnabled: false }
+  }
+}
+
+function saveDevConsoleState(nextState) {
+  if (typeof window === 'undefined') return
+
+  try {
+    window.localStorage.setItem(
+      DEV_CONSOLE_STATE_KEY,
+      JSON.stringify({
+        consoleOpen: nextState.consoleOpen === true,
+        cheatsEnabled: nextState.cheatsEnabled === true,
+      }),
+    )
+  } catch {
+    // ignore dev-console storage failures
+  }
+}
+
 function getResourceAlias(storeKey) {
   return (
     DEV_CONSOLE_RESOURCES.find((resource) => resource.storeKey === storeKey)
@@ -40,16 +89,27 @@ function getResourceAlias(storeKey) {
   )
 }
 
-const DevConsolePanel = observer(function DevConsolePanel() {
-  const { devConsoleResources, _devGiveResource, _devSetResource } =
-    useGameStore()
-  const [cheatsEnabled, setCheatsEnabled] = useState(false)
+const DevConsolePanel = observer(function DevConsolePanel({
+  cheatsEnabled,
+  setCheatsEnabled,
+}) {
+  const {
+    devConsoleResources,
+    _devGiveResource,
+    _devSetResource,
+    _devTick,
+    _devSetEvent,
+    _devSetCampaign,
+    _devSetMarketUnlocked,
+    _devSetQuotaReady,
+    _devDoRebirth,
+  } = useGameStore()
   const [inputValue, setInputValue] = useState('')
   const [log, setLog] = useState([])
   const footerRef = useRef(null)
   const inputRef = useRef(null)
   const overlayTimerRef = useRef(null)
-  const [showWrongOverlay, setShowWrongOverlay] = useState(false)
+  const [overlayState, setOverlayState] = useState(null)
   const { play } = useSound(denySound, { volume: 0.1 })
 
   const pushLog = useCallback((text, type = 'info') => {
@@ -64,15 +124,11 @@ const DevConsolePanel = observer(function DevConsolePanel() {
     clear: () => setLog([]),
     help: () => {
       pushLog('AVAILABLE COMMANDS', 'meta')
-      Object.entries(DEV_CONSOLE_COMMANDS_DESC).forEach(
+      Object.entries(USER_CONSOLE_COMMANDS_DESC).forEach(
         ([command, description]) => {
-          pushLog(`${command} :: ${description}`, 'info')
+          pushLog(`${command} :: ${description}`, 'help')
         },
       )
-    },
-    'sv.www true': () => {
-      setCheatsEnabled(true)
-      pushLog('success')
     },
   }
 
@@ -88,73 +144,188 @@ const DevConsolePanel = observer(function DevConsolePanel() {
     footerRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [log])
 
+  const flashOverlay = useCallback(
+    async (image, alt) => {
+      setOverlayState({ image, alt })
+      window.clearTimeout(overlayTimerRef.current)
+      overlayTimerRef.current = window.setTimeout(
+        () => setOverlayState(null),
+        1600,
+      )
+      await play()
+    },
+    [play],
+  )
+
   const flashWrongOverlay = useCallback(async () => {
-    setShowWrongOverlay(true)
-    window.clearTimeout(overlayTimerRef.current)
-    overlayTimerRef.current = window.setTimeout(
-      () => setShowWrongOverlay(false),
-      1600,
-    )
-    await play()
-  }, [play])
+    await flashOverlay(wrongImg, 'wrong')
+  }, [flashOverlay])
+
+  const flashXackerOverlay = useCallback(async () => {
+    await flashOverlay(xackerImg, 'xacker')
+  }, [flashOverlay])
+
+  const setCheatsMode = useCallback(
+    (enabled) => {
+      setCheatsEnabled(enabled)
+      pushLog(
+        enabled
+          ? 'Режим разработчика активирован.'
+          : 'Режим разработчика выключен.',
+        enabled ? 'success' : 'warn',
+      )
+    },
+    [pushLog, setCheatsEnabled],
+  )
+
+  const handleBaseCommand = useCallback(
+    async (cmd) => {
+      if (cmd === 'help' && cheatsEnabled) {
+        return false
+      }
+
+      if (cmd in commands) {
+        commands[cmd]()
+        return true
+      }
+
+      const parsed = parseDevCommand(cmd)
+
+      if (parsed.type === 'toggleCheats') {
+        setCheatsMode(parsed.enabled)
+        return true
+      }
+
+      if (parsed.type === 'troll') {
+        pushLog('ди нафик дебил', 'error')
+        await flashXackerOverlay()
+        return true
+      }
+
+      return false
+    },
+    [cheatsEnabled, commands, flashXackerOverlay, pushLog, setCheatsMode],
+  )
 
   const handleSubmit = async (event) => {
     event.preventDefault()
     const cmd = inputValue.trim()
     if (!cmd) return
-
     setInputValue('')
-    pushLog(`> ${cmd}`, 'cmd')
+    await runCommand(cmd)
+  }
 
-    if (!cheatsEnabled) {
-      if (cmd in commands) {
-        commands[cmd]()
+  const runCommand = useCallback(
+    async (cmd) => {
+      pushLog(`> ${cmd}`, 'cmd')
+
+      if (await handleBaseCommand(cmd)) {
+        return
+      }
+
+      if (!cheatsEnabled) {
+        pushLog('error')
+        await flashWrongOverlay()
+        return
+      }
+
+      if (cmd === 'help') {
+        getDevConsoleCheatsHelpLines().forEach((line) => pushLog(line, 'help'))
+        return
+      }
+
+      const parsed = parseDevCommand(cmd)
+      if (parsed.type === 'status') {
+        pushLog(buildDevConsoleStatusLine(devConsoleResources), 'info')
+        return
+      }
+
+      if (parsed.type === 'give') {
+        _devGiveResource(parsed.key, parsed.value)
+        pushLog(
+          `+${formatNumber(parsed.value)} к ${getResourceAlias(parsed.key)}`,
+          'success',
+        )
+        return
+      }
+
+      if (parsed.type === 'set') {
+        _devSetResource(parsed.key, parsed.value)
+        pushLog(
+          `${getResourceAlias(parsed.key)} = ${formatNumber(parsed.value)}`,
+          'success',
+        )
+        return
+      }
+
+      if (parsed.type === 'tick') {
+        _devTick(parsed.seconds)
+        pushLog(`Промотано ${formatNumber(parsed.seconds)} сек.`, 'success')
+        return
+      }
+
+      if (parsed.type === 'event') {
+        _devSetEvent(parsed.eventId)
+        pushLog(
+          parsed.eventId
+            ? `Ивент запущен: ${parsed.eventId}`
+            : 'Ивент очищен.',
+          'success',
+        )
+        return
+      }
+
+      if (parsed.type === 'campaign') {
+        _devSetCampaign(parsed.campaignId)
+        pushLog(
+          parsed.campaignId
+            ? `Прогрев запущен: ${parsed.campaignId}`
+            : 'Прогрев очищен.',
+          'success',
+        )
+        return
+      }
+
+      if (parsed.type === 'marketToggle') {
+        _devSetMarketUnlocked(parsed.enabled)
+        pushLog(
+          parsed.enabled ? 'Рынок принудительно открыт.' : 'Рынок принудительно закрыт.',
+          'success',
+        )
+        return
+      }
+
+      if (parsed.type === 'quotaReady') {
+        const quotaValue = _devSetQuotaReady()
+        pushLog(`Квота доведена до ${formatNumber(quotaValue)}.`, 'success')
+        return
+      }
+
+      if (parsed.type === 'rebirth') {
+        const ok = _devDoRebirth()
+        pushLog(ok ? 'Перерождение выполнено.' : 'Квота ещё не готова.', ok ? 'success' : 'warn')
         return
       }
 
       pushLog('error')
       await flashWrongOverlay()
-      return
-    }
-
-    if (cmd === 'sv.cheats false') {
-      setCheatsEnabled(false)
-      pushLog('Читы деактивированы.', 'warn')
-      return
-    }
-
-    if (cmd === 'help') {
-      getDevConsoleCheatsHelpLines().forEach((line) => pushLog(line, 'info'))
-      return
-    }
-
-    const parsed = parseDevCommand(cmd)
-    if (parsed.type === 'status') {
-      pushLog(buildDevConsoleStatusLine(devConsoleResources), 'info')
-      return
-    }
-
-    if (parsed.type === 'give') {
-      _devGiveResource(parsed.key, parsed.value)
-      pushLog(
-        `+${formatNumber(parsed.value)} к ${getResourceAlias(parsed.key)}`,
-        'success',
-      )
-      return
-    }
-
-    if (parsed.type === 'set') {
-      _devSetResource(parsed.key, parsed.value)
-      pushLog(
-        `${getResourceAlias(parsed.key)} = ${formatNumber(parsed.value)}`,
-        'success',
-      )
-      return
-    }
-
-    pushLog('error')
-    await flashWrongOverlay()
-  }
+    },
+    [
+      _devDoRebirth,
+      _devGiveResource,
+      _devSetCampaign,
+      _devSetEvent,
+      _devSetMarketUnlocked,
+      _devSetQuotaReady,
+      _devSetResource,
+      _devTick,
+      cheatsEnabled,
+      devConsoleResources,
+      flashWrongOverlay,
+      handleBaseCommand,
+      pushLog,
+    ],
+  )
 
   function giveResource(key, amount) {
     _devGiveResource(key, amount)
@@ -216,9 +387,9 @@ const DevConsolePanel = observer(function DevConsolePanel() {
         <div ref={footerRef} />
       </div>
 
-      {showWrongOverlay ? (
+      {overlayState ? (
         <div className="dev-console__wrong-overlay">
-          <img src={wrongImg} alt="wrong" />
+          <img src={overlayState.image} alt={overlayState.alt} />
         </div>
       ) : null}
 
@@ -230,7 +401,9 @@ const DevConsolePanel = observer(function DevConsolePanel() {
           value={inputValue}
           onChange={(event) => setInputValue(event.target.value)}
           placeholder={
-            cheatsEnabled ? 'help / give / set / status' : 'Введите команду...'
+            cheatsEnabled
+              ? 'help / tick / event / campaign / quota / rebirth'
+              : 'Введите команду...'
           }
           spellCheck={false}
           autoComplete="off"
@@ -239,6 +412,20 @@ const DevConsolePanel = observer(function DevConsolePanel() {
 
       {cheatsEnabled ? (
         <div className="dev-admin">
+          <div className="dev-admin__title">QA Shortcuts</div>
+          <div className="dev-admin__presets">
+            {QA_ACTIONS.map((action) => (
+              <button
+                key={action.id}
+                type="button"
+                className="dev-admin__btn"
+                onClick={() => void runCommand(action.command)}
+              >
+                {action.label}
+              </button>
+            ))}
+          </div>
+
           <div className="dev-admin__title">Resource Patches</div>
           <div className="dev-admin__grid">
             {DEV_CONSOLE_RESOURCES.map((resource) => (
@@ -290,7 +477,28 @@ const DevConsolePanel = observer(function DevConsolePanel() {
 })
 
 export function DevConsole() {
-  const [consoleOpen, setConsoleOpen] = useState(false)
+  const [consoleState, setConsoleState] = useState(() => loadDevConsoleState())
+  const { consoleOpen, cheatsEnabled } = consoleState
+
+  const setConsoleOpen = useCallback((nextValue) => {
+    setConsoleState((current) => ({
+      ...current,
+      consoleOpen:
+        typeof nextValue === 'function'
+          ? nextValue(current.consoleOpen)
+          : nextValue,
+    }))
+  }, [])
+
+  const setCheatsEnabled = useCallback((nextValue) => {
+    setConsoleState((current) => ({
+      ...current,
+      cheatsEnabled:
+        typeof nextValue === 'function'
+          ? nextValue(current.cheatsEnabled)
+          : nextValue,
+    }))
+  }, [])
 
   useEffect(() => {
     function onKeyDown(event) {
@@ -306,7 +514,11 @@ export function DevConsole() {
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
+  }, [setConsoleOpen])
+
+  useEffect(() => {
+    saveDevConsoleState(consoleState)
+  }, [consoleState])
 
   if (!consoleOpen) return null
 
@@ -321,7 +533,10 @@ export function DevConsole() {
         >
           ×
         </button>
-        <DevConsolePanel />
+        <DevConsolePanel
+          cheatsEnabled={cheatsEnabled}
+          setCheatsEnabled={setCheatsEnabled}
+        />
       </div>
     </div>
   )

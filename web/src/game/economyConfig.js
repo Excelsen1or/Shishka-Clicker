@@ -1,5 +1,5 @@
 export const QUOTA_RULES = {
-  baseQuota: 30_000,
+  baseQuota: 1_000_000,
   quotaGrowth: 2.85,
 }
 

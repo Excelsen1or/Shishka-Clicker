@@ -390,6 +390,10 @@
 }
 
 .shop-card__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: start;
   padding-bottom: 0.34rem;
   border-bottom: 2px solid rgb(var(--white-rgb) / 0.08);
 }
@@ -464,10 +468,11 @@
 
 .shop-card__chips {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  flex-direction: column;
   gap: 0.28rem;
-  justify-content: center;
-  align-items: center;
+  justify-content: flex-start;
+  align-items: flex-end;
   min-width: 0;
 }
 
@@ -1045,8 +1050,8 @@
 
   .shop-card__chips {
     width: auto;
-    flex-wrap: wrap;
     justify-content: flex-start;
+    align-items: flex-end;
     overflow: visible;
   }
 
@@ -1152,7 +1157,8 @@
 
   .shop-card__chips {
     width: 100%;
-    justify-content: center;
+    flex-direction: row;
+    justify-content: flex-end;
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: none;

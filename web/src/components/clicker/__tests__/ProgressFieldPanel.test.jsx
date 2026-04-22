@@ -143,7 +143,7 @@ describe('ProgressFieldPanel', () => {
             },
             upgrades: {
               unlocked: false,
-              text: 'Откроется после первых 80 шишек за все жизни.',
+              text: 'Откроется после первых 80 шишек за всё время.',
               progress: 12,
               goal: 80,
             },

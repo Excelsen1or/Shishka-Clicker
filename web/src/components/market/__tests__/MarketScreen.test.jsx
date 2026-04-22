@@ -7,6 +7,25 @@ import { MarketScreen } from '../MarketScreen.jsx'
 const store = {
   gameStore: {
     uiEconomy: {
+      buildings: [
+        { id: 'garagePicker', title: 'Сборщик шишек у гаражей', unlocked: true },
+        { id: 'pickupPoint', title: 'ПВЗ на окраине', unlocked: true },
+        { id: 'greySorting', title: 'Серая сортировка', unlocked: true },
+        {
+          id: 'selfEmployedCrew',
+          title: 'Бригада самозанятых',
+          unlocked: false,
+        },
+        {
+          id: 'resaleStall',
+          title: 'Ларёк перепродажи',
+          cost: 28000,
+          unlocked: false,
+          unlockRule: {
+            shishki: 25200,
+          },
+        },
+      ],
       marketGoods: [
         {
           id: 'parallelImport',
@@ -70,6 +89,7 @@ const store = {
     },
     uiState: {
       shishki: 500,
+      lifetimeShishkiEarned: 10000,
       activeEvent: {
         id: 'districtHype',
         title: 'Районный хайп',
@@ -109,11 +129,15 @@ describe('MarketScreen', () => {
     expect(html).toContain('Баланс')
     expect(html).toContain('Брокер')
     expect(html).toContain('Районный хайп')
+    expect(html).toContain('Короткий районный хайп')
+    expect(html).not.toContain('<span>Ивент</span>')
     expect(html).toContain('Куп 1')
     expect(html).toContain('Комиссия')
     expect(html).toContain('Прод 1')
-    expect(html).toContain('До 5')
-    expect(html).toContain('Всё')
+    expect(html).toContain('Запустить')
+    expect(html).toContain('8K')
+    expect(html).toContain('прод 5')
+    expect(html).toContain('слить')
     expect(html).toContain('Закрытые активы')
     expect(html).toContain('Инфокурс по маркетплейсам')
     expect(html).not.toContain('undefined / undefined')
@@ -149,6 +173,8 @@ describe('MarketScreen', () => {
     expect(html).toContain('Покупки')
     expect(html).toContain('Здания')
     expect(html).toContain('Прогресс разблокировки')
+    expect(html).toContain('Осталось заработать 15,2K шишек')
+    expect(html).toContain('Открыто зданий: 3 / 5')
     expect(html).not.toContain('Купить 1 Параллельный завоз')
   })
 })

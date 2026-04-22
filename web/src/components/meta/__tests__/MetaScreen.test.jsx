@@ -41,4 +41,45 @@ describe('MetaScreen', () => {
     expect(html).toContain('Старт следующей жизни')
     expect(html).toContain('50')
   })
+
+  it('blocks heavenly spending before the first rebirth', () => {
+    const html = renderToStaticMarkup(
+      <StoresContext.Provider
+        value={{
+          gameStore: {
+            uiState: {
+              rebirths: 0,
+              heavenlyShishki: 2,
+              tarLumps: 0,
+              prestigeUpgrades: {},
+            },
+            uiPrestige: {
+              quotaIndex: 1,
+              currentRunShishki: 1_000_000,
+              currentQuotaTarget: 1_000_000,
+              nextQuotaTarget: 2_850_000,
+            },
+            uiEconomy: {
+              prestigeUpgrades: [
+                {
+                  id: 'heavenlyTar',
+                  title: 'Небесная смола',
+                  level: 0,
+                  cost: 1,
+                },
+              ],
+              buildings: [],
+            },
+            prestigeReset: () => {},
+            buyPrestigeUpgrade: () => {},
+            upgradeBuildingLevel: () => {},
+          },
+        }}
+      >
+        <MetaScreen />
+      </StoresContext.Provider>,
+    )
+
+    expect(html).toContain('Сначала переродись')
+  })
 })

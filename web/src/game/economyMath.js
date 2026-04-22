@@ -114,17 +114,17 @@ const BUILDING_PERK_STEPS = {
 }
 const EVENT_PRESENTATION = {
   tarStorm:
-    'Тяжёлая буря по таровым лотам: режет прод и качает рынок таровых бочек.',
+    'Тяжёлая буря по дефицитным коробкам: производство проседает, а рынок сильно трясёт.',
   districtHype:
-    'Короткий районный прогрев: instant награда, сильнее клик и лучше шум.',
+    'Короткий районный хайп: сразу приносит награду, усиливает клик и поднимает шум вокруг рынка.',
   fieldAudit:
-    'Смешанное окно: клик растёт, прод проседает, но покупки идут со скидкой.',
+    'Проверка с подвохом: клик становится сильнее, производство слегка проседает, зато покупки идут со скидкой.',
   routeOverflow:
-    'Маршруты захлебнулись: клик и прод проседают, лучше переждать.',
+    'Маршруты захлебнулись: и клик, и производство проседают, так что лучше переждать этот сбой.',
   pineBloom:
-    'Шишечное цветение: мягкий production burst и приятный push квоты.',
+    'Шишечное цветение: производство заметно растёт, а квота закрывается ощутимо быстрее.',
   logisticsCongress:
-    'Конгресс логистики: сильный production spike и рыночный всплеск на завозе.',
+    'Конгресс логистики: даёт сильный разгон производству и заметно оживляет рынок завоза.',
 }
 
 function getBreakpointIndex(level) {
@@ -201,6 +201,10 @@ export function getMarketFeeRate(state) {
 
 export function getBuildingCost(baseCost, owned) {
   return Math.floor(baseCost * Math.pow(1.15, owned) + 1e-9)
+}
+
+export function getRunUpgradeCost(baseCost, level) {
+  return Math.floor(baseCost * Math.pow(1.15, level) + 1e-9)
 }
 
 export function getQuotaTarget(baseQuota, quotaGrowth, quotaIndex) {
