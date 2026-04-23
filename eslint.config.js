@@ -21,6 +21,9 @@ export default [
       globals: {
         ...globals.browser,
         ...globals.node,
+        __APP_BUILD_ID__: 'readonly',
+        __APP_BUILD_TIME__: 'readonly',
+        process: 'readonly',
       },
       parserOptions: {
         ecmaFeatures: {
