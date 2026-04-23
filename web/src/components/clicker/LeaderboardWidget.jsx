@@ -11,6 +11,30 @@ export const LEADERBOARD_TABS = [
   { id: 'time', label: 'время', icon: Crown },
 ]
 
+export function getLeaderboardRankToneClass(index) {
+  if (index === 0) return 'leaderboard-widget__row--gold'
+  if (index === 1) return 'leaderboard-widget__row--silver'
+  if (index === 2) return 'leaderboard-widget__row--bronze'
+  return ''
+}
+
+function normalizeLeaderboardIdentity(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : ''
+}
+
+export function isCurrentLeaderboardPlayer(entry, user) {
+  const entryName = normalizeLeaderboardIdentity(entry?.username)
+  const currentName = normalizeLeaderboardIdentity(
+    user?.global_name ?? user?.username,
+  )
+
+  if (!entryName || !currentName) {
+    return false
+  }
+
+  return entryName === currentName
+}
+
 function getStateCopy(state) {
   switch (state) {
     case 'LOADING':
@@ -58,6 +82,9 @@ export const LeaderboardWidget = observer(function LeaderboardWidget({
     activeTab === 'time'
       ? formatDurationCompact(topValue)
       : formatNumber(topValue)
+  const currentUserEntry = entries.find((entry) =>
+    isCurrentLeaderboardPlayer(entry, websocketStore.user),
+  )
 
   return (
     <aside
@@ -83,7 +110,10 @@ export const LeaderboardWidget = observer(function LeaderboardWidget({
           colorful
           className="pixel-inline-icon"
         />
-        <span>TOP-5</span>
+        <span className="leaderboard-widget__toggle-copy">
+          <strong>TOP-5</strong>
+          <small>рейтинга</small>
+        </span>
       </button>
 
       {isOpen ? (
@@ -106,6 +136,13 @@ export const LeaderboardWidget = observer(function LeaderboardWidget({
               <strong>{summaryValue}</strong>
             </div>
           </div>
+
+          {currentUserEntry ? (
+            <div className="leaderboard-widget__status-badge pixel-badge">
+              <span>ты в топе</span>
+              <strong>{currentUserEntry.username}</strong>
+            </div>
+          ) : null}
 
           <div
             className="leaderboard-widget__tabs"
@@ -143,10 +180,29 @@ export const LeaderboardWidget = observer(function LeaderboardWidget({
               entries.map((entry, index) => (
                 <div
                   key={`${activeTab}-${entry.username}-${index}`}
-                  className="leaderboard-widget__row pixel-surface"
+                  className={[
+                    'leaderboard-widget__row',
+                    'pixel-surface',
+                    getLeaderboardRankToneClass(index),
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
                 >
-                  <div className="leaderboard-widget__player">
+                  {index === 0 ? (
+                    <div className="leaderboard-widget__crown-strip">
+                      <PxlKitIcon
+                        icon={Crown}
+                        size={12}
+                        colorful
+                        className="pixel-inline-icon"
+                      />
+                      <span>лидер сезона</span>
+                    </div>
+                  ) : null}
+                  <div className="leaderboard-widget__placement">
                     <span className="leaderboard-widget__rank">#{index + 1}</span>
+                  </div>
+                  <div className="leaderboard-widget__player">
                     <span className="leaderboard-widget__player-copy">
                       <span className="leaderboard-widget__name">
                         {entry.username}
@@ -156,7 +212,14 @@ export const LeaderboardWidget = observer(function LeaderboardWidget({
                       </span>
                     </span>
                   </div>
-                  <div className="leaderboard-widget__value">
+                  <div
+                    className="leaderboard-widget__value"
+                    title={
+                      activeTab === 'time'
+                        ? formatDurationCompact(entry[activeTab] ?? 0)
+                        : String(entry[activeTab] ?? 0)
+                    }
+                  >
                     {activeTab === 'time'
                       ? formatDurationCompact(entry[activeTab] ?? 0)
                       : formatNumber(entry[activeTab] ?? 0)}
