@@ -725,6 +725,7 @@ export function DiscordActivityProvider({ children }) {
       if (blocker) {
         setState((current) => ({
           ...current,
+          presenceState: 'error',
           presenceError: blocker,
         }))
         return false
@@ -740,6 +741,12 @@ export function DiscordActivityProvider({ children }) {
       }
 
       try {
+        setState((current) => ({
+          ...current,
+          presenceState: 'syncing',
+          presenceError: null,
+        }))
+
         await setDiscordRichPresence(activity)
         lastPresenceSignatureRef.current = signature
 
