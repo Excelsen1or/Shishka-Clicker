@@ -5,6 +5,7 @@ const DISCORD_READY_TIMEOUT_MS = 5000
 const DISCORD_AUTHORIZE_TIMEOUT_MS = 10000
 const DISCORD_AUTHENTICATE_TIMEOUT_MS = 10000
 const DISCORD_TOKEN_EXCHANGE_TIMEOUT_MS = 10000
+const DISCORD_SET_ACTIVITY_TIMEOUT_MS = 8000
 
 export function shouldLoadDiscordSdk({
   hasWindow = typeof window !== 'undefined',
@@ -182,7 +183,11 @@ export async function setDiscordRichPresence(activity) {
     return false
   }
 
-  await discordSdk.commands.setActivity({ activity }).catch((error) => {
+  await withTimeout(
+    discordSdk.commands.setActivity({ activity }),
+    DISCORD_SET_ACTIVITY_TIMEOUT_MS,
+    'discord_set_activity',
+  ).catch((error) => {
     throw toDiscordError('discord_set_activity', error)
   })
   return true

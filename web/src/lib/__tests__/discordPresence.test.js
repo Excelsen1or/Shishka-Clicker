@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { buildDiscordRichPresence } from '../discordPresence.js'
+import {
+  buildDiscordRichPresence,
+  getExternalPresenceImageUrl,
+} from '../discordPresence.js'
 
 describe('buildDiscordRichPresence', () => {
   it('uses market copy and shishka metrics for the market tab', () => {
@@ -43,5 +46,34 @@ describe('buildDiscordRichPresence', () => {
 
     expect(presence.details).toBe('Следит за мета-прогрессом')
     expect(presence.state).toBe('Небесные: 9 • Комки: 4')
+  })
+
+  it('does not attach external assets by default', () => {
+    const presence = buildDiscordRichPresence({
+      activeTab: 'clicker',
+      gameState: {
+        shishki: 100,
+      },
+      economy: {
+        shishkiPerSecond: 2,
+        clickPower: 1,
+      },
+      startedAt: 1_700_000_000,
+    })
+
+    expect(presence.assets).toBeUndefined()
+  })
+})
+
+describe('getExternalPresenceImageUrl', () => {
+  it('returns the explicit env override when provided', () => {
+    expect(
+      getExternalPresenceImageUrl({
+        env: {
+          VITE_DISCORD_ACTIVITY_LARGE_IMAGE_URL:
+            'https://cdn.example.com/presence.png',
+        },
+      }),
+    ).toBe('https://cdn.example.com/presence.png')
   })
 })

@@ -69,30 +69,15 @@ function buildPresenceState(activeTab, gameState, economy) {
     .join(' • ')
 }
 
-function getExternalPresenceImageUrl() {
-  const overrideUrl = import.meta.env.VITE_DISCORD_ACTIVITY_LARGE_IMAGE_URL
+export function getExternalPresenceImageUrl({
+  env = import.meta.env,
+} = {}) {
+  const overrideUrl = env.VITE_DISCORD_ACTIVITY_LARGE_IMAGE_URL
   if (overrideUrl) {
     return overrideUrl
   }
 
-  if (typeof window === 'undefined') {
-    return null
-  }
-
-  const hostname = window.location.hostname
-  const isLocalHost =
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1' ||
-    hostname.endsWith('.local')
-
-  if (isLocalHost) {
-    return null
-  }
-
-  return new URL(
-    '/discord-rich-presence.png',
-    window.location.origin,
-  ).toString()
+  return null
 }
 
 export function buildDiscordRichPresence({
