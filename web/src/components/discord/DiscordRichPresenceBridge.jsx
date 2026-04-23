@@ -6,6 +6,9 @@ import { useNav } from '../../context/NavContext.jsx'
 import { deriveEconomy } from '../../game/config.js'
 import { buildDiscordRichPresence } from '../../lib/discordPresence.js'
 
+const PRESENCE_RETRY_DELAY_MS = 250
+const PRESENCE_MAX_ATTEMPTS = 8
+
 export const DiscordRichPresenceBridge = observer(
   function DiscordRichPresenceBridge() {
     const { activeTab } = useNav()
@@ -44,18 +47,16 @@ export const DiscordRichPresenceBridge = observer(
         }
 
         attempt += 1
-        if (attempt >= 5) {
+        if (attempt >= PRESENCE_MAX_ATTEMPTS) {
           return
         }
 
         timeoutId = window.setTimeout(() => {
           void tryUpdatePresence()
-        }, 1200)
+        }, PRESENCE_RETRY_DELAY_MS)
       }
 
-      timeoutId = window.setTimeout(() => {
-        void tryUpdatePresence()
-      }, 500)
+      void tryUpdatePresence()
 
       return () => {
         cancelled = true

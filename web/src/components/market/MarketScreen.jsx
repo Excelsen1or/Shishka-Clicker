@@ -2,7 +2,7 @@ import { observer } from 'mobx-react-lite'
 import { getMarketFeeRate } from '../../game/economyMath.js'
 import { getEventPresentation } from '../../game/economyMath.js'
 import { getEventVisual } from '../../game/marketEventVisuals.js'
-import { PxlKitIcon } from '../../lib/pxlkit'
+import { AnimatedPxlKitIcon, isAnimatedIcon, PxlKitIcon } from '../../lib/pxlkit'
 
 import { formatNumber } from '../../lib/format.js'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
@@ -73,6 +73,9 @@ export const MarketScreen = observer(function MarketScreen() {
   const activeEventDescription = activeEvent
     ? getEventPresentation(activeEvent.id)
     : 'Сейчас тихо: рынок двигается без активного ивента.'
+  const ActiveEventIcon = isAnimatedIcon(activeEventVisual.icon)
+    ? AnimatedPxlKitIcon
+    : PxlKitIcon
 
   return (
     <section
@@ -94,7 +97,7 @@ export const MarketScreen = observer(function MarketScreen() {
                 Покупай активы дешевле, жди рост цены и продавай в плюс. Следи
                 за ивентами и прогревами: они меняют рынок.
               </p>
-              <p
+              <div
                 className={`market-exchange__event-brief ${hasActiveWindow ? 'market-exchange__event-brief--live' : 'market-exchange__event-brief--idle'}`.trim()}
                 style={{
                   '--market-event-accent-rgb': activeEventVisual.accentRgb,
@@ -106,24 +109,24 @@ export const MarketScreen = observer(function MarketScreen() {
                 </span>
                 <span className="market-exchange__event-row">
                   <span className="market-exchange__event-icon">
-                    <PxlKitIcon
+                    <ActiveEventIcon
                       icon={activeEventVisual.icon}
                       size={18}
                       colorful
                       className="pixel-inline-icon"
                     />
                   </span>
-                  <span className="market-exchange__event-copy">
-                    <span className="market-exchange__event-label">
-                      {hasActiveWindow ? 'Ивент начался' : 'Спокойный рынок'}
-                    </span>
-                    <strong>
+                    <span className="market-exchange__event-copy">
+                      <span className="market-exchange__event-label">
+                        {hasActiveWindow ? 'Ивент начался' : 'Спокойный рынок'}
+                      </span>
+                      <strong>
                       {activeEvent ? activeEvent.title : 'ивент: тихо'}
                     </strong>
                     <span>{activeEventDescription}</span>
+                    </span>
                   </span>
-                </span>
-              </p>
+              </div>
               <div className="market-exchange__copy-strip"></div>
             </div>
 
