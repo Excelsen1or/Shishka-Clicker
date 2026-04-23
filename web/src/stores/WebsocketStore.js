@@ -15,6 +15,7 @@ export default class WebsocketStore {
     shishki: [],
     shards: [],
     clicks: [],
+    time: [],
   }
   state = WEBSOCKET_STATE.LOADING
   started = false
@@ -69,6 +70,9 @@ export default class WebsocketStore {
           : [],
         clicks: Array.isArray(payload?.leaderboards?.clicks)
           ? payload.leaderboards.clicks
+          : [],
+        time: Array.isArray(payload?.leaderboards?.time)
+          ? payload.leaderboards.time
           : [],
       }
 

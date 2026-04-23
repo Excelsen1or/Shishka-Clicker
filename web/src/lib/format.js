@@ -40,6 +40,50 @@ export function formatFullNumber(number) {
   return fullFormatter.format(number)
 }
 
+function normalizeDurationSeconds(value) {
+  const parsed = Number(value ?? 0)
+
+  if (!Number.isFinite(parsed)) {
+    return 0
+  }
+
+  return Math.max(0, Math.floor(parsed))
+}
+
+export function formatDurationCompact(totalSeconds) {
+  const seconds = normalizeDurationSeconds(totalSeconds)
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = seconds % 60
+
+  if (hours > 0) {
+    return `${hours}ч ${minutes}м`
+  }
+
+  if (minutes > 0) {
+    return `${minutes}м ${remainingSeconds}с`
+  }
+
+  return `${remainingSeconds}с`
+}
+
+export function formatDurationDetailed(totalSeconds) {
+  const seconds = normalizeDurationSeconds(totalSeconds)
+  const days = Math.floor(seconds / 86400)
+  const hours = Math.floor((seconds % 86400) / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+
+  if (days > 0) {
+    return `${days} д ${hours} ч`
+  }
+
+  if (hours > 0) {
+    return `${hours} ч ${minutes} м`
+  }
+
+  return `${minutes} м`
+}
+
 export function isNumberAbbreviated(formattedValue) {
   // Check if the formatted value has a suffix (K, M, B, T, QD, QN, SX, SP, e...)
   return /[KMBTQDQNSXspe]$/.test(String(formattedValue))

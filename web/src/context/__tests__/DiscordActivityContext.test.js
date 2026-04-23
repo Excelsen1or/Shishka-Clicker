@@ -4,6 +4,7 @@ import {
   chooseSyncWinner,
   getDiscordPresenceBlocker,
   getProgressScore,
+  getSessionSecondsTotal,
 } from '../DiscordActivityContext.jsx'
 import { createSaveBundle } from '../../lib/saveTransfer.js'
 
@@ -132,5 +133,27 @@ describe('getDiscordPresenceBlocker', () => {
         hasActivity: true,
       }),
     ).toBe(null)
+  })
+})
+
+describe('getSessionSecondsTotal', () => {
+  it('adds elapsed seconds to the persisted playtime base', () => {
+    expect(
+      getSessionSecondsTotal({
+        baseSessionSecondsTotal: 120,
+        sessionStartedAtMs: 1_000,
+        nowMs: 11_900,
+      }),
+    ).toBe(130)
+  })
+
+  it('falls back to the persisted base when the session has not started', () => {
+    expect(
+      getSessionSecondsTotal({
+        baseSessionSecondsTotal: 0,
+        sessionStartedAtMs: null,
+        nowMs: 11_900,
+      }),
+    ).toBe(0)
   })
 })

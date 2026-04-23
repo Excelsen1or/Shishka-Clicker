@@ -55,6 +55,7 @@ function buildMetricSnapshot(gameState) {
       heavenlyShishki: 0,
       shards: 0,
       clicks: 0,
+      time: 0,
     }
   }
 
@@ -69,6 +70,7 @@ function buildMetricSnapshot(gameState) {
     heavenlyShishki,
     shards: heavenlyShishki,
     clicks: normalizeMetricValue(gameState.manualClicks),
+    time: 0,
   }
 }
 
@@ -96,6 +98,7 @@ function buildLeaderboards(rows) {
     heavenlyShishki,
     shards: heavenlyShishki,
     clicks: sortLeaderboardRows(rows, 'clicks'),
+    time: sortLeaderboardRows(rows, 'time'),
   }
 }
 
@@ -107,7 +110,7 @@ async function loadLeaderboardRows(supabase) {
     const to = from + PAGE_SIZE - 1
     const { data, error } = await supabase
       .from('player_saves')
-      .select('player_id, player_username, save_data, updated_at')
+      .select('player_id, player_username, save_data, updated_at, session_seconds_total')
       .range(from, to)
 
     if (error) {
@@ -147,6 +150,7 @@ export default async function handler(req, res) {
       return {
         username: formatPlayerName(row, index),
         ...metrics,
+        time: normalizeMetricValue(row.session_seconds_total),
         updatedAt: row.updated_at ?? null,
       }
     })

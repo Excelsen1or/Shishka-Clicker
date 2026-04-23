@@ -1,8 +1,9 @@
 import { observer } from 'mobx-react-lite'
 import { StatCard } from '../stats/StatCard.jsx'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
+import { useDiscordActivity } from '../../context/DiscordActivityContext.jsx'
 import { getPrestigeStartBonus } from '../../game/metaConfig.js'
-import { formatNumber } from '../../lib/format'
+import { formatDurationDetailed, formatNumber } from '../../lib/format'
 
 export const MetaScreen = observer(function MetaScreen() {
   const {
@@ -13,6 +14,7 @@ export const MetaScreen = observer(function MetaScreen() {
     buyPrestigeUpgrade,
     upgradeBuildingLevel,
   } = useGameStore()
+  const { sessionSecondsTotal } = useDiscordActivity()
   const canResetPrestige =
     uiPrestige.quotaIndex > 0 ||
     uiPrestige.currentRunShishki >= uiPrestige.currentQuotaTarget
@@ -63,6 +65,12 @@ export const MetaScreen = observer(function MetaScreen() {
           />
         ))}
       </section>
+
+      <article className="meta-card pixel-surface">
+        <div className="meta-card__kicker">В игре</div>
+        <h3>{formatDurationDetailed(sessionSecondsTotal)}</h3>
+        <p>Общее время всех сессий этого профиля.</p>
+      </article>
 
       <article className="meta-card pixel-surface">
         <div className="meta-card__kicker">Текущая квота</div>

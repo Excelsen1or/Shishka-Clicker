@@ -6,7 +6,8 @@ create or replace function public.save_player_progress(
   p_save_data jsonb,
   p_expected_version bigint default null,
   p_force boolean default false,
-  p_player_username text default null
+  p_player_username text default null,
+  p_session_seconds_total bigint default 0
 )
 returns table (
   did_save boolean,
@@ -15,7 +16,8 @@ returns table (
   current_save_data jsonb,
   current_updated_at timestamptz,
   current_app_version text,
-  current_save_version bigint
+  current_save_version bigint,
+  current_session_seconds_total bigint
 )
 language plpgsql
 as $$
@@ -37,6 +39,7 @@ begin
       app_version,
       save_version,
       save_data,
+      session_seconds_total,
       updated_at
     )
     values (
@@ -45,12 +48,17 @@ begin
       p_app_version,
       1,
       p_save_data,
+      greatest(0, coalesce(p_session_seconds_total, 0)),
       now()
     )
     on conflict (player_id) do update
       set player_username = coalesce(excluded.player_username, player_saves.player_username),
           app_version = excluded.app_version,
           save_data = excluded.save_data,
+          session_seconds_total = greatest(
+            coalesce(player_saves.session_seconds_total, 0),
+            coalesce(excluded.session_seconds_total, 0)
+          ),
           save_version = coalesce(player_saves.save_version, 0) + 1,
           updated_at = now()
     returning * into v_row;
@@ -63,6 +71,7 @@ begin
       null::jsonb,
       null::timestamptz,
       null::text,
+      null::bigint,
       null::bigint;
     return;
   end if;
@@ -71,6 +80,10 @@ begin
   set player_username = coalesce(p_player_username, player_saves.player_username),
       app_version = p_app_version,
       save_data = p_save_data,
+      session_seconds_total = greatest(
+        coalesce(player_saves.session_seconds_total, 0),
+        coalesce(p_session_seconds_total, 0)
+      ),
       save_version = p_expected_version + 1,
       updated_at = now()
   where player_saves.player_id = p_player_id
@@ -86,6 +99,7 @@ begin
       null::jsonb,
       null::timestamptz,
       null::text,
+      null::bigint,
       null::bigint;
     return;
   end if;
@@ -96,6 +110,7 @@ begin
     app_version,
     save_version,
     save_data,
+    session_seconds_total,
     updated_at
   )
   values (
@@ -104,6 +119,7 @@ begin
     p_app_version,
     1,
     p_save_data,
+    greatest(0, coalesce(p_session_seconds_total, 0)),
     now()
   )
   on conflict (player_id) do nothing
@@ -118,6 +134,7 @@ begin
       null::jsonb,
       null::timestamptz,
       null::text,
+      null::bigint,
       null::bigint;
     return;
   end if;
@@ -135,7 +152,8 @@ begin
     v_row.save_data::jsonb,
     v_row.updated_at::timestamptz,
     v_row.app_version::text,
-    v_row.save_version::bigint;
+    v_row.save_version::bigint,
+    v_row.session_seconds_total::bigint;
 end;
 $$;
 

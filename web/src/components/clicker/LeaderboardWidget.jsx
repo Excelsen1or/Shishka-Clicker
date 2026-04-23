@@ -2,12 +2,13 @@ import { useMemo, useState } from 'react'
 import { observer } from 'mobx-react-lite'
 import { Crown, Gem, Lightning, PxlKitIcon } from '../../lib/pxlkit'
 import { useWebsocketStore } from '../../stores/StoresProvider.jsx'
-import { formatNumber } from '../../lib/format.js'
+import { formatDurationCompact, formatNumber } from '../../lib/format.js'
 
-const LEADERBOARD_TABS = [
+export const LEADERBOARD_TABS = [
   { id: 'shishki', label: 'шишки', icon: null },
   { id: 'shards', label: 'небесные', icon: Gem },
   { id: 'clicks', label: 'клики', icon: Lightning },
+  { id: 'time', label: 'время', icon: Crown },
 ]
 
 function getStateCopy(state) {
@@ -19,6 +20,25 @@ function getStateCopy(state) {
     default:
       return 'В этом топе пока пусто.'
   }
+}
+
+function getUpdatedCopy(updatedAt) {
+  const timestamp = Date.parse(updatedAt ?? '')
+
+  if (!Number.isFinite(timestamp) || timestamp <= 0) {
+    return 'обновление неизвестно'
+  }
+
+  const diffMinutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60000))
+
+  if (diffMinutes < 1) return 'только что'
+  if (diffMinutes < 60) return `${diffMinutes}м назад`
+
+  const diffHours = Math.floor(diffMinutes / 60)
+  if (diffHours < 24) return `${diffHours}ч назад`
+
+  const diffDays = Math.floor(diffHours / 24)
+  return `${diffDays}д назад`
 }
 
 export const LeaderboardWidget = observer(function LeaderboardWidget({
@@ -33,6 +53,11 @@ export const LeaderboardWidget = observer(function LeaderboardWidget({
     () => (websocketStore.leaderboards?.[activeTab] ?? []).slice(0, 5),
     [activeTab, websocketStore.leaderboards],
   )
+  const topValue = entries[0]?.[activeTab] ?? 0
+  const summaryValue =
+    activeTab === 'time'
+      ? formatDurationCompact(topValue)
+      : formatNumber(topValue)
 
   return (
     <aside
@@ -64,8 +89,9 @@ export const LeaderboardWidget = observer(function LeaderboardWidget({
       {isOpen ? (
         <div className="leaderboard-widget__panel pixel-surface">
           <div className="leaderboard-widget__head">
-            <div>
+            <div className="leaderboard-widget__heading">
               <div className="leaderboard-widget__kicker">Рейтинг</div>
+              <div className="leaderboard-widget__title">Лучшие за всё время</div>
             </div>
             <div className="leaderboard-widget__summary pixel-badge">
               {activeMeta.icon ? (
@@ -77,6 +103,7 @@ export const LeaderboardWidget = observer(function LeaderboardWidget({
                 />
               ) : null}
               <span>{activeMeta.label}</span>
+              <strong>{summaryValue}</strong>
             </div>
           </div>
 
@@ -119,15 +146,20 @@ export const LeaderboardWidget = observer(function LeaderboardWidget({
                   className="leaderboard-widget__row pixel-surface"
                 >
                   <div className="leaderboard-widget__player">
-                    <span className="leaderboard-widget__rank">
-                      #{index + 1}
-                    </span>
-                    <span className="leaderboard-widget__name">
-                      {entry.username}
+                    <span className="leaderboard-widget__rank">#{index + 1}</span>
+                    <span className="leaderboard-widget__player-copy">
+                      <span className="leaderboard-widget__name">
+                        {entry.username}
+                      </span>
+                      <span className="leaderboard-widget__updated">
+                        {getUpdatedCopy(entry.updatedAt)}
+                      </span>
                     </span>
                   </div>
                   <div className="leaderboard-widget__value">
-                    {formatNumber(entry[activeTab] ?? 0)}
+                    {activeTab === 'time'
+                      ? formatDurationCompact(entry[activeTab] ?? 0)
+                      : formatNumber(entry[activeTab] ?? 0)}
                   </div>
                 </div>
               ))

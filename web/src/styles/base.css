@@ -298,6 +298,41 @@ input[type='range'] {
   cursor: url('../assets/dark-cur_ani_files/dgn2.cur'), ns-resize;
 }
 
+@media (pointer: coarse) {
+  html,
+  body,
+  button:not(:disabled),
+  a,
+  input,
+  textarea,
+  [contenteditable='true'],
+  [data-cursor='zoom'],
+  .cursor-zoom,
+  [data-cursor='resize-ew'],
+  .cursor-resize-ew,
+  [data-cursor='resize-ns'],
+  .cursor-resize-ns {
+    cursor: auto !important;
+  }
+}
+
+@media (max-width: 720px) and (pointer: fine) {
+  html {
+    cursor: auto;
+  }
+
+  button:not(:disabled),
+  a {
+    cursor: pointer;
+  }
+
+  input,
+  textarea,
+  [contenteditable='true'] {
+    cursor: text;
+  }
+}
+
 .settings-file-input {
   display: none;
 }

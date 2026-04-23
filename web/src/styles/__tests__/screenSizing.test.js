@@ -73,4 +73,14 @@ describe('screen sizing tokens', () => {
       'gap: calc(var(--ui-grid-gap) * var(--screen-density));',
     )
   })
+
+  it('softens the cursor on small screens and disables it on touch devices', () => {
+    const baseCss = read('../base.css')
+
+    expect(baseCss).toContain('@media (pointer: coarse)')
+    expect(baseCss).toContain('cursor: auto !important;')
+    expect(baseCss).toContain('@media (max-width: 720px) and (pointer: fine)')
+    expect(baseCss).toContain('cursor: pointer;')
+    expect(baseCss).toContain('cursor: text;')
+  })
 })

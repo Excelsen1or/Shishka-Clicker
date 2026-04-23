@@ -161,6 +161,28 @@ function chooseSyncWinner(localGameState, remoteCloudSave) {
 
 export { classifyCloudSave, chooseSyncWinner }
 
+export function getSessionSecondsTotal({
+  baseSessionSecondsTotal,
+  sessionStartedAtMs,
+  nowMs = Date.now(),
+}) {
+  const persistedSeconds = Math.max(
+    0,
+    Math.floor(Number(baseSessionSecondsTotal ?? 0) || 0),
+  )
+
+  if (!Number.isFinite(sessionStartedAtMs)) {
+    return persistedSeconds
+  }
+
+  const elapsedSeconds = Math.max(
+    0,
+    Math.floor((nowMs - sessionStartedAtMs) / 1000),
+  )
+
+  return persistedSeconds + elapsedSeconds
+}
+
 export function getDiscordPresenceBlocker({
   isActivity,
   status,
@@ -204,6 +226,7 @@ export function DiscordActivityProvider({ children }) {
     lastPresenceAt: null,
     offlineMode: false,
     saveReady: false,
+    sessionSecondsTotal: 0,
   })
   const remoteVersionRef = useRef(null)
   const syncedClientRevisionRef = useRef(null)
@@ -211,6 +234,8 @@ export function DiscordActivityProvider({ children }) {
   const lastPresenceSignatureRef = useRef('')
   const discordBootstrapStartedRef = useRef(false)
   const offlineModeRef = useRef(false)
+  const baseSessionSecondsTotalRef = useRef(0)
+  const sessionStartedAtMsRef = useRef(Date.now())
 
   const waitForBootGrace = useCallback(
     (promise, timeoutMs) =>
@@ -306,6 +331,11 @@ export function DiscordActivityProvider({ children }) {
       const imported = classifyCloudSave(cloudSave)
       if (!imported.hasValidSave || !imported.gameState) return false
 
+      baseSessionSecondsTotalRef.current = Math.max(
+        0,
+        Math.floor(Number(cloudSave.sessionSecondsTotal ?? 0) || 0),
+      )
+
       gameStore.importGameSave(imported.gameState, {
         markDirty: false,
         updatedAt: cloudSave.updatedAt ?? new Date().toISOString(),
@@ -316,6 +346,14 @@ export function DiscordActivityProvider({ children }) {
         remoteVersion: cloudSave.saveVersion ?? null,
         source: 'download',
       })
+
+      setState((current) => ({
+        ...current,
+        sessionSecondsTotal: getSessionSecondsTotal({
+          baseSessionSecondsTotal: baseSessionSecondsTotalRef.current,
+          sessionStartedAtMs: sessionStartedAtMsRef.current,
+        }),
+      }))
 
       return true
     },
@@ -345,6 +383,10 @@ export function DiscordActivityProvider({ children }) {
         includeSettings: false,
         appVersion: APP_VERSION,
       })
+      const sessionSecondsTotal = getSessionSecondsTotal({
+        baseSessionSecondsTotal: baseSessionSecondsTotalRef.current,
+        sessionStartedAtMs: sessionStartedAtMsRef.current,
+      })
 
       setSyncState({
         syncState: 'syncing',
@@ -359,6 +401,7 @@ export function DiscordActivityProvider({ children }) {
             ? remoteVersionRef.current
             : expectedVersionOverride,
         force,
+        sessionSecondsTotal,
       })
 
       markSynced({
@@ -369,6 +412,14 @@ export function DiscordActivityProvider({ children }) {
         remoteVersion: result.saveVersion ?? remoteVersionRef.current,
         source,
       })
+
+      setState((current) => ({
+        ...current,
+        sessionSecondsTotal: getSessionSecondsTotal({
+          baseSessionSecondsTotal: baseSessionSecondsTotalRef.current,
+          sessionStartedAtMs: sessionStartedAtMsRef.current,
+        }),
+      }))
 
       return true
     },
@@ -390,12 +441,17 @@ export function DiscordActivityProvider({ children }) {
       includeSettings: false,
       appVersion: APP_VERSION,
     })
+    const sessionSecondsTotal = getSessionSecondsTotal({
+      baseSessionSecondsTotal: baseSessionSecondsTotalRef.current,
+      sessionStartedAtMs: sessionStartedAtMsRef.current,
+    })
 
     void uploadCloudSave({
       appVersion: APP_VERSION,
       save,
       expectedVersion: remoteVersionRef.current,
       force: false,
+      sessionSecondsTotal,
     })
       .then((result) => {
         syncedClientRevisionRef.current = localSnapshot.clientRevision
@@ -611,6 +667,7 @@ export function DiscordActivityProvider({ children }) {
           offlineMode: false,
           presenceState: 'idle',
           presenceError: null,
+          sessionSecondsTotal: 0,
         }))
 
         const syncPromise = synchronizeNow()
@@ -712,6 +769,27 @@ export function DiscordActivityProvider({ children }) {
     state.playerId,
     state.saveReady,
   ])
+
+  useEffect(() => {
+    if (!state.playerId || !state.saveReady) return undefined
+
+    const updateSessionClock = () => {
+      setState((current) => ({
+        ...current,
+        sessionSecondsTotal: getSessionSecondsTotal({
+          baseSessionSecondsTotal: baseSessionSecondsTotalRef.current,
+          sessionStartedAtMs: sessionStartedAtMsRef.current,
+        }),
+      }))
+    }
+
+    updateSessionClock()
+    const intervalId = window.setInterval(updateSessionClock, 1000)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [state.playerId, state.saveReady])
 
   const updateRichPresence = useCallback(
     async (activity) => {

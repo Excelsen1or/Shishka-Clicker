@@ -49,6 +49,7 @@ export async function uploadCloudSave({
   save,
   expectedVersion = null,
   force = false,
+  sessionSecondsTotal = 0,
 }) {
   const response = await fetchWithTimeout('/api/save', {
     method: 'POST',
@@ -60,6 +61,7 @@ export async function uploadCloudSave({
       save,
       expectedVersion,
       force,
+      sessionSecondsTotal,
     }),
     keepalive: true,
   })

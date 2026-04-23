@@ -22,6 +22,16 @@ function normalizeExpectedVersion(value) {
   return version
 }
 
+function normalizeSessionSecondsTotal(value) {
+  const parsed = Number(value ?? 0)
+
+  if (!Number.isFinite(parsed)) {
+    return 0
+  }
+
+  return Math.max(0, Math.floor(parsed))
+}
+
 function buildConflictPayload(currentSave) {
   return {
     ok: false,
@@ -31,6 +41,7 @@ function buildConflictPayload(currentSave) {
       updatedAt: currentSave.updatedAt,
       appVersion: currentSave.appVersion,
       saveVersion: currentSave.saveVersion ?? null,
+      sessionSecondsTotal: currentSave.sessionSecondsTotal ?? 0,
     },
   }
 }
@@ -51,6 +62,7 @@ async function saveViaRpc({
   save,
   expectedVersion,
   force,
+  sessionSecondsTotal,
 }) {
   const { data, error } = await supabase
     .rpc('save_player_progress', {
@@ -62,6 +74,7 @@ async function saveViaRpc({
       p_player_username: playerId.startsWith('discord:')
         ? (playerUsername ?? null)
         : null,
+      p_session_seconds_total: sessionSecondsTotal,
     })
     .single()
 
@@ -77,6 +90,7 @@ async function saveViaRpc({
         updatedAt: data?.current_updated_at ?? null,
         appVersion: data?.current_app_version ?? null,
         saveVersion: data?.current_save_version ?? null,
+        sessionSecondsTotal: data?.current_session_seconds_total ?? 0,
       },
     }
   }
@@ -85,6 +99,7 @@ async function saveViaRpc({
     ok: true,
     updatedAt: data.updated_at ?? new Date().toISOString(),
     saveVersion: data.save_version ?? null,
+    sessionSecondsTotal,
   }
 }
 
@@ -95,10 +110,11 @@ async function saveViaLegacyQueries({
   save,
   expectedVersion,
   force,
+  sessionSecondsTotal,
 }) {
   const { data: existingSave, error: selectError } = await supabase
     .from('player_saves')
-    .select('save_data, updated_at, app_version, save_version')
+    .select('save_data, updated_at, app_version, save_version, session_seconds_total')
     .eq('player_id', playerId)
     .maybeSingle()
 
@@ -119,6 +135,7 @@ async function saveViaLegacyQueries({
           updatedAt: existingSave.updated_at,
           appVersion: existingSave.app_version,
           saveVersion: existingSave.save_version ?? null,
+          sessionSecondsTotal: existingSave.session_seconds_total ?? 0,
         },
       }
     }
@@ -130,9 +147,13 @@ async function saveViaLegacyQueries({
         app_version: appVersion ?? null,
         save_version: nextVersion,
         save_data: save,
+        session_seconds_total: Math.max(
+          Number(existingSave.session_seconds_total ?? 0),
+          sessionSecondsTotal,
+        ),
       })
       .eq('player_id', playerId)
-      .select('updated_at, save_version')
+      .select('updated_at, save_version, session_seconds_total')
       .single()
 
     if (error) {
@@ -143,6 +164,8 @@ async function saveViaLegacyQueries({
       ok: true,
       updatedAt: updatedRow?.updated_at ?? new Date().toISOString(),
       saveVersion: updatedRow?.save_version ?? nextVersion,
+      sessionSecondsTotal:
+        Number(updatedRow?.session_seconds_total ?? sessionSecondsTotal) || 0,
     }
   }
 
@@ -153,8 +176,9 @@ async function saveViaLegacyQueries({
       app_version: appVersion ?? null,
       save_version: 1,
       save_data: save,
+      session_seconds_total: sessionSecondsTotal,
     })
-    .select('updated_at, save_version')
+    .select('updated_at, save_version, session_seconds_total')
     .single()
 
   if (error) {
@@ -165,6 +189,8 @@ async function saveViaLegacyQueries({
     ok: true,
     updatedAt: insertedRow?.updated_at ?? new Date().toISOString(),
     saveVersion: insertedRow?.save_version ?? 1,
+    sessionSecondsTotal:
+      Number(insertedRow?.session_seconds_total ?? sessionSecondsTotal) || 0,
   }
 }
 
@@ -180,7 +206,13 @@ export default async function handler(req, res) {
     const session = requireSession(req, res)
     if (!session) return
 
-    const { appVersion, save, expectedVersion, force = false } = req.body ?? {}
+    const {
+      appVersion,
+      save,
+      expectedVersion,
+      force = false,
+      sessionSecondsTotal,
+    } = req.body ?? {}
 
     if (!isPlainObject(save)) {
       return res.status(400).json({
@@ -206,6 +238,8 @@ export default async function handler(req, res) {
     const playerId = String(session.playerId)
     const playerUsername = session.playerUsername ?? null
     const normalizedAppVersion = normalizeAppVersion(appVersion)
+    const normalizedSessionSecondsTotal =
+      normalizeSessionSecondsTotal(sessionSecondsTotal)
     let result
 
     try {
@@ -217,6 +251,7 @@ export default async function handler(req, res) {
         save,
         expectedVersion: normalizedExpectedVersion,
         force: Boolean(force),
+        sessionSecondsTotal: normalizedSessionSecondsTotal,
       })
     } catch (error) {
       if (!isMissingSaveRpc(error)) {
@@ -234,6 +269,7 @@ export default async function handler(req, res) {
         save,
         expectedVersion: normalizedExpectedVersion,
         force: Boolean(force),
+        sessionSecondsTotal: normalizedSessionSecondsTotal,
       })
     }
 
@@ -245,6 +281,8 @@ export default async function handler(req, res) {
       ok: true,
       saveVersion: result.saveVersion,
       updatedAt: result.updatedAt,
+      sessionSecondsTotal:
+        result.sessionSecondsTotal ?? normalizedSessionSecondsTotal,
     })
   } catch (error) {
     console.error('SAVE_FATAL', error)

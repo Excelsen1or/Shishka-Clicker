@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
     const { data, error } = await supabase
       .from('player_saves')
-      .select('save_data, updated_at, app_version, save_version')
+      .select('save_data, updated_at, app_version, save_version, session_seconds_total')
       .eq('player_id', String(session.playerId))
       .maybeSingle()
 
@@ -43,6 +43,7 @@ export default async function handler(req, res) {
       updatedAt: data.updated_at,
       appVersion: data.app_version,
       saveVersion: data.save_version ?? null,
+      sessionSecondsTotal: Number(data.session_seconds_total ?? 0) || 0,
     })
   } catch (error) {
     return res.status(500).json({

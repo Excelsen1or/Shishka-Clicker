@@ -9,6 +9,7 @@ returns table (
   shishki bigint,
   heavenly_shishki bigint,
   clicks bigint,
+  playtime_seconds bigint,
   updated_at timestamptz
 )
 language sql
@@ -37,7 +38,8 @@ as $$
         nullif(ps.save_data -> 'payload' -> 'game' ->> 'manualClicks', '')::numeric,
         nullif(ps.save_data ->> 'manualClicks', '')::numeric,
         0
-      ) as clicks_total
+      ) as clicks_total,
+      greatest(0, coalesce(ps.session_seconds_total, 0))::bigint as playtime_seconds
     from public.player_saves as ps
   )
   select
@@ -46,11 +48,13 @@ as $$
     greatest(0, round(normalized_saves.shishki_total))::bigint as shishki,
     greatest(0, round(normalized_saves.heavenly_shishki_total))::bigint as heavenly_shishki,
     greatest(0, round(normalized_saves.clicks_total))::bigint as clicks,
+    normalized_saves.playtime_seconds,
     normalized_saves.updated_at
   from normalized_saves
   where normalized_saves.shishki_total > 0
      or normalized_saves.heavenly_shishki_total > 0
      or normalized_saves.clicks_total > 0
+     or normalized_saves.playtime_seconds > 0
   order by normalized_saves.shishki_total desc, normalized_saves.updated_at desc nulls last
   limit greatest(coalesce(p_limit, 5), 1);
 $$;
