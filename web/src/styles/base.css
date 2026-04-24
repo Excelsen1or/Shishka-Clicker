@@ -215,9 +215,7 @@ button:not(:disabled) {
 
 button:disabled,
 button[aria-disabled='true'],
-[role='button'][aria-disabled='true'],
-.is-disabled,
-.is-denied {
+[role='button'][aria-disabled='true']{
   cursor: url('../assets/dark-cur_ani_files/unavailable.cur'), not-allowed !important;
 }
 
@@ -283,35 +281,29 @@ input[type='range'] {
   background: rgb(var(--accent-primary-rgb) / 0.52);
 }
 
-[data-cursor='zoom'],
-.cursor-zoom {
+[data-cursor='zoom']{
   cursor: url('../assets/dark-cur_ani_files/precision.cur'), zoom-in;
 }
 
-[data-cursor='resize-ew'],
-.cursor-resize-ew {
+[data-cursor='resize-ew']{
   cursor: url('../assets/dark-cur_ani_files/dgn1.cur'), ew-resize;
 }
 
-[data-cursor='resize-ns'],
-.cursor-resize-ns {
+[data-cursor='resize-ns']{
   cursor: url('../assets/dark-cur_ani_files/dgn2.cur'), ns-resize;
 }
 
 @media (pointer: coarse) {
   html,
-  body,
-  button:not(:disabled),
-  a,
-  input,
-  textarea,
-  [contenteditable='true'],
-  [data-cursor='zoom'],
-  .cursor-zoom,
-  [data-cursor='resize-ew'],
-  .cursor-resize-ew,
-  [data-cursor='resize-ns'],
-  .cursor-resize-ns {
+body,
+button:not(:disabled),
+a,
+input,
+textarea,
+[contenteditable='true'],
+[data-cursor='zoom'],
+[data-cursor='resize-ew'],
+[data-cursor='resize-ns']{
     cursor: auto !important;
   }
 }
