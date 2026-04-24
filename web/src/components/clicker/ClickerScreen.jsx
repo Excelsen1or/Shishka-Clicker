@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ClickerButton } from './ClickerButton.jsx'
 import { ProgressFieldPanel } from './ProgressFieldPanel.jsx'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
@@ -11,6 +11,39 @@ const CLICKER_DECK_TABS = [
   { id: 'upgrades', label: 'Усиления' },
   { id: 'meta', label: 'Мета' },
 ]
+
+const CLICKER_UI_STATE_KEY = 'shishka-clicker-clicker-ui-v1'
+
+function loadClickerUiState() {
+  if (typeof window === 'undefined') {
+    return { isClickerCollapsed: false }
+  }
+
+  try {
+    const raw = window.localStorage.getItem(CLICKER_UI_STATE_KEY)
+    if (!raw) return { isClickerCollapsed: false }
+
+    const parsed = JSON.parse(raw)
+    return { isClickerCollapsed: parsed?.isClickerCollapsed === true }
+  } catch {
+    return { isClickerCollapsed: false }
+  }
+}
+
+function saveClickerUiState(nextState) {
+  if (typeof window === 'undefined') return
+
+  try {
+    window.localStorage.setItem(
+      CLICKER_UI_STATE_KEY,
+      JSON.stringify({
+        isClickerCollapsed: nextState.isClickerCollapsed === true,
+      }),
+    )
+  } catch {
+    // ignore clicker UI storage failures
+  }
+}
 
 function ClickerDeckStat({ label, value, hint, tone = 'default' }) {
   return (
@@ -45,6 +78,9 @@ function LockedDeckPanel({ title, lock }) {
 export const ClickerScreen = observer(function ClickerScreen() {
   const { clickerFieldData, uiEconomy, uiPrestige, uiState } = useGameStore()
   const [activeDeckTab, setActiveDeckTab] = useState('buildings')
+  const [isClickerCollapsed, setIsClickerCollapsed] = useState(
+    () => loadClickerUiState().isClickerCollapsed,
+  )
   const activeEvent = uiState?.activeEvent ?? null
   const activeCampaign = uiState?.activeCampaign ?? null
   const {
@@ -62,10 +98,29 @@ export const ClickerScreen = observer(function ClickerScreen() {
     return 'buildings'
   }, [activeDeckTab, deckLocks])
 
+  useEffect(() => {
+    saveClickerUiState({ isClickerCollapsed })
+  }, [isClickerCollapsed])
+
   return (
     <section className="screen clicker-screen clicker-screen--deck">
       <div className="clicker-deck-layout clicker-deck-layout--stacked">
-        <div className="clicker-deck-layout__hero">
+        <div
+          className={`clicker-deck-layout__hero ${isClickerCollapsed ? 'clicker-deck-layout__hero--collapsed' : ''}`.trim()}
+        >
+          <button
+            type="button"
+            className="clicker-hero-toggle"
+            onClick={() => setIsClickerCollapsed((current) => !current)}
+            aria-label={
+              isClickerCollapsed
+                ? 'Развернуть кнопку кликера'
+                : 'Свернуть кнопку кликера'
+            }
+            aria-expanded={!isClickerCollapsed}
+          >
+            {isClickerCollapsed ? 'Развернуть' : 'Свернуть'}
+          </button>
           <ClickerButton />
         </div>
 
