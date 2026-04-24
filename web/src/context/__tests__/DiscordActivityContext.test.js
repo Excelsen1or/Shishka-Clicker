@@ -5,6 +5,8 @@ import {
   getDiscordPresenceBlocker,
   getProgressScore,
   getSessionSecondsTotal,
+  resolveSyncPlayerId,
+  waitForInitialBootSync,
 } from '../DiscordActivityContext.jsx'
 import { createSaveBundle } from '../../lib/saveTransfer.js'
 
@@ -155,5 +157,36 @@ describe('getSessionSecondsTotal', () => {
         nowMs: 11_900,
       }),
     ).toBe(0)
+  })
+})
+
+describe('initial boot sync', () => {
+  it('uses the freshly resolved player id before React state catches up', () => {
+    expect(
+      resolveSyncPlayerId({
+        statePlayerId: null,
+        playerIdOverride: 'player-123',
+      }),
+    ).toBe('player-123')
+  })
+
+  it('waits for the initial sync promise to settle before continuing boot', async () => {
+    let resolveSync
+    const syncPromise = new Promise((resolve) => {
+      resolveSync = resolve
+    })
+    let settled = false
+
+    const waitPromise = waitForInitialBootSync(syncPromise).then(() => {
+      settled = true
+    })
+
+    await Promise.resolve()
+    expect(settled).toBe(false)
+
+    resolveSync()
+    await waitPromise
+
+    expect(settled).toBe(true)
   })
 })

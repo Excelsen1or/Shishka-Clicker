@@ -27,7 +27,6 @@ const DiscordBootContext = createContext(null)
 const DiscordPresenceContext = createContext(null)
 const AUTO_SYNC_INTERVAL_MS = 2500
 const EMPTY_PROGRESS_SCORE_THRESHOLD = 25
-const BOOT_SYNC_GRACE_MS = 6000
 
 function sumLevels(map) {
   if (!map || typeof map !== 'object') return 0
@@ -183,6 +182,14 @@ export function getSessionSecondsTotal({
   return persistedSeconds + elapsedSeconds
 }
 
+export function resolveSyncPlayerId({ statePlayerId, playerIdOverride }) {
+  return playerIdOverride ?? statePlayerId ?? null
+}
+
+export async function waitForInitialBootSync(syncPromise) {
+  await syncPromise
+}
+
 export function getDiscordPresenceBlocker({
   isActivity,
   status,
@@ -234,43 +241,9 @@ export function DiscordActivityProvider({ children }) {
   const lastPresenceSignatureRef = useRef('')
   const discordBootstrapStartedRef = useRef(false)
   const offlineModeRef = useRef(false)
+  const playerIdRef = useRef(null)
   const baseSessionSecondsTotalRef = useRef(0)
   const sessionStartedAtMsRef = useRef(Date.now())
-
-  const waitForBootGrace = useCallback(
-    (promise, timeoutMs) =>
-      new Promise((resolve) => {
-        let settled = false
-        const timeoutId = window.setTimeout(() => {
-          if (settled) return
-          settled = true
-          resolve('timeout')
-        }, timeoutMs)
-
-        Promise.resolve(promise)
-          .then(() => {
-            if (settled) return
-            settled = true
-            window.clearTimeout(timeoutId)
-            resolve('resolved')
-          })
-          .catch((error) => {
-            if (settled) return
-            settled = true
-            window.clearTimeout(timeoutId)
-
-            setState((current) => ({
-              ...current,
-              syncState: 'error',
-              syncError:
-                error instanceof Error ? error.message : 'initial_sync_failed',
-            }))
-
-            resolve('rejected')
-          })
-      }),
-    [],
-  )
 
   const setSyncState = useCallback((patch) => {
     setState((current) => ({
@@ -281,12 +254,15 @@ export function DiscordActivityProvider({ children }) {
 
   const enterOfflineMode = useCallback(() => {
     offlineModeRef.current = true
+    const offlinePlayerId =
+      playerIdRef.current ?? state.playerId ?? resolvePlayerId(null)
+    playerIdRef.current = offlinePlayerId
     websocketStore.start()
     void websocketStore.refreshLeaderboard()
 
     setState((current) => ({
       ...current,
-      playerId: current.playerId ?? resolvePlayerId(null),
+      playerId: current.playerId ?? offlinePlayerId,
       saveReady: true,
       offlineMode: true,
       syncState: 'offline',
@@ -294,7 +270,7 @@ export function DiscordActivityProvider({ children }) {
       syncError: null,
       lastSyncedAt: null,
     }))
-  }, [websocketStore])
+  }, [state.playerId, websocketStore])
 
   const getLocalSnapshot = useCallback(() => {
     const meta = gameStore.getSaveMeta()
@@ -365,9 +341,14 @@ export function DiscordActivityProvider({ children }) {
       force = false,
       expectedVersionOverride = undefined,
       source = 'upload',
+      playerIdOverride = null,
     } = {}) => {
       if (offlineModeRef.current) return false
-      if (!state.playerId) return false
+      const syncPlayerId = resolveSyncPlayerId({
+        statePlayerId: state.playerId,
+        playerIdOverride: playerIdOverride ?? playerIdRef.current,
+      })
+      if (!syncPlayerId) return false
 
       const localSnapshot = getLocalSnapshot()
 
@@ -464,10 +445,14 @@ export function DiscordActivityProvider({ children }) {
   }, [getLocalSnapshot, state.playerId])
 
   const synchronizeNow = useCallback(
-    async ({ forceDownload = false } = {}) => {
+    async ({ forceDownload = false, playerIdOverride = null } = {}) => {
       if (offlineModeRef.current) return false
 
-      if (!state.playerId) return false
+      const syncPlayerId = resolveSyncPlayerId({
+        statePlayerId: state.playerId,
+        playerIdOverride: playerIdOverride ?? playerIdRef.current,
+      })
+      if (!syncPlayerId) return false
 
       setSyncState({
         syncState: 'syncing',
@@ -505,6 +490,7 @@ export function DiscordActivityProvider({ children }) {
 
         return uploadLatestSave({
           expectedVersionOverride: null,
+          playerIdOverride: syncPlayerId,
         })
       }
 
@@ -534,6 +520,7 @@ export function DiscordActivityProvider({ children }) {
       if (!localIsNearlyEmpty && remoteIsNearlyEmpty) {
         const uploaded = await uploadLatestSave({
           expectedVersionOverride: remoteVersion,
+          playerIdOverride: syncPlayerId,
         })
         return uploaded
       }
@@ -564,6 +551,7 @@ export function DiscordActivityProvider({ children }) {
             knownRemoteVersion !== null && remoteVersion !== knownRemoteVersion
               ? 'override'
               : 'upload',
+          playerIdOverride: syncPlayerId,
         })
         return uploaded
       } catch (error) {
@@ -590,6 +578,7 @@ export function DiscordActivityProvider({ children }) {
             force: true,
             expectedVersionOverride: null,
             source: 'override',
+            playerIdOverride: syncPlayerId,
           })
           return uploaded
         }
@@ -653,6 +642,7 @@ export function DiscordActivityProvider({ children }) {
 
         discordSdkRef.current = session?.discordSdk ?? null
         lastPresenceSignatureRef.current = ''
+        playerIdRef.current = playerId
         websocketStore.setUser(isActivity ? session.user : null)
 
         setState((current) => ({
@@ -670,9 +660,9 @@ export function DiscordActivityProvider({ children }) {
           sessionSecondsTotal: 0,
         }))
 
-        const syncPromise = synchronizeNow()
-
-        await waitForBootGrace(syncPromise, BOOT_SYNC_GRACE_MS)
+        await waitForInitialBootSync(
+          synchronizeNow({ playerIdOverride: playerId }),
+        )
 
         if (cancelled || offlineModeRef.current) return
 
@@ -718,7 +708,7 @@ export function DiscordActivityProvider({ children }) {
     return () => {
       cancelled = true
     }
-  }, [synchronizeNow, waitForBootGrace, websocketStore])
+  }, [synchronizeNow, websocketStore])
 
   useEffect(() => {
     if (!state.playerId || !state.saveReady || state.offlineMode)
@@ -862,6 +852,7 @@ export function DiscordActivityProvider({ children }) {
         }
 
         offlineModeRef.current = false
+        playerIdRef.current = nextPlayerId ?? playerIdRef.current
         setState((current) => ({
           ...current,
           playerId: nextPlayerId ?? current.playerId,
@@ -871,7 +862,7 @@ export function DiscordActivityProvider({ children }) {
         }))
       }
 
-      await synchronizeNow()
+      await synchronizeNow({ playerIdOverride: playerIdRef.current })
       return true
     } catch (error) {
       setState((current) => ({
