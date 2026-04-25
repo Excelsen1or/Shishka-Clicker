@@ -134,4 +134,75 @@ describe('screen sizing tokens', () => {
     )
     expect(shopCss).toContain('--screen-accent-rgb: var(--screen-shop-rgb);')
   })
+
+  it('lets clicks pass through the fixed bottom nav outside its track', () => {
+    const layoutCss = read('../layout.css')
+
+    expect(layoutCss).toContain('.bottom-nav {')
+    expect(layoutCss).toContain('pointer-events: none;')
+    expect(layoutCss).toContain('.bottom-nav__track {')
+    expect(layoutCss).toContain('pointer-events: auto;')
+  })
+
+  it('defines reusable pixel primitives for panels, buttons, chips, and statuses', () => {
+    const layoutCss = read('../layout.css')
+
+    expect(layoutCss).toContain('.pixel-panel')
+    expect(layoutCss).toContain('.pixel-button')
+    expect(layoutCss).toContain('.pixel-chip')
+    expect(layoutCss).toContain('.pixel-status')
+    expect(layoutCss).toContain('.pixel-status--ready')
+    expect(layoutCss).toContain('.pixel-status--danger')
+    expect(layoutCss).toContain('.pixel-status--locked')
+    expect(layoutCss).toContain('.pixel-status--active')
+  })
+
+  it('maps dev console colors to arcade terminal tokens', () => {
+    const themeCss = read('../theme.css')
+    const layoutCss = read('../layout.css')
+
+    expect(themeCss).toContain('--terminal-cyan: var(--accent-cyan);')
+    expect(themeCss).toContain('--terminal-fuchsia: var(--accent-fuchsia);')
+    expect(themeCss).toContain('--terminal-gold: var(--accent-primary);')
+    expect(themeCss).toContain('--terminal-success: var(--accent-emerald);')
+    expect(layoutCss).toContain('var(--terminal-cyan)')
+    expect(layoutCss).toContain('var(--terminal-fuchsia)')
+    expect(layoutCss).toContain('var(--terminal-gold)')
+    expect(layoutCss).toContain('var(--terminal-success)')
+  })
+
+  it('keeps the local dev server on one fixed port and exposes host script', () => {
+    const viteConfig = read('../../../vite.config.js')
+    const packageJson = read('../../../package.json')
+
+    expect(viteConfig).toContain('port: 3001')
+    expect(viteConfig).toContain('strictPort: true')
+    expect(packageJson).toContain('"dev:host": "vite --host 0.0.0.0"')
+  })
+
+  it('normalizes visual states for buy, denied, danger, locked, and active controls', () => {
+    const layoutCss = read('../layout.css')
+    const shopCss = read('../shop-screen.css')
+    const marketTradePanel = read(
+      '../../components/market/MarketTradePanel.jsx',
+    )
+    const marketPortfolio = read('../../components/market/MarketPortfolio.jsx')
+
+    expect(layoutCss).toContain(".market-action-btn[data-state='active']")
+    expect(layoutCss).toContain(".market-action-btn[data-state='denied']")
+    expect(layoutCss).toContain(".market-action-btn[data-state='danger']")
+    expect(layoutCss).toContain(
+      ".market-action-btn:hover:not([aria-disabled='true'])",
+    )
+    expect(layoutCss).toContain('.pixel-tabbar__btn--active')
+    expect(layoutCss).toContain('.pixel-tabbar__btn--locked')
+    expect(shopCss).toContain(".shop-card__btn[data-state='ready']")
+    expect(shopCss).toContain(".shop-card__btn[data-state='denied']")
+    expect(shopCss).toContain('.shop-card--locked .shop-card__btn')
+    expect(marketTradePanel).toContain('data-state={canBuyOne ?')
+    expect(marketTradePanel).toContain(
+      'data-state={\n                              campaign.active',
+    )
+    expect(marketPortfolio).toContain('data-state="danger"')
+  })
 })

@@ -48,6 +48,10 @@
   --text-success-bright: #b7ffc1;
   --text-terminal: #6eff89;
   --text-terminal-soft: #c9ffd0;
+  --terminal-cyan: var(--accent-cyan);
+  --terminal-fuchsia: var(--accent-fuchsia);
+  --terminal-gold: var(--accent-primary);
+  --terminal-success: var(--accent-emerald);
 
   /* ── Primitives ─────────────────────────── */
   --white-rgb: 255 255 255;

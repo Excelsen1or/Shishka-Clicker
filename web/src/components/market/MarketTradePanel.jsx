@@ -175,6 +175,7 @@ export function MarketTradePanel({
                           <button
                             type="button"
                             className="market-action-btn market-action-btn--buy"
+                            data-state={canBuyOne ? 'ready' : 'denied'}
                             onClick={() => handleBuy(good.id, 1, canBuyOne)}
                             aria-disabled={!canBuyOne}
                             aria-label={`Купить 1 ${good.title}`}
@@ -185,6 +186,7 @@ export function MarketTradePanel({
                           <button
                             type="button"
                             className="market-action-btn market-action-btn--buy"
+                            data-state={canBuyFive ? 'ready' : 'denied'}
                             onClick={() => handleBuy(good.id, 5, canBuyFive)}
                             aria-disabled={!canBuyFive}
                             aria-label={`Купить 5 ${good.title}`}
@@ -195,6 +197,7 @@ export function MarketTradePanel({
                           <button
                             type="button"
                             className="market-action-btn market-action-btn--sell"
+                            data-state={canSell ? 'ready' : 'denied'}
                             onClick={() => handleSell(good.id, 1, canSell)}
                             aria-disabled={!canSell}
                             aria-label={`Продать 1 ${good.title}`}
@@ -297,6 +300,13 @@ export function MarketTradePanel({
                           <button
                             type="button"
                             className="market-action-btn market-action-btn--buy"
+                            data-state={
+                              campaign.active
+                                ? 'active'
+                                : disabled
+                                  ? 'denied'
+                                  : 'ready'
+                            }
                             onClick={() =>
                               handleCampaign(campaign.id, !disabled)
                             }

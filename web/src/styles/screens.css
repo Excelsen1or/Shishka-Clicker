@@ -2012,14 +2012,6 @@
   line-height: 1.34;
 }
 
-.settings-screen :is(.settings-ghost-btn, .reset-btn) {
-  border-radius: 0;
-  border-width: 2px;
-  box-shadow:
-    inset 0 0 0 1px rgb(var(--black-rgb) / 0.14),
-    4px 4px 0 0 rgb(var(--black-rgb) / 0.16);
-}
-
 .meta-screen :is(.contribution-bar),
 .settings-screen :is(.settings-save-textarea) {
   border-radius: 0;
@@ -2035,9 +2027,7 @@
 .settings-screen :is(.settings-ghost-btn, .reset-btn) {
   border-radius: 0;
   border-width: 2px;
-  box-shadow:
-    inset 0 0 0 1px rgb(var(--black-rgb) / 0.14),
-    4px 4px 0 0 rgb(var(--black-rgb) / 0.16);
+  box-shadow: var(--shadow-button);
 }
 
 .meta-screen .shop-card__btn::before,

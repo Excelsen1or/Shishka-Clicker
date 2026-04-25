@@ -97,15 +97,13 @@ export const MetaScreen = observer(function MetaScreen() {
         {uiEconomy.prestigeUpgrades.map((item) => (
           <article
             key={item.id}
-            className="shop-card shop-card--shishki shop-card--rarity-common"
+            className="shop-card shop-card--shishki shop-card--rarity-common meta-prestige-card"
           >
             <div className="shop-card__head">
               <div className="shop-card__meta">
                 <div>
                   <h3 className="shop-card__title">{item.title}</h3>
-                  <p className="shop-card__desc">
-                    Постоянное улучшение мета-экономики.
-                  </p>
+                  <p className="shop-card__desc">{item.description}</p>
                 </div>
               </div>
               <div className="shop-card__chips">
@@ -118,6 +116,7 @@ export const MetaScreen = observer(function MetaScreen() {
               <div className="shop-card__effect-line">
                 Цена: {formatNumber(item.cost)} небесных шишек
               </div>
+              <div className="shop-card__effect-line">{item.effectText}</div>
             </div>
             <div className="shop-card__footer">
               <button

@@ -62,6 +62,7 @@ export function MarketPortfolio({ goods, onSell }) {
                   <button
                     type="button"
                     className="market-action-btn market-action-btn--sell"
+                    data-state="ready"
                     onClick={() => handleSell(good.id, 1)}
                     aria-label={`Продать 1 ${good.title}`}
                     title={`Продать 1 ${good.title}`}
@@ -71,6 +72,7 @@ export function MarketPortfolio({ goods, onSell }) {
                   <button
                     type="button"
                     className="market-action-btn market-action-btn--sell"
+                    data-state="ready"
                     onClick={() => handleSell(good.id, Math.min(5, good.owned))}
                     aria-label={`Продать 5: ${good.title}`}
                     title={`Продать 5: ${good.title}`}
@@ -80,6 +82,7 @@ export function MarketPortfolio({ goods, onSell }) {
                   <button
                     type="button"
                     className="market-action-btn market-action-btn--panic"
+                    data-state="danger"
                     onClick={() => handleSell(good.id, good.owned)}
                     aria-label={`Слить всё: ${good.title}`}
                     title={`Слить всё: ${good.title}`}

@@ -303,42 +303,60 @@ export const PRESTIGE_UPGRADES = [
   {
     id: 'heavenlyTar',
     fieldCode: 'prestige_heavenly_tar',
-    title: 'Небесная смола',
+    title: 'Смола нового старта',
+    description:
+      'Дает запас шишек после перерождения, чтобы новая жизнь не начиналась с нуля.',
+    effectText: '+15% к пассивной добыче и +20 стартовых шишек за уровень.',
     baseCost: 1,
     value: 0.15,
   },
   {
     id: 'taxBlindness',
     fieldCode: 'prestige_tax_blindness',
-    title: 'Налоговая слепота',
+    title: 'Серый налоговый щит',
+    description:
+      'Снижает комиссию рынка. Полезно, если часто покупаешь и продаешь товары.',
+    effectText: '-1% к рыночной комиссии за уровень.',
     baseCost: 2,
     value: 0.01,
   },
   {
     id: 'coneLegacy',
     fieldCode: 'prestige_cone_legacy',
-    title: 'Шишечное наследие',
+    title: 'Наследство первой квоты',
+    description:
+      'Упрощает следующие квоты и добавляет стартовые шишки после перерождения.',
+    effectText: '-2% к цели квоты и +30 стартовых шишек за уровень.',
     baseCost: 4,
     value: 0.02,
   },
   {
     id: 'shadowBrokerage',
     fieldCode: 'prestige_shadow_brokerage',
-    title: 'Теневая брокерка',
+    title: 'Теневой брокерский стол',
+    description:
+      'Усиливает торговлю: меньше потерь на комиссиях и выше потенциал рынка.',
+    effectText: '-3% к рыночной комиссии за уровень.',
     baseCost: 8,
     value: 0.03,
   },
   {
     id: 'logisticsIcon',
     fieldCode: 'prestige_logistics_icon',
-    title: 'Икона логистики',
+    title: 'Логистический культ',
+    description:
+      'Ускоряет производство и усиливает доставку после каждого перерождения.',
+    effectText: '+5% к пассивной добыче и +15% к доставке за уровень.',
     baseCost: 15,
     value: 0.05,
   },
   {
     id: 'coneEmpire',
     fieldCode: 'prestige_cone_empire',
-    title: 'Империя шишек',
+    title: 'Шишечная монополия',
+    description:
+      'Большой поздний буст для кликов и пассивной добычи, когда экономика уже разогнана.',
+    effectText: '+8% к пассивной добыче и +10% к клику за уровень.',
     baseCost: 30,
     value: 0.08,
   },
