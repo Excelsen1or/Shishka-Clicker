@@ -63,6 +63,7 @@
 ### Task 1: Add Playtime Column In Supabase
 
 **Files:**
+
 - Create: `server/sql/2026-04-23_player_saves_playtime.sql`
 - Modify: `server/sql/2026-04-14_save_player_progress_rpc.sql`
 - Modify: `server/sql/2026-04-15_player_leaderboard_rpc.sql`
@@ -138,6 +139,7 @@ git commit -m "feat: add playtime persistence schema"
 ### Task 2: Extend Save/Load API With Playtime
 
 **Files:**
+
 - Modify: `api/save.js`
 - Modify: `api/load.js`
 
@@ -248,6 +250,7 @@ git commit -m "feat: persist playtime through save api"
 ### Task 3: Track Session Playtime On The Client
 
 **Files:**
+
 - Modify: `web/src/lib/cloudSave.js`
 - Modify: `web/src/context/DiscordActivityContext.jsx`
 - Test: `web/src/context/__tests__/DiscordActivityContext.test.js`
@@ -337,8 +340,9 @@ sessionStartedAtMsRef.current = Date.now()
 After successful upload:
 
 ```js
-baseSessionSecondsTotalRef.current =
-  Number(result.sessionSecondsTotal ?? baseSessionSecondsTotalRef.current)
+baseSessionSecondsTotalRef.current = Number(
+  result.sessionSecondsTotal ?? baseSessionSecondsTotalRef.current,
+)
 sessionStartedAtMsRef.current = Date.now()
 ```
 
@@ -405,6 +409,7 @@ git commit -m "feat: track session playtime on client"
 ### Task 4: Add Time Formatting Utilities
 
 **Files:**
+
 - Modify: `web/src/lib/format.js`
 - Test: `web/src/lib/__tests__/format.test.js`
 
@@ -468,6 +473,7 @@ git commit -m "feat: add playtime formatting helpers"
 ### Task 5: Add Playtime To Leaderboard Data
 
 **Files:**
+
 - Modify: `api/leaderboard.js`
 - Modify: `web/src/stores/WebsocketStore.js`
 - Test: `web/src/components/header/__tests__/Header.test.jsx`
@@ -566,6 +572,7 @@ git commit -m "feat: add playtime leaderboard metric"
 ### Task 6: Redesign Leaderboard Widget
 
 **Files:**
+
 - Modify: `web/src/components/clicker/LeaderboardWidget.jsx`
 - Modify: `web/src/styles/screens.css`
 - Test: `web/src/components/header/__tests__/Header.test.jsx`
@@ -663,6 +670,7 @@ git commit -m "feat: redesign leaderboard widget"
 ### Task 7: Add Playtime To Meta Screen
 
 **Files:**
+
 - Modify: `web/src/components/meta/MetaScreen.jsx`
 - Modify: `web/src/styles/screens.css`
 - Test: `web/src/components/meta/__tests__/MetaScreen.test.jsx`
@@ -739,6 +747,7 @@ git commit -m "feat: show playtime on meta screen"
 ### Task 8: Adapt Custom Cursor For Small And Touch Screens
 
 **Files:**
+
 - Modify: `web/src/styles/base.css`
 - Test: `web/src/styles/__tests__/screenSizing.test.js`
 
@@ -827,6 +836,7 @@ git commit -m "feat: adapt custom cursor for mobile and small screens"
 ### Task 9: Full Verification
 
 **Files:**
+
 - Modify: none
 - Test: full targeted verification only
 

@@ -42,6 +42,12 @@
   --text-base: #d4daf7;
   --text-muted: #96a0c8;
   --text-faint: #667096;
+  --text-success: #d3f6e7;
+  --text-warning: #ffe9a8;
+  --text-danger-soft: #ffd3cf;
+  --text-success-bright: #b7ffc1;
+  --text-terminal: #6eff89;
+  --text-terminal-soft: #c9ffd0;
 
   /* ── Primitives ─────────────────────────── */
   --white-rgb: 255 255 255;
@@ -97,6 +103,13 @@
     inset 0 0 0 2px rgb(var(--black-rgb) / 0.2),
     6px 6px 0 0 rgb(var(--black-rgb) / 0.26),
     0 0 26px rgb(var(--screen-accent-rgb) / 0.1);
+  --shadow-button:
+    inset 0 0 0 1px rgb(var(--black-rgb) / 0.18),
+    3px 3px 0 0 rgb(var(--black-rgb) / 0.22);
+  --shadow-button-hover:
+    inset 0 0 0 1px rgb(var(--black-rgb) / 0.18),
+    4px 4px 0 0 rgb(var(--black-rgb) / 0.24),
+    0 0 16px rgb(var(--btn-accent-rgb) / 0.1);
   --shadow-glow:
     0 0 34px rgb(var(--accent-cyan-rgb) / 0.12),
     0 0 46px rgb(var(--accent-fuchsia-rgb) / 0.08);
@@ -116,6 +129,7 @@
   --ui-content-pad-top: 0.92rem;
   --ui-content-pad-x: 0.96rem;
   --ui-content-bottom-clearance: 1.35rem;
+  --ui-mobile-nav-clearance: 0rem;
   --ui-screen-padding: 1rem;
   --ui-screen-header-gap: 0.5rem;
   --ui-screen-header-margin: 1.05rem;
@@ -204,6 +218,7 @@
     --ui-content-pad-top: 0.72rem;
     --ui-content-pad-x: 0.68rem;
     --ui-content-bottom-clearance: 1.55rem;
+    --ui-mobile-nav-clearance: calc(var(--nav-height) * 0.72);
     --ui-screen-padding: 0.72rem;
     --ui-screen-header-gap: 0.42rem;
     --ui-screen-header-margin: 0.82rem;

@@ -252,7 +252,10 @@ function areFieldItemsEqual(left, right) {
 }
 
 function reuseFieldItemArray(previousItems, nextItems) {
-  if (!Array.isArray(previousItems) || previousItems.length !== nextItems.length) {
+  if (
+    !Array.isArray(previousItems) ||
+    previousItems.length !== nextItems.length
+  ) {
     return nextItems
   }
 
@@ -311,7 +314,10 @@ function reuseClickerFieldData(previousValue, nextValue) {
       previousValue.deckLocks?.upgrades,
       nextValue.deckLocks.upgrades,
     ),
-    meta: reusePlainObject(previousValue.deckLocks?.meta, nextValue.deckLocks.meta),
+    meta: reusePlainObject(
+      previousValue.deckLocks?.meta,
+      nextValue.deckLocks.meta,
+    ),
   }
 
   if (
@@ -418,7 +424,8 @@ export default class GameStore {
     if (
       this.uiResolvedCache.state === currentState &&
       this.uiResolvedCache.value &&
-      (this.uiResolvedCache.expiresAt <= 0 || now < this.uiResolvedCache.expiresAt)
+      (this.uiResolvedCache.expiresAt <= 0 ||
+        now < this.uiResolvedCache.expiresAt)
     ) {
       return this.uiResolvedCache.value
     }
@@ -621,10 +628,7 @@ export default class GameStore {
         ? this.getResolvedUiState()
         : resolveUiState(this.uiSnapshotState)
     const cache = this.clickerFieldCache ?? { state: null, value: null }
-    if (
-      cache.state === resolvedState &&
-      cache.value
-    ) {
+    if (cache.state === resolvedState && cache.value) {
       return cache.value
     }
 

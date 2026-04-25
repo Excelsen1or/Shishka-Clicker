@@ -297,7 +297,9 @@ export function MarketTradePanel({
                           <button
                             type="button"
                             className="market-action-btn market-action-btn--buy"
-                            onClick={() => handleCampaign(campaign.id, !disabled)}
+                            onClick={() =>
+                              handleCampaign(campaign.id, !disabled)
+                            }
                             aria-disabled={disabled}
                             aria-label={`Запустить ${campaign.title}`}
                             title={`Запустить ${campaign.title}`}

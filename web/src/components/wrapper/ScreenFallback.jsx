@@ -139,7 +139,8 @@ export const ScreenFallback = ({
                 colorful
                 className="pixel-inline-icon"
               />
-              {formatNumber(completedSteps)}/{formatNumber(Math.max(steps.length, 1))} READY
+              {formatNumber(completedSteps)}/
+              {formatNumber(Math.max(steps.length, 1))} READY
             </span>
           </div>
         </div>

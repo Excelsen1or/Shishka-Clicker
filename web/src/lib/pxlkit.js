@@ -20,9 +20,9 @@ export function hasRenderablePxlKitIconShape(icon) {
 export function isRenderableStaticPxlKitIconShape(icon) {
   return Boolean(
     icon &&
-      typeof icon === 'object' &&
-      Array.isArray(icon.grid) &&
-      icon.grid.length > 0,
+    typeof icon === 'object' &&
+    Array.isArray(icon.grid) &&
+    icon.grid.length > 0,
   )
 }
 

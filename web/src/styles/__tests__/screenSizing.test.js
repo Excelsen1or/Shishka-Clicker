@@ -107,6 +107,11 @@ describe('screen sizing tokens', () => {
     expect(themeCss).toContain('--arcade-gold-rgb:')
     expect(themeCss).toContain('--shadow-pixel:')
     expect(themeCss).toContain('--shadow-pixel-accent:')
+    expect(themeCss).toContain('--shadow-button:')
+    expect(themeCss).toContain('--shadow-button-hover:')
+    expect(themeCss).toContain('--text-success:')
+    expect(themeCss).toContain('--text-danger-soft:')
+    expect(themeCss).toContain('--ui-mobile-nav-clearance:')
     expect(themeCss).toContain('--screen-shop-rgb: var(--arcade-gold-rgb);')
     expect(themeCss).toContain('--screen-market-rgb: var(--arcade-neon-rgb);')
     expect(themeCss).toContain('--screen-meta-rgb: var(--arcade-pop-rgb);')
@@ -119,6 +124,10 @@ describe('screen sizing tokens', () => {
       '--screen-accent-rgb: var(--screen-market-rgb);',
     )
     expect(layoutCss).toContain('box-shadow: var(--shadow-pixel) !important;')
+    expect(layoutCss).toContain(
+      ':where(.shop-card__btn, .settings-ghost-btn, .reset-btn, .market-action-btn)',
+    )
+    expect(layoutCss).toContain('var(--ui-mobile-nav-clearance)')
     expect(screensCss).toContain('--screen-accent-rgb: var(--screen-meta-rgb);')
     expect(screensCss).toContain(
       '--screen-accent-rgb: var(--screen-settings-rgb);',

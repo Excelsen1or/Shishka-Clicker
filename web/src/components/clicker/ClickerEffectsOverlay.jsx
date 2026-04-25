@@ -432,12 +432,7 @@ const ClickerEffectsOverlayInner = forwardRef(function ClickerEffectsOverlay(
   useImperativeHandle(
     ref,
     () => ({
-      spawn({
-        result,
-        pointerPoint,
-        particlePoint,
-        burstPoint,
-      }) {
+      spawn({ result, pointerPoint, particlePoint, burstPoint }) {
         const now = Date.now()
         lastSpawnAtRef.current = now
         cancelPendingHide()

@@ -114,7 +114,9 @@ async function saveViaLegacyQueries({
 }) {
   const { data: existingSave, error: selectError } = await supabase
     .from('player_saves')
-    .select('save_data, updated_at, app_version, save_version, session_seconds_total')
+    .select(
+      'save_data, updated_at, app_version, save_version, session_seconds_total',
+    )
     .eq('player_id', playerId)
     .maybeSingle()
 

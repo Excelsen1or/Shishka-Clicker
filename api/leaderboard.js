@@ -110,7 +110,9 @@ async function loadLeaderboardRows(supabase) {
     const to = from + PAGE_SIZE - 1
     const { data, error } = await supabase
       .from('player_saves')
-      .select('player_id, player_username, save_data, updated_at, session_seconds_total')
+      .select(
+        'player_id, player_username, save_data, updated_at, session_seconds_total',
+      )
       .range(from, to)
 
     if (error) {

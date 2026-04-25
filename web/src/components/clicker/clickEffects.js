@@ -79,8 +79,7 @@ export function pruneExpiredInPlace(current, now, pool) {
 
 export function hasActiveCanvasEffects(effects) {
   return (
-    (effects?.particles?.length ?? 0) > 0 ||
-    (effects?.bursts?.length ?? 0) > 0
+    (effects?.particles?.length ?? 0) > 0 || (effects?.bursts?.length ?? 0) > 0
   )
 }
 

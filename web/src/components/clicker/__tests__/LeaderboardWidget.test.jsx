@@ -11,9 +11,7 @@ describe('LeaderboardWidget', () => {
   })
 
   it('maps podium rows to themed rank styles', () => {
-    expect(getLeaderboardRankToneClass(0)).toBe(
-      'leaderboard-widget__row--gold',
-    )
+    expect(getLeaderboardRankToneClass(0)).toBe('leaderboard-widget__row--gold')
     expect(getLeaderboardRankToneClass(1)).toBe(
       'leaderboard-widget__row--silver',
     )

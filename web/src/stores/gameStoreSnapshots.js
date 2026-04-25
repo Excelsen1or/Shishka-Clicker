@@ -329,7 +329,9 @@ function getMarketScreenSummary(state, buildings) {
     0,
     resaleUnlockTarget - lifetimeShishki,
   )
-  const resaleStallIndex = buildings.findIndex((item) => item.id === 'resaleStall')
+  const resaleStallIndex = buildings.findIndex(
+    (item) => item.id === 'resaleStall',
+  )
   const buildingUnlockGoal = resaleStallIndex >= 0 ? resaleStallIndex + 1 : 0
   const buildingUnlockProgress =
     resaleStallIndex >= 0
@@ -456,11 +458,7 @@ export function buildClickerFieldData(state) {
         title: item.title,
         code: item.fieldCode,
         type: 'market',
-        state: !unlock.unlocked
-          ? 'locked'
-          : count > 0
-            ? 'owned'
-            : 'available',
+        state: !unlock.unlocked ? 'locked' : count > 0 ? 'owned' : 'available',
         count,
         unlocked: unlock.unlocked,
       }

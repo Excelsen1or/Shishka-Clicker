@@ -2592,7 +2592,6 @@ Update `web/src/components/market/MarketTicker.jsx`:
 
 ```jsx
 import { EntityPlaceholderIcon } from '../ui/EntityPlaceholderIcon.jsx'
-
 ;<li key={good.id}>
   <EntityPlaceholderIcon
     code={good.fieldCode}

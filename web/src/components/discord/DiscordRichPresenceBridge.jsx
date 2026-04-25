@@ -12,8 +12,12 @@ export const DiscordRichPresenceBridge = observer(
   function DiscordRichPresenceBridge() {
     const { activeTab } = useNav()
     const game = useGameStore()
-    const { isActivity, status, updateRichPresence, markPresenceBridgeMounted } =
-      useDiscordPresence()
+    const {
+      isActivity,
+      status,
+      updateRichPresence,
+      markPresenceBridgeMounted,
+    } = useDiscordPresence()
     const startedAtRef = useRef(Math.floor(Date.now() / 1000))
     const presenceSource = game.discordPresenceSource
 

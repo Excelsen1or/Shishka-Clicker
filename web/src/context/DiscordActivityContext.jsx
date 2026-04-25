@@ -914,7 +914,12 @@ export function DiscordActivityProvider({ children }) {
       updateRichPresence,
       markPresenceBridgeMounted,
     }),
-    [markPresenceBridgeMounted, state.isActivity, state.status, updateRichPresence],
+    [
+      markPresenceBridgeMounted,
+      state.isActivity,
+      state.status,
+      updateRichPresence,
+    ],
   )
 
   return (

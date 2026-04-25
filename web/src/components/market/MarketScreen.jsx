@@ -2,7 +2,11 @@ import { observer } from 'mobx-react-lite'
 import { getMarketFeeRate } from '../../game/economyMath.js'
 import { getEventPresentation } from '../../game/economyMath.js'
 import { getEventVisual } from '../../game/marketEventVisuals.js'
-import { AnimatedPxlKitIcon, isAnimatedIcon, PxlKitIcon } from '../../lib/pxlkit'
+import {
+  AnimatedPxlKitIcon,
+  isAnimatedIcon,
+  PxlKitIcon,
+} from '../../lib/pxlkit'
 
 import { formatNumber } from '../../lib/format.js'
 import { useGameStore } from '../../stores/StoresProvider.jsx'
@@ -39,7 +43,9 @@ function getMarketScreenFallback(buildings, uiState) {
     0,
     resaleUnlockTarget - lifetimeShishki,
   )
-  const resaleStallIndex = buildings.findIndex((item) => item.id === 'resaleStall')
+  const resaleStallIndex = buildings.findIndex(
+    (item) => item.id === 'resaleStall',
+  )
   const buildingUnlockGoal = resaleStallIndex >= 0 ? resaleStallIndex + 1 : 0
   const buildingUnlockProgress =
     resaleStallIndex >= 0
@@ -76,7 +82,8 @@ export const MarketScreen = observer(function MarketScreen() {
   const goods = uiEconomy?.marketGoods ?? []
   const campaigns = uiEconomy?.campaigns ?? []
   const buildings = uiEconomy?.buildings ?? []
-  const marketScreen = uiEconomy?.marketScreen ?? getMarketScreenFallback(buildings, uiState)
+  const marketScreen =
+    uiEconomy?.marketScreen ?? getMarketScreenFallback(buildings, uiState)
   const shishki = uiState?.shishki ?? 0
   const brokerLevel = uiEconomy?.brokerLevel ?? 0
   const activeEvent = uiState?.activeEvent ?? null
@@ -137,16 +144,16 @@ export const MarketScreen = observer(function MarketScreen() {
                       className="pixel-inline-icon"
                     />
                   </span>
-                    <span className="market-exchange__event-copy">
-                      <span className="market-exchange__event-label">
-                        {hasActiveWindow ? 'Ивент начался' : 'Спокойный рынок'}
-                      </span>
-                      <strong>
+                  <span className="market-exchange__event-copy">
+                    <span className="market-exchange__event-label">
+                      {hasActiveWindow ? 'Ивент начался' : 'Спокойный рынок'}
+                    </span>
+                    <strong>
                       {activeEvent ? activeEvent.title : 'ивент: тихо'}
                     </strong>
                     <span>{activeEventDescription}</span>
-                    </span>
                   </span>
+                </span>
               </div>
               <div className="market-exchange__copy-strip"></div>
             </div>
@@ -160,7 +167,9 @@ export const MarketScreen = observer(function MarketScreen() {
               </article>
               <article className="market-exchange__stat market-exchange__stat--accent">
                 <span>Комиссия</span>
-                <strong>{formatNumber(Math.round(feeRate * 1000) / 10)}%</strong>
+                <strong>
+                  {formatNumber(Math.round(feeRate * 1000) / 10)}%
+                </strong>
               </article>
               <article
                 className={`market-exchange__stat market-exchange__stat--wide ${hasActiveCampaign ? 'market-exchange__stat--live' : 'market-exchange__stat--idle'}`.trim()}
@@ -225,7 +234,8 @@ export const MarketScreen = observer(function MarketScreen() {
                 Прогресс разблокировки
               </span>
               <strong>
-                Осталось заработать {formatNumber(shishkiRemainingToUnlock)} шишек
+                Осталось заработать {formatNumber(shishkiRemainingToUnlock)}{' '}
+                шишек
               </strong>
               <p>
                 Открыто зданий: {formatNumber(buildingUnlockProgress)} /{' '}

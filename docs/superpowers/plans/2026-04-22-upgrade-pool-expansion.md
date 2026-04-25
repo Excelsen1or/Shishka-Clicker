@@ -30,6 +30,7 @@
 ### Task 1: Expand `RUN_UPGRADES`
 
 **Files:**
+
 - Modify: `web/src/game/economyConfig.js`
 - Test: `web/src/game/__tests__/economyMath.test.js`
 
@@ -103,6 +104,7 @@ Extend `RUN_UPGRADES` in `web/src/game/economyConfig.js` with the agreed additio
 ```
 
 Add the remaining planned entries in the same shape:
+
 - `brokenCounter`
 - `handTrained`
 - `warehouseConcession`
@@ -130,6 +132,7 @@ git commit -m "feat: expand run upgrade pool config"
 ### Task 2: Wire new upgrade kinds into economy math
 
 **Files:**
+
 - Modify: `web/src/game/economyMath.js`
 - Test: `web/src/game/__tests__/economyMath.test.js`
 
@@ -218,7 +221,10 @@ export function getBuildingPurchaseCost(state, building, owned) {
 
   return Math.max(
     1,
-    Math.floor(getBuildingCost(building.baseCost, owned) * (1 - buildingDiscount - purchaseDiscount)),
+    Math.floor(
+      getBuildingCost(building.baseCost, owned) *
+        (1 - buildingDiscount - purchaseDiscount),
+    ),
   )
 }
 
@@ -236,6 +242,7 @@ export function getRunUpgradePurchaseCost(state, upgrade, level) {
 ```
 
 Then apply the same pattern to:
+
 - `getEventSpawnChance` with `eventPositiveChance`
 - a new negative-event helper for later event penalty scaling with `eventNegativeReduction`
 - event duration multiplier using `eventDurationBoost`
@@ -244,6 +251,7 @@ Then apply the same pattern to:
 - campaign duration helper using `campaignDurationBoost`
 
 Keep the implementation additive and capped where needed:
+
 - discounts capped at `50%`
 - event spawn chance still capped at `0.45`
 - penalty reduction capped at a sane max like `0.5`
@@ -259,15 +267,20 @@ const activeCampaignProductionBoost =
 ```
 
 ```js
-const durationMultiplier = 1 + getRunUpgradeBonus(state, 'campaignDurationBoost')
+const durationMultiplier =
+  1 + getRunUpgradeBonus(state, 'campaignDurationBoost')
 endsAt: Date.now() + Math.floor(campaign.durationMs * durationMultiplier)
 ```
 
 Also scale spawned events before storing them:
 
 ```js
-const eventDurationMultiplier = 1 + getRunUpgradeBonus(clearedState, 'eventDurationBoost')
-const negativeReduction = getRunUpgradeBonus(clearedState, 'eventNegativeReduction')
+const eventDurationMultiplier =
+  1 + getRunUpgradeBonus(clearedState, 'eventDurationBoost')
+const negativeReduction = getRunUpgradeBonus(
+  clearedState,
+  'eventNegativeReduction',
+)
 ```
 
 - [ ] **Step 5: Run tests to verify they pass**
@@ -286,6 +299,7 @@ git commit -m "feat: wire upgrade pool into economy math"
 ### Task 3: Update store purchase flow and shop labels
 
 **Files:**
+
 - Modify: `web/src/stores/GameStore.js`
 - Modify: `web/src/components/shop/ShopScreen.jsx`
 - Test: `web/src/stores/__tests__/GameStore.test.js`
@@ -316,28 +330,30 @@ it('applies upgrade discounts when buying a run upgrade', () => {
 it('renders readable labels for discount and campaign upgrade kinds', () => {
   const html = renderToStaticMarkup(
     <SettingsProvider>
-      <StoresContext.Provider value={{
-        gameStore: {
-          uiEconomy: {
-            subscriptions: [],
-            upgrades: [
-              {
-                id: 'districtWarmup',
-                title: 'Прогрев района',
-                fieldCode: 'run_district_warmup',
-                kind: 'campaignDiscount',
-                value: 0.08,
-                level: 1,
-                cost: 12_000,
-                canBuy: true,
-                unlocked: true,
-              },
-            ],
+      <StoresContext.Provider
+        value={{
+          gameStore: {
+            uiEconomy: {
+              subscriptions: [],
+              upgrades: [
+                {
+                  id: 'districtWarmup',
+                  title: 'Прогрев района',
+                  fieldCode: 'run_district_warmup',
+                  kind: 'campaignDiscount',
+                  value: 0.08,
+                  level: 1,
+                  cost: 12_000,
+                  canBuy: true,
+                  unlocked: true,
+                },
+              ],
+            },
+            buySubscription: () => {},
+            buyUpgrade: () => {},
           },
-          buySubscription: () => {},
-          buyUpgrade: () => {},
-        },
-      }}>
+        }}
+      >
         <ShopScreen initialView="upgrades" />
       </StoresContext.Provider>
     </SettingsProvider>,
@@ -416,6 +432,7 @@ git commit -m "feat: expose expanded upgrade kinds in store and shop"
 ### Task 4: Add integration coverage for events and campaigns
 
 **Files:**
+
 - Modify: `web/src/stores/__tests__/GameStore.test.js`
 - Modify: `web/src/game/__tests__/economyMath.test.js`
 
@@ -437,7 +454,9 @@ it('extends campaign duration from campaign duration upgrades', () => {
 
   store.activateCampaign('iceFlexer')
 
-  expect(store.state.activeCampaign.endsAt - Date.now()).toBeGreaterThan(100_000)
+  expect(store.state.activeCampaign.endsAt - Date.now()).toBeGreaterThan(
+    100_000,
+  )
 })
 ```
 
@@ -465,6 +484,7 @@ Expected: FAIL because event penalties and durations still ignore the new upgrad
 - [ ] **Step 3: Implement the missing integration logic**
 
 Keep the logic narrow:
+
 - scale negative `productionBoost` and `clickBoost` penalties only when the active event is negative or mixed;
 - leave positive events untouched by `eventNegativeReduction`;
 - scale `activeEvent.endsAt` and `activeCampaign.endsAt` only at spawn/activation time, not every tick;

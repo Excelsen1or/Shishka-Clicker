@@ -159,12 +159,7 @@ export const AmbientCanvas = memo(function AmbientCanvas({
           populateNoiseBuffer(noiseCanvas)
         }
 
-        drawNoise(
-          bufferCtx,
-          bufferWidth,
-          bufferHeight,
-          noiseCanvas,
-        )
+        drawNoise(bufferCtx, bufferWidth, bufferHeight, noiseCanvas)
       }
 
       ctx.clearRect(0, 0, width, height)

@@ -58,7 +58,8 @@ export const SettingsAbout = memo(function SettingsAbout({ resetGame }) {
         </div>
 
         <p className="settings-card__hint settings-card__hint--block">
-          Build: {APP_BUILD_ID} • {new Date(APP_BUILD_TIME).toLocaleString('ru-RU')}
+          Build: {APP_BUILD_ID} •{' '}
+          {new Date(APP_BUILD_TIME).toLocaleString('ru-RU')}
         </p>
       </article>
 

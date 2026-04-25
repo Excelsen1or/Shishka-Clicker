@@ -13,6 +13,7 @@
 ### Task 1: Lock In Current Behavior With Tests
 
 **Files:**
+
 - Modify: `web/src/stores/__tests__/GameStore.test.js`
 - Create or Modify: `web/src/stores/__tests__/gameStoreSnapshots.test.js`
 - Modify: `web/src/components/clicker/__tests__/clickEffects.test.js`
@@ -25,6 +26,7 @@
 ### Task 2: Optimize GameStore Internal Repeated Work
 
 **Files:**
+
 - Modify: `web/src/stores/GameStore.js`
 
 - [ ] Add identity-based caches for `_state`, `uiSnapshotState`, derived production, UI-resolved state, and snapshot builders.
@@ -35,6 +37,7 @@
 ### Task 3: Reduce Hot UI Render Work
 
 **Files:**
+
 - Modify: `web/src/stores/gameStoreSnapshots.js`
 - Modify: `web/src/components/clicker/ClickerScreen.jsx`
 - Modify: `web/src/components/market/MarketScreen.jsx`
@@ -48,6 +51,7 @@
 ### Task 4: Optimize Effects And Ambient Canvas
 
 **Files:**
+
 - Modify: `web/src/components/clicker/ClickerEffectsOverlay.jsx`
 - Modify: `web/src/components/clicker/clickEffects.js`
 - Modify: `web/src/components/ui/AmbientCanvas.jsx`
@@ -61,6 +65,7 @@
 ### Task 5: Verify
 
 **Files:**
+
 - Modify: none
 
 - [ ] Run targeted Vitest suites for touched store, snapshot, UI, and effect modules.

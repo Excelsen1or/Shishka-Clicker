@@ -8,7 +8,11 @@ const store = {
   gameStore: {
     uiEconomy: {
       buildings: [
-        { id: 'garagePicker', title: 'Сборщик шишек у гаражей', unlocked: true },
+        {
+          id: 'garagePicker',
+          title: 'Сборщик шишек у гаражей',
+          unlocked: true,
+        },
         { id: 'pickupPoint', title: 'ПВЗ на окраине', unlocked: true },
         { id: 'greySorting', title: 'Серая сортировка', unlocked: true },
         {

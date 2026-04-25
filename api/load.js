@@ -17,7 +17,9 @@ export default async function handler(req, res) {
 
     const { data, error } = await supabase
       .from('player_saves')
-      .select('save_data, updated_at, app_version, save_version, session_seconds_total')
+      .select(
+        'save_data, updated_at, app_version, save_version, session_seconds_total',
+      )
       .eq('player_id', String(session.playerId))
       .maybeSingle()
 

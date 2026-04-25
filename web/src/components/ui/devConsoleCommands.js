@@ -174,9 +174,7 @@ export function parseDevCommand(input) {
   const campaignMatch = cmd.match(CAMPAIGN_PATTERN)
   if (campaignMatch) {
     const campaignId = CAMPAIGN_ID_MAP[campaignMatch[1]]
-    return campaignId
-      ? { type: 'campaign', campaignId }
-      : { type: 'invalid' }
+    return campaignId ? { type: 'campaign', campaignId } : { type: 'invalid' }
   }
 
   const marketToggleMatch = cmd.match(MARKET_TOGGLE_PATTERN)

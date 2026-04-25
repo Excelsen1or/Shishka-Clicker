@@ -124,13 +124,15 @@ export const MetaScreen = observer(function MetaScreen() {
                 type="button"
                 className="shop-card__btn"
                 onClick={() => buyPrestigeUpgrade(item.id)}
-                disabled={!canSpendHeavenly || uiState.heavenlyShishki < item.cost}
+                disabled={
+                  !canSpendHeavenly || uiState.heavenlyShishki < item.cost
+                }
               >
                 {!canSpendHeavenly
                   ? 'Сначала переродись'
                   : uiState.heavenlyShishki < item.cost
-                  ? 'Нужно больше небесных'
-                  : 'Купить'}
+                    ? 'Нужно больше небесных'
+                    : 'Купить'}
               </button>
             </div>
           </article>
@@ -164,7 +166,8 @@ export const MetaScreen = observer(function MetaScreen() {
               </div>
               <div className="shop-card__body">
                 <div className="shop-card__effect-line">
-                  Следующий комочек: {atCap ? 'кап' : `${formatNumber(nextCost)} шт.`}
+                  Следующий комочек:{' '}
+                  {atCap ? 'кап' : `${formatNumber(nextCost)} шт.`}
                 </div>
               </div>
               <div className="shop-card__footer">

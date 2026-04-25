@@ -269,9 +269,7 @@ const DevConsolePanel = observer(function DevConsolePanel({
       if (parsed.type === 'event') {
         _devSetEvent(parsed.eventId)
         pushLog(
-          parsed.eventId
-            ? `Ивент запущен: ${parsed.eventId}`
-            : 'Ивент очищен.',
+          parsed.eventId ? `Ивент запущен: ${parsed.eventId}` : 'Ивент очищен.',
           'success',
         )
         return
@@ -291,7 +289,9 @@ const DevConsolePanel = observer(function DevConsolePanel({
       if (parsed.type === 'marketToggle') {
         _devSetMarketUnlocked(parsed.enabled)
         pushLog(
-          parsed.enabled ? 'Рынок принудительно открыт.' : 'Рынок принудительно закрыт.',
+          parsed.enabled
+            ? 'Рынок принудительно открыт.'
+            : 'Рынок принудительно закрыт.',
           'success',
         )
         return
@@ -305,7 +305,10 @@ const DevConsolePanel = observer(function DevConsolePanel({
 
       if (parsed.type === 'rebirth') {
         const ok = _devDoRebirth()
-        pushLog(ok ? 'Перерождение выполнено.' : 'Квота ещё не готова.', ok ? 'success' : 'warn')
+        pushLog(
+          ok ? 'Перерождение выполнено.' : 'Квота ещё не готова.',
+          ok ? 'success' : 'warn',
+        )
         return
       }
 

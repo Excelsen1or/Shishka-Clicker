@@ -130,7 +130,9 @@ export const StatCard = memo(function StatCard({
   }, [iconKey, label, resolvedIcon, resolvedPixelIcon, variant])
   const items = useMemo(
     () =>
-      compact ? (contributions?.items?.slice(0, 3) ?? []) : (contributions?.items ?? []),
+      compact
+        ? (contributions?.items?.slice(0, 3) ?? [])
+        : (contributions?.items ?? []),
     [compact, contributions?.items],
   )
   const total = useMemo(
@@ -161,7 +163,10 @@ export const StatCard = memo(function StatCard({
     () => ['stat-card__hint', hintClassName].filter(Boolean).join(' '),
     [hintClassName],
   )
-  const cardStyle = useMemo(() => ({ animationDelay: `${delay * 60}ms` }), [delay])
+  const cardStyle = useMemo(
+    () => ({ animationDelay: `${delay * 60}ms` }),
+    [delay],
+  )
   const animatedDigits = useMemo(
     () =>
       shouldAnimateValue ? buildAnimatedDigits(displayValue, displayValue) : [],
@@ -227,11 +232,7 @@ export const StatCard = memo(function StatCard({
   }, [])
 
   return (
-    <div
-      ref={cardRef}
-      className={cardClassName}
-      style={cardStyle}
-    >
+    <div ref={cardRef} className={cardClassName} style={cardStyle}>
       {(resolvedIcon || label) && (
         <div className="stat-card__head">
           {iconNode ? (

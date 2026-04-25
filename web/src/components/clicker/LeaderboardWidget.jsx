@@ -121,7 +121,9 @@ export const LeaderboardWidget = observer(function LeaderboardWidget({
           <div className="leaderboard-widget__head">
             <div className="leaderboard-widget__heading">
               <div className="leaderboard-widget__kicker">Рейтинг</div>
-              <div className="leaderboard-widget__title">Лучшие за всё время</div>
+              <div className="leaderboard-widget__title">
+                Лучшие за всё время
+              </div>
             </div>
             <div className="leaderboard-widget__summary pixel-badge">
               {activeMeta.icon ? (
@@ -200,7 +202,9 @@ export const LeaderboardWidget = observer(function LeaderboardWidget({
                     </div>
                   ) : null}
                   <div className="leaderboard-widget__placement">
-                    <span className="leaderboard-widget__rank">#{index + 1}</span>
+                    <span className="leaderboard-widget__rank">
+                      #{index + 1}
+                    </span>
                   </div>
                   <div className="leaderboard-widget__player">
                     <span className="leaderboard-widget__player-copy">

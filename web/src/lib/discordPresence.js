@@ -65,22 +65,13 @@ function buildPresenceState(activeTab, source) {
   } = source ?? {}
 
   const partsByTab = {
-    clicker: [
-      `Шишки/с: ${shishkiPerSecondText}`,
-      `Клик: ${clickPowerText}`,
-    ],
+    clicker: [`Шишки/с: ${shishkiPerSecondText}`, `Клик: ${clickPowerText}`],
     purchases: [
       `Построек: ${buildingCountText}`,
       `Апгрейдов: ${upgradeLevelsText}`,
     ],
-    market: [
-      `Позиции: ${marketPositionsText}`,
-      `Шишки: ${shishkiText}`,
-    ],
-    meta: [
-      `Небесные: ${heavenlyShishkiText}`,
-      `Комки: ${tarLumpsText}`,
-    ],
+    market: [`Позиции: ${marketPositionsText}`, `Шишки: ${shishkiText}`],
+    meta: [`Небесные: ${heavenlyShishkiText}`, `Комки: ${tarLumpsText}`],
     settings: [`Ачивок: ${achievementCountText}`, `v${APP_VERSION}`],
   }
 
@@ -95,9 +86,7 @@ function buildPresenceState(activeTab, source) {
     .join(' • ')
 }
 
-export function getExternalPresenceImageUrl({
-  env = import.meta.env,
-} = {}) {
+export function getExternalPresenceImageUrl({ env = import.meta.env } = {}) {
   const overrideUrl = env.VITE_DISCORD_ACTIVITY_LARGE_IMAGE_URL
   if (overrideUrl) {
     return overrideUrl

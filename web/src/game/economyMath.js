@@ -261,9 +261,7 @@ function getCampaignEffectMultiplier(state) {
   )
 
   return (
-    1 +
-    buildingPotencyBonus +
-    getRunUpgradeBonus(state, 'campaignEffectBoost')
+    1 + buildingPotencyBonus + getRunUpgradeBonus(state, 'campaignEffectBoost')
   )
 }
 
@@ -659,7 +657,8 @@ export function getBuildingPerkSummary(id, level = 0) {
 
 export function getEventSpawnChance(state, seconds) {
   const campaignEventBoost =
-    (state?.activeCampaign?.eventBoost ?? 0) * getCampaignEffectMultiplier(state)
+    (state?.activeCampaign?.eventBoost ?? 0) *
+    getCampaignEffectMultiplier(state)
   const baseChance = seconds * (0.018 + campaignEventBoost * 0.06)
   const pickupPointBonus = getBuildingPerkValue(
     'pickupPoint',
@@ -678,7 +677,10 @@ export function getEventSpawnChance(state, seconds) {
   }, 0)
   const upgradeBonus = getRunUpgradeBonus(state, 'eventPositiveChance')
 
-  return Math.min(0.45, baseChance + pickupPointBonus + rareBonus + upgradeBonus)
+  return Math.min(
+    0.45,
+    baseChance + pickupPointBonus + rareBonus + upgradeBonus,
+  )
 }
 
 export function getEventPresentation(id) {
@@ -698,7 +700,9 @@ export function getCampaignLaunchCost(state, campaign) {
 
   return Math.max(
     1,
-    Math.floor(campaign.cost * (1 - Math.min(0.8, campaignDiscount + upgradeDiscount))),
+    Math.floor(
+      campaign.cost * (1 - Math.min(0.8, campaignDiscount + upgradeDiscount)),
+    ),
   )
 }
 
@@ -753,7 +757,9 @@ export function rollEventDefinition(random = Math.random, state = null) {
 export function getEventWindow(state, definition, now = Date.now()) {
   return {
     ...definition,
-    durationMs: Math.floor(definition.durationMs * getEventDurationMultiplier(state)),
+    durationMs: Math.floor(
+      definition.durationMs * getEventDurationMultiplier(state),
+    ),
     endsAt:
       now +
       Math.floor(definition.durationMs * getEventDurationMultiplier(state)),
@@ -763,7 +769,9 @@ export function getEventWindow(state, definition, now = Date.now()) {
 export function getCampaignWindow(state, campaign, now = Date.now()) {
   return {
     ...campaign,
-    durationMs: Math.floor(campaign.durationMs * getCampaignDurationMultiplier(state)),
+    durationMs: Math.floor(
+      campaign.durationMs * getCampaignDurationMultiplier(state),
+    ),
     endsAt:
       now +
       Math.floor(campaign.durationMs * getCampaignDurationMultiplier(state)),
